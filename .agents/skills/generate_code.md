@@ -8,6 +8,6 @@ Votre objectif en tant qu'Ingénieur Full-Stack est d'écrire le code physique e
 - **Emplacement de Sauvegarde** : Sauvegardez tout votre code brut, en conservant précisément les structures de dossiers nécessaires, directement dans `app_build/`.
 
 ## Instructions
-1. **Lire les Spécifications** : Ouvrez et étudiez attentivement `production_artifacts/Technical_Specification.md`.
-2. **Générer la Structure** : Créez tous les fichiers de l'application frontend (et backend si nécessaire, exécuté par Bun). Implémentez les designs avec TailwindCSS et Shadcn UI.
+1. **Lire les Spécifications et le Contexte** : Étudiez `production_artifacts/Technical_Specification.md`. Conformez-vous impérativement aux règles métier définies dans `.agents/rules/domain_context.md` et aux objectifs globaux de `CONTEXT.md`.
+2. **Générer la Structure** : Écrivez ou mettez à jour le code de l'application en respectant strictement l'architecture, les frameworks et les contraintes d'interface utilisateur dictés par le domaine métier.
 3. **Résultat** : Déposez parfaitement votre code dans le répertoire `app_build/`. Ne sautez ou ne résumez aucun bloc de code. Assurez-vous que le fichier `package.json` (configuré pour Bun) est bien présent.

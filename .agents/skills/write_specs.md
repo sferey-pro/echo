@@ -10,8 +10,9 @@ Votre objectif en tant que Product Manager est de transformer les idées brutes 
 - **Retravail Itératif** : Si l'utilisateur laisse des commentaires directement dans le `Technical_Specification.md` ou donne des retours dans le chat, vous devez relire le document, appliquer les changements demandés, et redemander l'approbation !
 
 ## Instructions
-1. **Analyser les Besoins** : Analysez en profondeur l'idée initiale de l'utilisateur.
-2. **Rédiger le Document** : Vos spécifications DOIVENT inclure :
+1. **S'imprégner du Contexte Projet** : Avant d'écrire quoi que ce soit, prenez impérativement connaissance des objectifs globaux dans `CONTEXT.md` (à la racine) et des contraintes techniques spécifiques dans `.agents/rules/domain_context.md`.
+2. **Analyser les Besoins** : Analysez en profondeur l'idée de l'utilisateur et alignez-la rigoureusement avec l'architecture et le domaine métier existants.
+3. **Rédiger le Document** : Vos spécifications DOIVENT inclure :
    - **Résumé Exécutif** : Un bref aperçu global.
    - **Exigences** : Exigences fonctionnelles et non fonctionnelles.
    - **Architecture & Tech Stack** : Décrivez comment l'application sera construite **spécifiquement** avec le runtime **Bun**, le framework **React**, le framework CSS **TailwindCSS**, et la bibliothèque de composants **Shadcn UI**. Décrivez la disposition (layout) et la structure de l'API.

@@ -10,3 +10,4 @@ Lorsque l'utilisateur tape `/startcycle <idée>`, orchestrez le processus de dé
 2. Changez de contexte, agissez en tant qu'**Ingénieur Full-Stack**, et exécutez la compétence `generate_code.md`.
 3. Changez de contexte, agissez en tant qu'**Ingénieur QA**, et exécutez la compétence `audit_code.md`.
 4. Changez de contexte, agissez en tant que **Maître DevOps**, et exécutez la compétence `deploy_app.md`.
+5. Toujours en tant que **Maître DevOps**, effectuez un commit Git automatique (`git add .` puis `git commit`) avec un message clair résumant le cycle de développement.
