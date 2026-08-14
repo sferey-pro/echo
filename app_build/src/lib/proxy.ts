@@ -65,16 +65,26 @@ export async function initProxy(requests: ApiRequest[]) {
       console.log(`[PROXY] ${req.method} ${url.pathname} -> ${realUrl}`);
       
       try {
+        const proxyHeaders = new Headers();
+        
+        // Copy only safe headers
+        const unsafeHeaders = ['host', 'origin', 'referer', 'connection', 'accept-encoding', 'content-length'];
+        req.headers.forEach((value, key) => {
+          if (!unsafeHeaders.includes(key.toLowerCase()) && !key.startsWith(':')) {
+            proxyHeaders.set(key, value);
+          }
+        });
+
         let proxyReq: Request;
         if (req.method === 'GET' || req.method === 'HEAD') {
           proxyReq = new Request(realUrl, {
             method: req.method,
-            headers: req.headers,
+            headers: proxyHeaders,
           });
         } else {
           proxyReq = new Request(realUrl, {
             method: req.method,
-            headers: req.headers,
+            headers: proxyHeaders,
             body: await req.arrayBuffer(),
           });
         }
