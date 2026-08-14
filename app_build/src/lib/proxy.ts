@@ -1,7 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { serve } from "bun";
 import type { ApiRequest } from './parser';
-
 export interface MockState {
   isMocked: boolean;
   payload: string;
@@ -54,48 +52,42 @@ export async function initProxy(requests: ApiRequest[]) {
   const { setupServer } = await import(moduleName);
   const mswServer = setupServer(...handlers);
   mswServer.listen({ onUnhandledRequest: 'bypass' });
+}
 
-  const proxyPort = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : 3002;
-  const proxyServer = serve({
-    port: proxyPort,
-    async fetch(req) {
-      const url = new URL(req.url);
-      const realUrl = targetApiUrl + url.pathname + url.search;
-      
-      console.log(`[PROXY] ${req.method} ${url.pathname} -> ${realUrl}`);
-      
-      try {
-        const proxyHeaders = new Headers();
-        
-        // Copy only safe headers
-        const unsafeHeaders = ['host', 'origin', 'referer', 'connection', 'accept-encoding', 'content-length'];
-        req.headers.forEach((value, key) => {
-          if (!unsafeHeaders.includes(key.toLowerCase()) && !key.startsWith(':')) {
-            proxyHeaders.set(key, value);
-          }
-        });
-
-        let proxyReq: Request;
-        if (req.method === 'GET' || req.method === 'HEAD') {
-          proxyReq = new Request(realUrl, {
-            method: req.method,
-            headers: proxyHeaders,
-          });
-        } else {
-          proxyReq = new Request(realUrl, {
-            method: req.method,
-            headers: proxyHeaders,
-            body: await req.arrayBuffer(),
-          });
-        }
-
-        return await fetch(proxyReq);
-      } catch (err: any) {
-        console.error("[PROXY ERROR]", err);
-        return new Response(err.stack || String(err), { status: 500 });
+export async function handleProxyRequest(req: Request, targetApiUrl: string): Promise<Response> {
+  const url = new URL(req.url);
+  const realUrl = targetApiUrl + url.pathname + url.search;
+  
+  console.log(`[PROXY] ${req.method} ${url.pathname} -> ${realUrl}`);
+  
+  try {
+    const proxyHeaders = new Headers();
+    
+    // Copy only safe headers
+    const unsafeHeaders = ['host', 'origin', 'referer', 'connection', 'accept-encoding', 'content-length'];
+    req.headers.forEach((value, key) => {
+      if (!unsafeHeaders.includes(key.toLowerCase()) && !key.startsWith(':')) {
+        proxyHeaders.set(key, value);
       }
-    }
-  });
+    });
 
-  console.log(`📡 Proxy Server running at ${proxyServer.url} (Target: ${targetApiUrl})`);
+    let proxyReq: Request;
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      proxyReq = new Request(realUrl, {
+        method: req.method,
+        headers: proxyHeaders,
+      });
+    } else {
+      proxyReq = new Request(realUrl, {
+        method: req.method,
+        headers: proxyHeaders,
+        body: await req.arrayBuffer(),
+      });
+    }
+
+    return await fetch(proxyReq);
+  } catch (err: any) {
+    console.error("[PROXY ERROR]", err);
+    return new Response(err.stack || String(err), { status: 500 });
+  }
 }
