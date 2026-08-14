@@ -49,3 +49,37 @@ export const updateMockState = (requestId: string, isMocked: boolean, payload: s
     $payload: payload
   });
 };
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  );
+`);
+
+export const getSetting = (key: string): string | null => {
+  const query = db.query("SELECT value FROM settings WHERE key = $key");
+  const result = query.get({ $key: key }) as { value: string } | null;
+  return result ? result.value : null;
+};
+
+export const setSetting = (key: string, value: string) => {
+  const query = db.query(`
+    INSERT INTO settings (key, value) 
+    VALUES ($key, $value) 
+    ON CONFLICT(key) DO UPDATE SET 
+      value = excluded.value;
+  `);
+  query.run({ $key: key, $value: value });
+};
+
+export const getAllSettings = (): Record<string, string> => {
+  const query = db.query("SELECT * FROM settings");
+  const results = query.all() as { key: string, value: string }[];
+  
+  const settings: Record<string, string> = {};
+  for (const row of results) {
+    settings[row.key] = row.value;
+  }
+  return settings;
+};

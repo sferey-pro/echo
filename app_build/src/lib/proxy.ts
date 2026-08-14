@@ -8,13 +8,12 @@ export interface MockState {
 export const mockStates = new Map<string, MockState>();
 let isInitialized = false;
 
-import { getMockStates } from './db';
+import { getMockStates, getSetting } from './db';
+
+let mswServer: any = null;
 
 export async function initProxy(requests: ApiRequest[]) {
-  if (isInitialized) return; // Prevent multiple setups if HMR triggers
-  isInitialized = true;
-
-  const targetApiUrl = process.env.TARGET_API_URL || "http://localhost:8080";
+  const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
   const persistedStates = getMockStates();
 
   for (const req of requests) {
@@ -59,14 +58,22 @@ export async function initProxy(requests: ApiRequest[]) {
     });
   });
 
-  // Use dynamic import with variable to hide it from Bun's browser bundler analyzer
-  const moduleName = 'msw/node';
-  const { setupServer } = await import(moduleName);
-  const mswServer = setupServer(...handlers);
-  mswServer.listen({ onUnhandledRequest: 'bypass' });
+  if (!isInitialized) {
+    isInitialized = true;
+    const moduleName = 'msw/node';
+    const { setupServer } = await import(moduleName);
+    mswServer = setupServer(...handlers);
+    mswServer.listen({ onUnhandledRequest: 'bypass' });
+  } else {
+    // Reset existing MSW server with new handlers (for hot-reload on settings update)
+    if (mswServer) {
+      mswServer.resetHandlers(...handlers);
+    }
+  }
 }
 
-export async function handleProxyRequest(req: Request, targetApiUrl: string): Promise<Response> {
+export async function handleProxyRequest(req: Request): Promise<Response> {
+  const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
   const url = new URL(req.url);
   const realUrl = targetApiUrl + url.pathname + url.search;
   

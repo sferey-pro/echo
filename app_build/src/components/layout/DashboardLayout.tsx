@@ -4,11 +4,14 @@ import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection } from '../../lib/api';
 import type { BrunoFolder, ApiRequest } from '../../lib/parser';
 
+import { SettingsModal } from '../dashboard/SettingsModal';
+
 export function DashboardLayout() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [folders, setFolders] = useState<BrunoFolder[]>([]);
   const [requests, setRequests] = useState<ApiRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const fetchAndSetCollection = () => {
     fetchCollection()
@@ -46,9 +49,15 @@ export function DashboardLayout() {
         folders={folders}
         requests={requests} 
         selectedRequestId={selectedRequestId} 
-        onSelectRequest={setSelectedRequestId} 
+        onSelectRequest={setSelectedRequestId}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
       <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+        onSaved={fetchAndSetCollection} 
+      />
     </div>
   );
 }

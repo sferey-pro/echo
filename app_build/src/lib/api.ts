@@ -18,3 +18,22 @@ export async function updateMock(id: string, updates: { isMocked?: boolean, payl
     throw new Error('Erreur lors de la mise à jour du mock');
   }
 }
+
+export async function getSettings(): Promise<Record<string, string>> {
+  const response = await fetch('/api/settings');
+  if (!response.ok) {
+    throw new Error('Erreur lors de la récupération des paramètres');
+  }
+  return response.json();
+}
+
+export async function updateSetting(key: string, value: string): Promise<void> {
+  const response = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, value })
+  });
+  if (!response.ok) {
+    throw new Error('Erreur lors de la mise à jour du paramètre');
+  }
+}

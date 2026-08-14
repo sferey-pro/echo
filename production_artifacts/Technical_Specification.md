@@ -1,27 +1,31 @@
-# Spécifications Techniques : Base de Données Embarquée (État d'Echo)
+# Spécifications Techniques : Page de Paramétrage
 
 ## Résumé Exécutif
-L'objectif est d'implémenter un système de persistance locale pour le projet Echo. Actuellement, l'état du proxy (mocks actifs, payloads surchargés) est stocké dans une `Map` en mémoire, ce qui entraîne la perte des configurations à chaque redémarrage du serveur. Nous allons introduire une base de données embarquée ultra-rapide pour persister ces paramètres sans alourdir l'infrastructure du développeur.
+Pour offrir plus de flexibilité aux développeurs frontend, Echo doit permettre la configuration de ses paramètres clés (comme l'URL de l'API cible ou le chemin de la collection Bruno) directement depuis l'interface utilisateur, sans avoir à manipuler le fichier `.env` ou relancer le serveur. Ces paramètres seront sauvegardés de manière persistante dans la base de données SQLite embarquée récemment implémentée.
 
 ## Exigences
 - **Fonctionnelles** :
-  - Sauvegarder automatiquement l'état "Mocké / Pass-through" pour chaque requête.
-  - Sauvegarder les payloads JSON modifiés à la volée.
-  - Restaurer l'état complet au démarrage du serveur Echo.
+  - L'utilisateur peut consulter et modifier les paramètres système depuis l'interface web.
+  - Paramètres à exposer : `TARGET_API_URL` et `BRUNO_COLLECTION_PATH`.
+  - La modification du chemin de la collection Bruno doit déclencher un rechargement à chaud (`hot-reload`) des requêtes MSW sans redémarrer le serveur.
+  - La modification de l'URL cible doit être prise en compte instantanément pour le mode Pass-through.
 - **Non-fonctionnelles** :
-  - Aucune dépendance externe ni serveur de base de données (conformité avec la règle d'interdiction de PostgreSQL/MySQL du `domain_context.md`).
-  - Tolérance aux redémarrages.
-  - Zéro configuration requise pour les développeurs frontend.
+  - Persistance dans Bun SQLite (`bun:sqlite`).
+  - L'interface de paramétrage doit s'intégrer harmonieusement (fenêtre modale ou onglet dédié) avec le design existant (Shadcn UI + TailwindCSS).
 
 ## Architecture & Tech Stack
-- **Bun SQLite (`bun:sqlite`)** : Nous utiliserons le module natif de Bun pour SQLite. C'est une base de données relationnelle locale qui s'exécute dans le même processus, offrant des performances extrêmes (millions d'opérations par seconde) sans aucune installation tierce. Elle sera stockée dans un fichier `.echo-state.sqlite` ignoré par Git.
-- **Schéma de Données** :
-  - Table `mock_states` :
-    - `request_id` (TEXT PRIMARY KEY) : L'ID déterministe généré par notre parseur.
-    - `is_mocked` (BOOLEAN) : Statut d'activation du mock MSW.
-    - `payload` (TEXT) : Le contenu JSON surchargé.
+- **Base de données (SQLite)** : 
+  - Ajout d'une table `settings` (colonnes : `key` TEXT PRIMARY KEY, `value` TEXT).
+- **Backend (Bun)** :
+  - `GET /api/settings` : Récupère les paramètres actuels.
+  - `POST /api/settings` : Met à jour la base de données SQLite.
+  - Modification de `index.ts` et `proxy.ts` pour lire la configuration depuis la base de données en priorité. Si la clé est introuvable, on se rabat sur la variable d'environnement, puis sur les valeurs par défaut.
+- **Frontend (React)** :
+  - **Composant `SettingsModal.tsx`** : Une fenêtre modale (Dialog Shadcn) accessible via un bouton ⚙️ (engrenage) dans le header de l'explorateur.
+  - Le formulaire gérera un état local et un appel POST vers le backend.
+  - Lors de la sauvegarde, l'interface déclenchera un re-fetch global de la collection (`/api/collections`) pour rafraîchir l'arbre de navigation.
 
 ## Gestion de l'État
-1. **Initialisation** : Au lancement de `index.ts`, une connexion `Database` est établie vers `.echo-state.sqlite`.
-2. **Lecture** : Le parseur (`parser.ts`) s'appuiera sur les données lues en base de données pour populer initialement la Map locale qui est renvoyée au frontend et utilisée par MSW.
-3. **Écriture** : Lorsque le frontend déclenche le point d'API `/api/mocks/update` via l'interface React, la mise à jour s'effectue à la fois dans le moteur MSW à chaud ET dans la base SQLite locale par un `INSERT ... ON CONFLICT REPLACE`.
+1. **Lecture Backend** : La fonction `getSettings()` lira la table `settings`. Si la configuration `BRUNO_COLLECTION_PATH` est lue, le serveur charge cette collection.
+2. **Mise à jour** : Le endpoint POST fera un `INSERT ... ON CONFLICT REPLACE` dans la table `settings`.
+3. **Application MSW** : MSW intercepte dynamiquement les requêtes. Le `targetApiUrl` sera lu dynamiquement à chaque requête non-mockée (dans `handleProxyRequest` et le remplacement de `{{baseUrl}}`).

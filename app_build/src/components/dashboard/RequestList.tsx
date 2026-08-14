@@ -7,6 +7,7 @@ interface RequestListProps {
   requests: ApiRequest[];
   selectedRequestId: string | null;
   onSelectRequest: (id: string) => void;
+  onOpenSettings: () => void;
 }
 
 const methodColors: Record<string, string> = {
@@ -17,7 +18,7 @@ const methodColors: Record<string, string> = {
   DELETE: 'text-red-400',
 };
 
-export function RequestList({ folders, requests, selectedRequestId, onSelectRequest }: RequestListProps) {
+export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings }: RequestListProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const toggleFolder = (folderId: string, e: React.MouseEvent) => {
@@ -104,6 +105,13 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
         <span className="text-xs font-mono text-neutral-500 bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-800">
           {requests.length} requêtes
         </span>
+        <button 
+          onClick={onOpenSettings}
+          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors ml-1"
+          title="Paramètres"
+        >
+          ⚙️
+        </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {folders.map(f => renderFolder(f))}

@@ -4,9 +4,8 @@ import { parseCollection } from "./lib/parser";
 import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
-import { updateMockState } from './lib/db';
+import { updateMockState, getSetting, setSetting, getAllSettings } from './lib/db';
 
-const targetApiUrl = process.env.TARGET_API_URL || "http://localhost:8080";
 
 const server = serve({
   port: 3000,
@@ -30,7 +29,7 @@ const server = serve({
     }
 
     if (url.pathname === '/api/collections') {
-      const collectionPath = process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../collection');
+      const collectionPath = getSetting('BRUNO_COLLECTION_PATH') || process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../collection');
       try {
         const data = await parseCollection(collectionPath);
         await initProxy(data.requests);
@@ -84,8 +83,28 @@ const server = serve({
       }
     }
 
+    if (url.pathname === '/api/settings') {
+      if (req.method === 'GET') {
+        return new Response(JSON.stringify(getAllSettings()), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      }
+      if (req.method === 'POST') {
+        try {
+          const body = await req.json();
+          if (body.key && typeof body.value === 'string') {
+            setSetting(body.key, body.value);
+            return new Response(JSON.stringify({ success: true }), {
+              headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+        } catch {}
+        return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
     // Tout ce qui ne correspond ni aux routes (SPA), ni à l'API interne, part vers le proxy MSW !
-    return handleProxyRequest(req, targetApiUrl);
+    return handleProxyRequest(req);
   },
 
   development: process.env.NODE_ENV !== "production" && {
