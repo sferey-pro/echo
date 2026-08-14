@@ -42,13 +42,12 @@ export function RequestList({ requests, selectedRequestId, onSelectRequest }: Re
             </span>
             <span className="truncate flex-1 font-medium">{req.name}</span>
             <span className="ml-2 flex items-center">
-              <span 
-                className={cn(
-                  "w-2 h-2 rounded-full shadow-sm",
-                  req.status === 'active' ? "bg-green-500 shadow-green-500/50" : "bg-neutral-600"
-                )}
-                title={req.status === 'active' ? 'Mock Actif' : 'Pass-through'}
-              />
+              {req.examples?.length > 0 && (
+                <span 
+                  className="w-2 h-2 rounded-full shadow-sm bg-purple-500 shadow-purple-500/50"
+                  title={`${req.examples.length} exemple(s)`}
+                />
+              )}
             </span>
           </div>
         ))}

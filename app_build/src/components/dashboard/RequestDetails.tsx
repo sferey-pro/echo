@@ -8,7 +8,8 @@ interface RequestDetailsProps {
 }
 
 export function RequestDetails({ request }: RequestDetailsProps) {
-  const [payload, setPayload] = useState(request?.mockPayload || '');
+  const defaultPayload = request?.examples?.[0]?.response?.body?.data || '';
+  const [payload, setPayload] = useState(defaultPayload);
 
   if (!request) {
     return (
@@ -29,9 +30,9 @@ export function RequestDetails({ request }: RequestDetailsProps) {
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
             {request.name}
-            {request.status === 'active' && (
+            {(request.examples?.length ?? 0) > 0 && (
               <span className="text-[10px] uppercase font-bold bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20">
-                Mocked
+                Mockable ({request.examples.length})
               </span>
             )}
           </h2>
@@ -39,7 +40,7 @@ export function RequestDetails({ request }: RequestDetailsProps) {
             <span className="text-xs font-mono font-bold bg-neutral-800 text-neutral-300 px-1.5 py-0.5 rounded border border-neutral-700">
               {request.method}
             </span>
-            <p className="text-sm text-neutral-400 font-mono truncate max-w-md">{request.path}</p>
+            <p className="text-sm text-neutral-400 font-mono truncate max-w-md">{request.url}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -55,8 +56,8 @@ export function RequestDetails({ request }: RequestDetailsProps) {
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold text-neutral-300">Payload de Réponse JSON</h3>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-neutral-400 hover:text-white" onClick={() => setPayload(request.mockPayload)}>
+            <h3 className="text-sm font-semibold text-neutral-300">Payload de Réponse JSON (Exemple par défaut)</h3>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-neutral-400 hover:text-white" onClick={() => setPayload(defaultPayload)}>
               Reset
             </Button>
           </div>

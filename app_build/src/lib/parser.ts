@@ -1,9 +1,6 @@
 import { readdir, readFile } from "fs/promises";
 import { join, basename } from "path";
-import yaml from "yaml";
-
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type MockStatus = 'active' | 'inactive';
+import { parse } from "yaml";
 
 export interface BrunoFolder {
   id: string;
@@ -11,14 +8,23 @@ export interface BrunoFolder {
   children?: BrunoFolder[];
 }
 
+export interface BrunoExample {
+  name: string;
+  response: {
+    status: number;
+    body?: {
+      data?: string;
+    };
+  };
+}
+
 export interface ApiRequest {
   id: string;
   folderId: string;
   name: string;
-  method: HttpMethod;
-  path: string;
-  status: MockStatus;
-  mockPayload: string;
+  method: string;
+  url: string;
+  examples: BrunoExample[];
 }
 
 export interface ParserResult {
@@ -39,7 +45,7 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
     
     if (folderYmlEntry) {
       const content = await readFile(join(currentPath, 'folder.yml'), 'utf-8');
-      const parsed = yaml.parse(content);
+      const parsed = parse(content);
       folderName = parsed?.info?.name || folderName;
     }
 
@@ -63,16 +69,15 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
       } else if (entry.isFile() && entry.name.endsWith('.yml')) {
         const content = await readFile(fullPath, 'utf-8');
         try {
-          const parsed = yaml.parse(content);
+          const parsed = parse(content);
           if (parsed?.info?.type === 'http') {
             requests.push({
               id: `r${idCounter++}`,
               folderId: currentFolderId,
               name: parsed.info.name || entry.name.replace('.yml', ''),
-              method: (parsed.http?.method || 'GET').toUpperCase() as HttpMethod,
-              path: parsed.http?.url || '',
-              status: 'inactive',
-              mockPayload: '{\n  "message": "Données mockées générées par le Parseur Echo"\n}'
+              method: (parsed.http?.method || 'GET').toUpperCase(),
+              url: parsed.http?.url || '',
+              examples: parsed.examples || []
             });
           }
         } catch (e) {
@@ -93,16 +98,15 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
       } else if (entry.isFile() && entry.name.endsWith('.yml') && entry.name !== 'opencollection.yml') {
          const content = await readFile(join(basePath, entry.name), 'utf-8');
          try {
-           const parsed = yaml.parse(content);
+           const parsed = parse(content);
            if (parsed?.info?.type === 'http') {
              requests.push({
                id: `r${idCounter++}`,
                folderId: 'root',
                name: parsed.info.name || entry.name.replace('.yml', ''),
-               method: (parsed.http?.method || 'GET').toUpperCase() as HttpMethod,
-               path: parsed.http?.url || '',
-               status: 'inactive',
-               mockPayload: '{\n  "message": "Données mockées générées par le Parseur Echo"\n}'
+               method: (parsed.http?.method || 'GET').toUpperCase(),
+               url: parsed.http?.url || '',
+               examples: parsed.examples || []
              });
            }
          } catch (e) {
