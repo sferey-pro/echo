@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { ApiRequest } from '../../mocks/fakeData';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,10 +9,6 @@ interface RequestDetailsProps {
 
 export function RequestDetails({ request }: RequestDetailsProps) {
   const [payload, setPayload] = useState(request?.mockPayload || '');
-
-  useEffect(() => {
-    setPayload(request?.mockPayload || '');
-  }, [request]);
 
   if (!request) {
     return (

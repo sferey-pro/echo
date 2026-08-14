@@ -17,7 +17,7 @@ export function DashboardLayout() {
         selectedRequestId={selectedRequestId} 
         onSelectRequest={setSelectedRequestId} 
       />
-      <RequestDetails request={selectedRequest} />
+      <RequestDetails key={selectedRequest?.id} request={selectedRequest} />
     </div>
   );
 }

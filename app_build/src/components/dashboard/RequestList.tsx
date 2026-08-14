@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ApiRequest } from '../../mocks/fakeData';
+import { cn } from '@/lib/utils';
 
 interface RequestListProps {
   requests: ApiRequest[];
@@ -29,21 +30,23 @@ export function RequestList({ requests, selectedRequestId, onSelectRequest }: Re
           <div
             key={req.id}
             onClick={() => onSelectRequest(req.id)}
-            className={`flex items-center p-2 rounded-md cursor-pointer text-sm transition-all ${
+            className={cn(
+              "flex items-center p-2 rounded-md cursor-pointer text-sm transition-all border-l-2 pl-3",
               selectedRequestId === req.id 
-                ? 'bg-purple-900/20 border-l-2 border-purple-500 text-white pl-3' 
-                : 'hover:bg-neutral-900 text-neutral-300 border-l-2 border-transparent pl-3'
-            }`}
+                ? "bg-purple-900/20 border-purple-500 text-white" 
+                : "hover:bg-neutral-900 text-neutral-300 border-transparent"
+            )}
           >
-            <span className={`font-mono text-[10px] font-bold w-12 tracking-wider ${methodColors[req.method] || 'text-neutral-400'}`}>
+            <span className={cn("font-mono text-[10px] font-bold w-12 tracking-wider", methodColors[req.method] || 'text-neutral-400')}>
               {req.method}
             </span>
             <span className="truncate flex-1 font-medium">{req.name}</span>
             <span className="ml-2 flex items-center">
               <span 
-                className={`w-2 h-2 rounded-full shadow-sm ${
-                  req.status === 'active' ? 'bg-green-500 shadow-green-500/50' : 'bg-neutral-600'
-                }`}
+                className={cn(
+                  "w-2 h-2 rounded-full shadow-sm",
+                  req.status === 'active' ? "bg-green-500 shadow-green-500/50" : "bg-neutral-600"
+                )}
                 title={req.status === 'active' ? 'Mock Actif' : 'Pass-through'}
               />
             </span>
