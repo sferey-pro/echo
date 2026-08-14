@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BrunoFolder } from '../../mocks/fakeData';
+import type { BrunoFolder } from '../../lib/parser';
 
 interface SidebarProps {
   folders: BrunoFolder[];

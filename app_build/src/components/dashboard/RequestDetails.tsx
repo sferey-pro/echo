@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ApiRequest } from '../../mocks/fakeData';
+import type { ApiRequest } from '../../lib/parser';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 

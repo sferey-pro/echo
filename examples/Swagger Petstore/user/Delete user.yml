@@ -1,0 +1,58 @@
+info:
+  name: Delete user
+  type: http
+  seq: 4
+  tags:
+    - user
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/user/:username"
+  params:
+    - name: username
+      value: ""
+      type: path
+      description: The name that needs to be deleted
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 400 Response
+    description: Invalid username supplied
+    request:
+      url: "{{baseUrl}}/user/:username"
+      method: DELETE
+      params:
+        - name: username
+          value: ""
+          type: path
+          description: The name that needs to be deleted
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: User not found
+    request:
+      url: "{{baseUrl}}/user/:username"
+      method: DELETE
+      params:
+        - name: username
+          value: ""
+          type: path
+          description: The name that needs to be deleted
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: This can only be done by the logged in user.

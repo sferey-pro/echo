@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ApiRequest } from '../../mocks/fakeData';
+import type { ApiRequest } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 
 interface RequestListProps {

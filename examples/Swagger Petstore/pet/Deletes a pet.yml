@@ -1,0 +1,83 @@
+info:
+  name: Deletes a pet
+  type: http
+  seq: 8
+  tags:
+    - pet
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/pet/:petId"
+  headers:
+    - name: api_key
+      value: ""
+      disabled: true
+  params:
+    - name: petId
+      value: ""
+      type: path
+      description: Pet id to delete
+  auth:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://petstore.swagger.io/oauth/authorize
+    callbackUrl: "{{oauth_callback_url}}"
+    credentials:
+      clientId: "{{oauth_client_id}}"
+    scope: write:pets read:pets
+    state: "{{oauth_state}}"
+    tokenConfig:
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: false
+      autoRefreshToken: true
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 400 Response
+    description: Invalid ID supplied
+    request:
+      url: "{{baseUrl}}/pet/:petId"
+      method: DELETE
+      headers:
+        - name: api_key
+          value: ""
+          disabled: true
+      params:
+        - name: petId
+          value: ""
+          type: path
+          description: Pet id to delete
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: Pet not found
+    request:
+      url: "{{baseUrl}}/pet/:petId"
+      method: DELETE
+      headers:
+        - name: api_key
+          value: ""
+          disabled: true
+      params:
+        - name: petId
+          value: ""
+          type: path
+          description: Pet id to delete
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""

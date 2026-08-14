@@ -1,0 +1,73 @@
+info:
+  name: Updates a pet in the store with form data
+  type: http
+  seq: 7
+  tags:
+    - pet
+
+http:
+  method: POST
+  url: "{{baseUrl}}/pet/:petId"
+  params:
+    - name: petId
+      value: ""
+      type: path
+      description: ID of pet that needs to be updated
+  body:
+    type: form-urlencoded
+    data:
+      - name: name
+        value: ""
+        description: Updated name of the pet
+      - name: status
+        value: ""
+        description: Updated status of the pet
+  auth:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://petstore.swagger.io/oauth/authorize
+    callbackUrl: "{{oauth_callback_url}}"
+    credentials:
+      clientId: "{{oauth_client_id}}"
+    scope: write:pets read:pets
+    state: "{{oauth_state}}"
+    tokenConfig:
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: false
+      autoRefreshToken: true
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 405 Response
+    description: Invalid input
+    request:
+      url: "{{baseUrl}}/pet/:petId"
+      method: POST
+      params:
+        - name: petId
+          value: ""
+          type: path
+          description: ID of pet that needs to be updated
+      body:
+        type: form-urlencoded
+        data:
+          - name: name
+            value: ""
+            description: Updated name of the pet
+          - name: status
+            value: ""
+            description: Updated status of the pet
+    response:
+      status: 405
+      statusText: Method Not Allowed
+      body:
+        type: text
+        data: ""

@@ -1,0 +1,58 @@
+info:
+  name: Delete purchase order by ID
+  type: http
+  seq: 4
+  tags:
+    - store
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/store/order/:orderId"
+  params:
+    - name: orderId
+      value: ""
+      type: path
+      description: ID of the order that needs to be deleted
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 400 Response
+    description: Invalid ID supplied
+    request:
+      url: "{{baseUrl}}/store/order/:orderId"
+      method: DELETE
+      params:
+        - name: orderId
+          value: ""
+          type: path
+          description: ID of the order that needs to be deleted
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: Order not found
+    request:
+      url: "{{baseUrl}}/store/order/:orderId"
+      method: DELETE
+      params:
+        - name: orderId
+          value: ""
+          type: path
+          description: ID of the order that needs to be deleted
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors

@@ -1,0 +1,17 @@
+info:
+  name: Logs out current logged in user session
+  type: http
+  seq: 6
+  tags:
+    - user
+
+http:
+  method: GET
+  url: "{{baseUrl}}/user/logout"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

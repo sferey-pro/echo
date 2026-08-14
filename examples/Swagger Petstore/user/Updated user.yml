@@ -1,0 +1,97 @@
+info:
+  name: Updated user
+  type: http
+  seq: 3
+  tags:
+    - user
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/user/:username"
+  params:
+    - name: username
+      value: ""
+      type: path
+      description: name that need to be updated
+  body:
+    type: json
+    data: |-
+      {
+        "id": 0,
+        "username": "",
+        "firstName": "",
+        "lastName": "",
+        "email": "",
+        "password": "",
+        "phone": "",
+        "userStatus": 0
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 400 Response
+    description: Invalid user supplied
+    request:
+      url: "{{baseUrl}}/user/:username"
+      method: PUT
+      params:
+        - name: username
+          value: ""
+          type: path
+          description: name that need to be updated
+      body:
+        type: json
+        data: |-
+          {
+            "id": 0,
+            "username": "",
+            "firstName": "",
+            "lastName": "",
+            "email": "",
+            "password": "",
+            "phone": "",
+            "userStatus": 0
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+  - name: 404 Response
+    description: User not found
+    request:
+      url: "{{baseUrl}}/user/:username"
+      method: PUT
+      params:
+        - name: username
+          value: ""
+          type: path
+          description: name that need to be updated
+      body:
+        type: json
+        data: |-
+          {
+            "id": 0,
+            "username": "",
+            "firstName": "",
+            "lastName": "",
+            "email": "",
+            "password": "",
+            "phone": "",
+            "userStatus": 0
+          }
+    response:
+      status: 404
+      statusText: Not Found
+      body:
+        type: text
+        data: ""
+
+docs: This can only be done by the logged in user.

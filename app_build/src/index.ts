@@ -1,14 +1,29 @@
 import { serve } from "bun";
 import index from "./index.html";
+import { parseCollection } from "./lib/parser";
+import { resolve } from "path";
 
 const server = serve({
-  routes: {
-    // Fichiers statiques
-    "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
-    
-    // Le futur proxy HTTP (MSW) sera géré ici via des middlewares ou des routes dédiées.
-    // Pour l'instant, on sert uniquement le frontend React.
-    "/*": index,
+  async fetch(req) {
+    const url = new URL(req.url);
+
+    if (url.pathname === '/api/collections') {
+      const collectionPath = process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../examples/Swagger Petstore');
+      try {
+        const data = await parseCollection(collectionPath);
+        return Response.json(data);
+      } catch (error) {
+        console.error("Error parsing collection:", error);
+        return Response.json({ error: "Failed to parse collection" }, { status: 500 });
+      }
+    }
+
+    if (url.pathname === '/echo-logo.jpg') {
+      return new Response(Bun.file("./public/echo-logo.jpg"));
+    }
+
+    // fallback to React app
+    return new Response(Bun.file("./index.html"));
   },
 
   development: process.env.NODE_ENV !== "production" && {

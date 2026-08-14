@@ -1,0 +1,124 @@
+info:
+  name: Finds Pets by status
+  type: http
+  seq: 4
+  tags:
+    - pet
+
+http:
+  method: GET
+  url: "{{baseUrl}}/pet/findByStatus"
+  params:
+    - name: status
+      value: available
+      type: query
+      description: Status values that need to be considered for filter
+    - name: status
+      value: pending
+      type: query
+      description: Status values that need to be considered for filter
+      disabled: true
+    - name: status
+      value: sold
+      type: query
+      description: Status values that need to be considered for filter
+      disabled: true
+  auth:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://petstore.swagger.io/oauth/authorize
+    callbackUrl: "{{oauth_callback_url}}"
+    credentials:
+      clientId: "{{oauth_client_id}}"
+    scope: write:pets read:pets
+    state: "{{oauth_state}}"
+    tokenConfig:
+      placement:
+        header: Bearer
+      source: access_token
+    settings:
+      autoFetchToken: false
+      autoRefreshToken: true
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: successful operation
+    request:
+      url: "{{baseUrl}}/pet/findByStatus"
+      method: GET
+      params:
+        - name: status
+          value: available
+          type: query
+          description: Status values that need to be considered for filter
+        - name: status
+          value: pending
+          type: query
+          description: Status values that need to be considered for filter
+          disabled: true
+        - name: status
+          value: sold
+          type: query
+          description: Status values that need to be considered for filter
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          [
+            {
+              "id": 0,
+              "category": {
+                "id": 0,
+                "name": ""
+              },
+              "name": "doggie",
+              "photoUrls": [],
+              "tags": [
+                {
+                  "id": 0,
+                  "name": ""
+                }
+              ],
+              "status": "available"
+            }
+          ]
+  - name: 400 Response
+    description: Invalid status value
+    request:
+      url: "{{baseUrl}}/pet/findByStatus"
+      method: GET
+      params:
+        - name: status
+          value: available
+          type: query
+          description: Status values that need to be considered for filter
+        - name: status
+          value: pending
+          type: query
+          description: Status values that need to be considered for filter
+          disabled: true
+        - name: status
+          value: sold
+          type: query
+          description: Status values that need to be considered for filter
+          disabled: true
+    response:
+      status: 400
+      statusText: Bad Request
+      body:
+        type: text
+        data: ""
+
+docs: Multiple status values can be provided with comma separated strings
