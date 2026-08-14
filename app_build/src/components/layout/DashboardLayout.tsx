@@ -11,7 +11,7 @@ export function DashboardLayout() {
   const [requests, setRequests] = useState<ApiRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchAndSetCollection = () => {
     fetchCollection()
       .then(data => {
         setFolders(data.folders);
@@ -22,6 +22,10 @@ export function DashboardLayout() {
         console.error("Failed to load collection", err);
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchAndSetCollection();
   }, []);
 
   const selectedRequest = requests.find(r => r.id === selectedRequestId) || null;
@@ -45,7 +49,7 @@ export function DashboardLayout() {
         selectedRequestId={selectedRequestId} 
         onSelectRequest={setSelectedRequestId} 
       />
-      <RequestDetails key={selectedRequest?.id} request={selectedRequest} />
+      <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
     </div>
   );
 }

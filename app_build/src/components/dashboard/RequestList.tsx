@@ -42,12 +42,13 @@ export function RequestList({ requests, selectedRequestId, onSelectRequest }: Re
             </span>
             <span className="truncate flex-1 font-medium">{req.name}</span>
             <span className="ml-2 flex items-center">
-              {req.examples?.length > 0 && (
-                <span 
-                  className="w-2 h-2 rounded-full shadow-sm bg-purple-500 shadow-purple-500/50"
-                  title={`${req.examples.length} exemple(s)`}
-                />
-              )}
+              <span 
+                className={cn(
+                  "w-2 h-2 rounded-full shadow-sm",
+                  req.isMocked ? "bg-green-500 shadow-green-500/50" : (req.examples?.length > 0 ? "bg-purple-500 shadow-purple-500/50" : "bg-transparent")
+                )}
+                title={req.isMocked ? 'Mock Actif' : (req.examples?.length > 0 ? `${req.examples.length} exemple(s)` : '')}
+              />
             </span>
           </div>
         ))}

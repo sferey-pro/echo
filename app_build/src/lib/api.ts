@@ -7,3 +7,14 @@ export async function fetchCollection(): Promise<ParserResult> {
   }
   return response.json();
 }
+
+export async function updateMock(id: string, updates: { isMocked?: boolean, payload?: string }): Promise<void> {
+  const response = await fetch('http://localhost:3001/api/mocks/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...updates })
+  });
+  if (!response.ok) {
+    throw new Error('Erreur lors de la mise à jour du mock');
+  }
+}

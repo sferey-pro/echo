@@ -1,32 +1,48 @@
-# Spécifications Techniques: Interface du Dashboard (Version Grid & Mock Data)
+# Spécifications Techniques : Intercepteur de Requêtes MSW (Proxy Echo)
 
 ## Résumé Exécutif
-L'objectif est de créer la structure de base du Dashboard (interface principale) pour l'outil Echo. Conformément à la demande de l'utilisateur, cette itération n'utilisera **pas** de panneaux redimensionnables (`react-resizable-panels`). À la place, elle implémentera une disposition statique en grille CSS (CSS Grid) pour construire la vue en 3 panneaux (Split-Screen). L'interface sera d'abord alimentée par de fausses données (mock data) pour simuler le fonctionnement attendu avant sa connexion au véritable moteur MSW/Bruno.
+Ce document définit l'architecture et les étapes de développement pour la mise en place de l'intercepteur de requêtes au cœur du projet **Echo**. L'objectif est de créer un véritable serveur proxy basé sur Bun qui utilisera **Mock Service Worker (MSW)** côté serveur (`msw/node`). Ce proxy interceptera les requêtes entrantes, décidera s'il faut renvoyer un mock (définition issue de la collection Bruno modifiée via le Dashboard) ou s'il doit laisser passer la requête vers la véritable API distante (Pass-through).
 
-## Exigences
-### Fonctionnelles
-- Créer une interface divisée en 3 panneaux principaux :
-  1. **Panneau de Navigation (Sidebar Gauche)** : Affichage d'une arborescence simulée de dossiers et fichiers (projet Bruno).
-  2. **Panneau Central (Liste des Requêtes)** : Affichage d'une liste factice de requêtes API (incluant la méthode HTTP, le chemin et un statut simulé).
-  3. **Panneau de Détails (Éditeur Droit)** : Affichage des détails de la requête sélectionnée, avec des éléments d'interface pour le payload JSON simulé, les sélecteurs de mock, etc.
-- Utiliser uniquement des données statiques (fausses données) pour populer les composants à ce stade.
-- Interactivité basique : Cliquer sur une requête dans le panneau central doit actualiser le panneau de détails.
+## 1. Exigences
 
-### Non fonctionnelles
-- **Layout** : Utilisation exclusive de CSS Grid (ex: `grid-cols-[20%_50%_30%]` ou largeurs fixes/fluides appropriées). **Aucun composant de redimensionnement interactif.**
-- **Esthétique** : S'appuyer sur TailwindCSS et Shadcn UI pour garantir un rendu moderne, cohérent et épuré.
-- **Préparation** : Structurer les listes de manière à faciliter l'intégration future du *virtual scrolling* (nécessaire pour >600 requêtes).
+### 1.1 Exigences Fonctionnelles
+* **Proxy Serveur (Port 3002)** : Echo doit exposer un port dédié aux applications clientes (ex: Frontend tiers ciblant `http://localhost:3002` au lieu de `https://api.vrai.com`).
+* **Interception MSW** : MSW doit analyser la requête proxyfiée et vérifier si l'endpoint est marqué comme "actif/mocked" dans la mémoire interne du backend Echo.
+* **Mode Pass-through** : Si la requête n'est pas mockée, le serveur proxy effectue un véritable appel HTTP (`fetch` natif) vers l'API cible et renvoie le résultat au client de façon transparente.
+* **Mise à jour à chaud (Hot-Swap)** : Lorsqu'un développeur modifie le payload d'une requête ou active/désactive le mock depuis le Dashboard (React), les *handlers* MSW doivent être mis à jour en temps réel en mémoire sans redémarrer Bun (utilisation de `server.use()`).
 
-## Architecture & Tech Stack
-- **Environnement** : Bun + React + TypeScript (situé dans `app_build/`).
-- **Styling & UI** : TailwindCSS et Shadcn UI.
-- **Structure des Fichiers** :
-  - `app_build/src/components/layout/DashboardLayout.tsx` : Composant racine instanciant la grille CSS.
-  - `app_build/src/components/dashboard/Sidebar.tsx` : Panneau gauche.
-  - `app_build/src/components/dashboard/RequestList.tsx` : Panneau central.
-  - `app_build/src/components/dashboard/RequestDetails.tsx` : Panneau droit.
-  - `app_build/src/mocks/fakeData.ts` : Source de vérité temporaire contenant les fausses données structurées.
+### 1.2 Exigences Non-Fonctionnelles
+* **Performance** : L'interception MSW et le relai de proxy ne doivent pas introduire de latence perceptible par rapport à l'API originale.
+* **Typage strict** : Utilisation exclusive de TypeScript.
 
-## Gestion de l'État
-- L'état sera géré localement avec les hooks React (`useState`).
-- Le composant parent (ex: `DashboardLayout` ou un composant page) conservera l'identifiant de la requête actuellement sélectionnée et transmettra les données appropriées aux sous-composants via des props. Aucun gestionnaire d'état complexe (Zustand, Redux) n'est requis pour cette phase de maquettage.
+## 2. Architecture & Tech Stack
+
+### 2.1 Infrastructure Serveurs Bun
+Nous allons orchestrer **trois serveurs HTTP Bun** en parallèle au sein du même processus (`index.ts`) :
+1. **Frontend (Port 3000)** : Le Dashboard React propulsé par Bun (`routes: { "/*": index }`).
+2. **API Interne (Port 3001)** : Les endpoints de gestion (ex: `/api/collections`, `/api/mocks/update`) pour communiquer avec le Dashboard.
+3. **Proxy MSW (Port 3002)** : Le reverse-proxy public cible.
+   - Les clients tapent sur `:3002/pet/1`.
+   - Le serveur Bun exécute `fetch(baseUrl + req.url)`.
+   - MSW (configuré via `setupServer()`) intercepte ce `fetch`. S'il y a un mock, MSW répond avec les fausses données. Sinon, `onUnhandledRequest: 'bypass'` laisse Bun appeler la vraie API.
+
+### 2.2 Frameworks & Librairies
+* **Runtime** : Bun natif (`Bun.serve`).
+* **Mocking** : `msw` (Node.js API : `setupServer`, `http`, `HttpResponse`).
+* **Dashboard (Existant)** : React 19, TailwindCSS 4, Shadcn.
+
+## 3. Gestion de l'État et Flux de Données
+
+1. **Initialisation** : Au démarrage, le backend parse la collection Bruno (déjà implémenté). Il génère l'état global en mémoire (un dictionnaire de requêtes avec `isMocked: boolean` et `payload: any`).
+2. **Configuration MSW** : `setupServer` est initialisé avec un *handler* générique ou dynamique lisant cet état en mémoire.
+3. **Mise à jour via UI** : 
+   - L'utilisateur clique sur "Sauvegarder" dans `RequestDetails.tsx`.
+   - Le Dashboard envoie un `POST` à l'API interne (`:3001/api/mocks/:id`).
+   - L'API interne met à jour la mémoire et invoque `server.use(...)` ou met simplement à jour l'état partagé que MSW lit à la volée.
+4. **Requête Cliente** : Une requête arrive sur `:3002`. Le flux traverse MSW en une fraction de seconde, récupère l'état mis à jour, et renvoie la réponse mockée ou originelle.
+
+---
+
+> [!IMPORTANT]
+> **Veuillez lire attentivement ce document. Êtes-vous d'accord avec cette architecture en trois serveurs et l'utilisation de MSW via un `fetch` proxy interne ?**
+> Répondez "Approuvé" ou "Oui" pour que je puisse lancer l'Ingénieur Full-Stack à l'étape du développement !

@@ -25,6 +25,8 @@ export interface ApiRequest {
   method: string;
   url: string;
   examples: BrunoExample[];
+  isMocked?: boolean;
+  currentPayload?: string;
 }
 
 export interface ParserResult {
