@@ -8,16 +8,20 @@ export interface MockState {
 export const mockStates = new Map<string, MockState>();
 let isInitialized = false;
 
+import { getMockStates } from './db';
+
 export async function initProxy(requests: ApiRequest[]) {
   if (isInitialized) return; // Prevent multiple setups if HMR triggers
   isInitialized = true;
 
   const targetApiUrl = process.env.TARGET_API_URL || "https://petstore.swagger.io/v2";
+  const persistedStates = getMockStates();
 
   for (const req of requests) {
+    const pState = persistedStates[req.id];
     mockStates.set(req.id, {
-      isMocked: false,
-      payload: req.examples?.[0]?.response?.body?.data || '{}',
+      isMocked: pState ? pState.isMocked : false,
+      payload: pState ? pState.payload : (req.examples?.[0]?.response?.body?.data || '{}'),
     });
   }
 

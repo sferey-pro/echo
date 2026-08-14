@@ -4,6 +4,7 @@ import { parseCollection } from "./lib/parser";
 import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
+import { updateMockState } from './lib/db';
 
 const targetApiUrl = process.env.TARGET_API_URL || "https://petstore.swagger.io/v2";
 
@@ -66,6 +67,10 @@ const server = serve({
         if (state) {
           if (body.isMocked !== undefined) state.isMocked = body.isMocked;
           if (body.payload !== undefined) state.payload = body.payload;
+          
+          // Persist the new state in SQLite
+          updateMockState(body.id, state.isMocked, state.payload);
+          
           return new Response(JSON.stringify({ success: true }), {
             headers: {
               "Content-Type": "application/json",
