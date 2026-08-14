@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar } from '../dashboard/Sidebar';
 import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection } from '../../lib/api';
@@ -42,9 +41,9 @@ export function DashboardLayout() {
   }
 
   return (
-    <div className="h-screen w-full bg-black text-white overflow-hidden grid grid-cols-1 md:grid-cols-[250px_350px_1fr]">
-      <Sidebar folders={folders} />
+    <div className="h-screen w-full bg-black text-white overflow-hidden grid grid-cols-1 md:grid-cols-[350px_1fr]">
       <RequestList 
+        folders={folders}
         requests={requests} 
         selectedRequestId={selectedRequestId} 
         onSelectRequest={setSelectedRequestId} 
