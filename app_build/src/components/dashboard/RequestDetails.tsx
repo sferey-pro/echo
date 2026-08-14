@@ -27,7 +27,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
 
   const handleToggleMock = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { isMocked: !request.isMocked });
+    await updateMock(request.id, { isMocked: !request.isMocked, payload });
     onUpdate?.();
     setIsSaving(false);
   };

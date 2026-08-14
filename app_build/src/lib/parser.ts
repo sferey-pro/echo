@@ -41,6 +41,7 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
 
   async function traverse(currentPath: string): Promise<BrunoFolder | null> {
     const entries = await readdir(currentPath, { withFileTypes: true });
+    entries.sort((a, b) => a.name.localeCompare(b.name));
 
     let folderName = basename(currentPath);
     const folderYmlEntry = entries.find(e => e.name === 'folder.yml');
@@ -93,6 +94,7 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
 
   try {
     const rootEntries = await readdir(basePath, { withFileTypes: true });
+    rootEntries.sort((a, b) => a.name.localeCompare(b.name));
     for (const entry of rootEntries) {
       if (entry.isDirectory() && !entry.name.startsWith('.')) {
         const folder = await traverse(join(basePath, entry.name));
