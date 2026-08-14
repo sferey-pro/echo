@@ -14,7 +14,7 @@ export async function initProxy(requests: ApiRequest[]) {
   if (isInitialized) return; // Prevent multiple setups if HMR triggers
   isInitialized = true;
 
-  const targetApiUrl = process.env.TARGET_API_URL || "https://petstore.swagger.io/v2";
+  const targetApiUrl = process.env.TARGET_API_URL || "http://localhost:8080";
   const persistedStates = getMockStates();
 
   for (const req of requests) {

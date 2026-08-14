@@ -6,7 +6,7 @@ import { resolve } from "path";
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
 import { updateMockState } from './lib/db';
 
-const targetApiUrl = process.env.TARGET_API_URL || "https://petstore.swagger.io/v2";
+const targetApiUrl = process.env.TARGET_API_URL || "http://localhost:8080";
 
 const server = serve({
   port: 3000,
@@ -30,7 +30,7 @@ const server = serve({
     }
 
     if (url.pathname === '/api/collections') {
-      const collectionPath = process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../examples/Swagger Petstore');
+      const collectionPath = process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../collection');
       try {
         const data = await parseCollection(collectionPath);
         await initProxy(data.requests);
