@@ -37,7 +37,6 @@ export interface ParserResult {
 export async function parseCollection(basePath: string): Promise<ParserResult> {
   const folders: BrunoFolder[] = [];
   const requests: ApiRequest[] = [];
-  let idCounter = 1;
 
   async function traverse(currentPath: string): Promise<BrunoFolder | null> {
     const entries = await readdir(currentPath, { withFileTypes: true });
@@ -52,7 +51,8 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
       folderName = parsed?.info?.name || folderName;
     }
 
-    const currentFolderId = `f${idCounter++}`;
+    const relativeFolderPath = currentPath.replace(basePath, '');
+    const currentFolderId = `f-${Buffer.from(relativeFolderPath).toString('base64url')}`;
     const newFolder: BrunoFolder = {
       id: currentFolderId,
       name: folderName,
@@ -74,8 +74,9 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
         try {
           const parsed = parse(content);
           if (parsed?.info?.type === 'http') {
+            const relativeFilePath = fullPath.replace(basePath, '');
             requests.push({
-              id: `r${idCounter++}`,
+              id: `r-${Buffer.from(relativeFilePath).toString('base64url')}`,
               folderId: currentFolderId,
               name: parsed.info.name || entry.name.replace('.yml', ''),
               method: (parsed.http?.method || 'GET').toUpperCase(),
@@ -100,12 +101,14 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
         const folder = await traverse(join(basePath, entry.name));
         if (folder) folders.push(folder);
       } else if (entry.isFile() && entry.name.endsWith('.yml') && entry.name !== 'opencollection.yml') {
-         const content = await readFile(join(basePath, entry.name), 'utf-8');
+         const fullPath = join(basePath, entry.name);
+         const content = await readFile(fullPath, 'utf-8');
          try {
            const parsed = parse(content);
            if (parsed?.info?.type === 'http') {
+             const relativeFilePath = fullPath.replace(basePath, '');
              requests.push({
-               id: `r${idCounter++}`,
+               id: `r-${Buffer.from(relativeFilePath).toString('base64url')}`,
                folderId: 'root',
                name: parsed.info.name || entry.name.replace('.yml', ''),
                method: (parsed.http?.method || 'GET').toUpperCase(),

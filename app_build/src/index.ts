@@ -17,13 +17,13 @@ const server = serve({
   async fetch(req) {
     const url = new URL(req.url);
 
-    // Cors preflight for API requests
-    if (req.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
+    // Cors preflight for all requests (API and Proxy)
+    if (req.method === 'OPTIONS') {
       return new Response(null, {
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type"
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+          "Access-Control-Allow-Headers": "*"
         }
       });
     }
