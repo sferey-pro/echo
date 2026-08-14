@@ -23,7 +23,7 @@ const server = serve({
     }
 
     // fallback to React app
-    return new Response(Bun.file("./index.html"));
+    return new Response(Bun.file("./src/index.html"));
   },
 
   development: process.env.NODE_ENV !== "production" && {
