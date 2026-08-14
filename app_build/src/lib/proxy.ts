@@ -37,10 +37,18 @@ export async function initProxy(requests: ApiRequest[]) {
       const state = mockStates.get(req.id);
       if (state && state.isMocked) {
         console.log(`[MSW] Intercepted & Mocked: ${mswPath}`);
+        
+        const corsHeaders = {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Expose-Headers": "*"
+        };
+
         try {
-          return HttpResponse.json(JSON.parse(state.payload));
+          return HttpResponse.json(JSON.parse(state.payload), { headers: corsHeaders });
         } catch {
-          return new HttpResponse(state.payload);
+          return new HttpResponse(state.payload, { headers: corsHeaders });
         }
       }
       return; // Pass-through : on laisse la requête filer vers l'API cible
@@ -84,8 +92,19 @@ export async function handleProxyRequest(req: Request, targetApiUrl: string): Pr
         body: await req.arrayBuffer(),
       });
     }
-
-    return await fetch(proxyReq);
+    const response = await fetch(proxyReq);
+    
+    // Inject CORS headers to real responses so the frontend is never blocked
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set("Access-Control-Allow-Origin", "*");
+    responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    responseHeaders.set("Access-Control-Allow-Headers", "*");
+    
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders
+    });
   } catch (err: any) {
     console.error("[PROXY ERROR]", err);
     return new Response(err.stack || String(err), { status: 500 });
