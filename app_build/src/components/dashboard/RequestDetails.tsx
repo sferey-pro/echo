@@ -20,6 +20,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
 
   const defaultExamplePayload = getPayloadString(request?.examples?.[0]?.response?.body?.data);
   const [payload, setPayload] = useState(request?.currentPayload || defaultExamplePayload);
+  const isPayloadModified = payload !== defaultExamplePayload;
   const [selectedExample, setSelectedExample] = useState<string>(request?.selectedExample || request?.examples?.[0]?.name || 'custom');
   const [statusCode, setStatusCode] = useState<number>(request?.statusCode ?? 200);
   const [latencyMs, setLatencyMs] = useState<number>(request?.latencyMs ?? 0);
@@ -64,31 +65,51 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
 
   const handleToggleMock = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { isMocked: !request.isMocked, payload, statusCode, latencyMs, pathParamsOverrides });
-    onUpdate?.();
-    setIsSaving(false);
+    try {
+      await updateMock(request.id, { isMocked: !request.isMocked, payload, statusCode, latencyMs, pathParamsOverrides });
+      onUpdate?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSavePayload = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { payload, selectedExample, statusCode, latencyMs, pathParamsOverrides });
-    onUpdate?.();
-    setIsSaving(false);
+    try {
+      await updateMock(request.id, { payload, selectedExample, statusCode, latencyMs, pathParamsOverrides });
+      onUpdate?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleStatusChange = async (newCode: number) => {
     setStatusCode(newCode);
     setIsSaving(true);
-    await updateMock(request.id, { statusCode: newCode });
-    onUpdate?.();
-    setIsSaving(false);
+    try {
+      await updateMock(request.id, { statusCode: newCode });
+      onUpdate?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de statut');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLatencyChange = async (newLatency: number) => {
     setIsSaving(true);
-    await updateMock(request.id, { latencyMs: newLatency });
-    onUpdate?.();
-    setIsSaving(false);
+    try {
+      await updateMock(request.id, { latencyMs: newLatency });
+      onUpdate?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de latence');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleParamChange = async (key: string, value: string) => {
@@ -97,9 +118,14 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setPathParamsOverrides(newOverrides);
     
     setIsSaving(true);
-    await updateMock(request.id, { pathParamsOverrides: newOverrides });
-    onUpdate?.();
-    setIsSaving(false);
+    try {
+      await updateMock(request.id, { pathParamsOverrides: newOverrides });
+      onUpdate?.();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des paramètres');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleExampleClick = async (ex: NonNullable<ApiRequest['examples']>[0]) => {
@@ -277,10 +303,10 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
           <h3 className="text-sm font-black uppercase mb-2 mt-4">Payload de Réponse (JSON) :</h3>
           
           {/* L'éditeur avec l'effet Néo-brutaliste si modifié */}
-          <div className={`flex-1 flex flex-col rounded-xl overflow-hidden relative ${request.isMocked ? 'neo-modified-glow' : 'border-[3px] border-neo-border'}`}>
-            {request.isMocked && (
+          <div className={`flex-1 flex flex-col rounded-xl overflow-hidden relative ${isPayloadModified ? 'neo-modified-glow' : 'border-[3px] border-neo-border'}`}>
+            {isPayloadModified && (
                <div className="absolute top-2 right-6 z-20 text-neo-yellow-dark font-black text-sm pointer-events-none drop-shadow-md">
-                 Modifié localement - Prioritaire (Jaune)
+                 Payload Modifié (Surcharge Locale)
                </div>
             )}
             <Editor
@@ -318,8 +344,8 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
             
             <div className="flex items-center gap-2 font-black uppercase text-sm">
               ÉTAT ACTUEL : 
-              <span className={`neo-badge text-black text-sm px-3 py-1 ${request.isMocked ? 'bg-neo-yellow' : 'bg-slate-200'}`}>
-                {request.isMocked ? 'Surchargé Localement' : 'Original Bruno'}
+              <span className={`neo-badge text-black text-sm px-3 py-1 ${isPayloadModified ? 'bg-neo-yellow' : 'bg-slate-200'}`}>
+                {isPayloadModified ? 'Surchargé Localement' : 'Original Bruno'}
               </span>
             </div>
           </div>

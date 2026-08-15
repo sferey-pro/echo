@@ -106,5 +106,15 @@ export async function deleteScenario(id: string): Promise<void> {
   const response = await fetch(`/api/scenarios/${id}`, {
     method: 'DELETE'
   });
-  if (!response.ok) throw new Error('Erreur lors de la suppression du scénario');
+  if (!response.ok) throw new Error("Erreur lors de la suppression du scénario");
+}
+
+export async function resetApplication(): Promise<void> {
+  const response = await fetch('/api/reset', {
+    method: 'POST'
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Erreur lors de la réinitialisation de l'application");
+  }
 }

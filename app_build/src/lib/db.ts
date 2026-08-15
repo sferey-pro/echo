@@ -252,3 +252,9 @@ export const applyScenarioActions = (actions: ScenarioAction[]) => {
   }
 };
 
+export const resetDatabase = () => {
+  db.exec("DELETE FROM mock_states");
+  db.exec("DELETE FROM scenarios");
+  db.exec("DELETE FROM settings");
+};
+

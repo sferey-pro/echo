@@ -10,10 +10,11 @@ import { SettingsModal } from '../dashboard/SettingsModal';
 import { CollectionSettingsModal } from '../dashboard/CollectionSettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 import { CommandPalette } from '../dashboard/CommandPalette';
+import { EnvironmentViewerModal } from '../dashboard/EnvironmentViewerModal';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThemeToggle } from '../ThemeToggle';
-import { Settings, CloudDownload, Loader2 } from 'lucide-react';
+import { Settings, CloudDownload, Loader2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DashboardLayout() {
@@ -27,6 +28,7 @@ export function DashboardLayout() {
   const [isCollectionSettingsOpen, setIsCollectionSettingsOpen] = useState(false);
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isEnvViewerOpen, setIsEnvViewerOpen] = useState(false);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
 
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -37,12 +39,14 @@ export function DashboardLayout() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/sync/status');
+        const res = await fetch('http://localhost:3000/api/sync/status?fetch=true');
         if (res.ok) {
           const data = await res.json();
           setSyncStatus(data);
         }
-      } catch (e) {}
+      } catch {
+        // ignore
+      }
     };
     checkStatus();
     const interval = setInterval(checkStatus, 30000); // Check every 30s
@@ -60,7 +64,7 @@ export function DashboardLayout() {
         const error = await res.json();
         toast.error(error.error || "Erreur lors de la synchronisation Git");
       }
-    } catch (e) {
+    } catch {
       toast.error("Erreur réseau lors de la synchronisation Git");
     } finally {
       setIsSyncing(false);
@@ -92,8 +96,60 @@ export function DashboardLayout() {
   }, []);
 
   const selectedRequest = requests.find(r => r.id === selectedRequestId) || null;
-  const requestsInSelectedFolder = selectedFolderId ? requests.filter(r => r.folderId === selectedFolderId) : requests;
-  const selectedFolderName = folders.find(f => f.id === selectedFolderId)?.name || 'Toutes les requêtes';
+  
+  const getDescendantFolderIds = (folderList: BrunoFolder[], targetId: string): string[] => {
+    const result: string[] = [];
+    const findFolder = (list: BrunoFolder[]): BrunoFolder | null => {
+      for (const f of list) {
+        if (f.id === targetId) return f;
+        if (f.children) {
+          const found = findFolder(f.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    
+    const targetFolder = findFolder(folderList);
+    if (!targetFolder) return [targetId];
+    
+    const collectIds = (folder: BrunoFolder) => {
+      result.push(folder.id);
+      if (folder.children) {
+        folder.children.forEach(collectIds);
+      }
+    };
+    
+    collectIds(targetFolder);
+    return result;
+  };
+
+  const targetFolderIds = selectedFolderId ? getDescendantFolderIds(folders, selectedFolderId) : [];
+  const requestsInSelectedFolder = selectedFolderId ? requests.filter(r => targetFolderIds.includes(r.folderId)) : requests;
+  
+  const getFolderName = (folderList: BrunoFolder[], id: string | null): string => {
+    if (!id || id === 'root') return 'Toutes les requêtes';
+    for (const f of folderList) {
+      if (f.id === id) return f.name;
+      if (f.children) {
+        const found = getFolderName(f.children, id);
+        if (found !== 'Toutes les requêtes') return found;
+      }
+    }
+    return 'Toutes les requêtes';
+  };
+  
+  const selectedFolderName = getFolderName(folders, selectedFolderId);
+
+  const isPayloadModified = (req: ApiRequest) => {
+    const getPayloadStr = (data: unknown) => {
+      if (typeof data === 'string') return data;
+      if (data === null || data === undefined) return '';
+      return JSON.stringify(data, null, 2);
+    };
+    const defaultPayload = getPayloadStr(req.examples?.[0]?.response?.body?.data);
+    return req.currentPayload !== defaultPayload;
+  };
 
   // Find folder when a request is selected if not already matched
   useEffect(() => {
@@ -136,8 +192,15 @@ export function DashboardLayout() {
               </SelectContent>
             </Select>
             <button
+              onClick={() => setIsEnvViewerOpen(true)}
+              className="ml-1 p-1.5 bg-neo-green text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-green-400 transition-colors"
+              title="Voir les variables d'environnement"
+            >
+              <Eye className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setIsSettingsOpen(true)}
-              className="ml-2 p-1.5 bg-neo-blue text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-neo-blue/80 transition-colors"
+              className="ml-2 p-1.5 bg-neo-blue text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-blue-400 transition-colors"
               title="Paramètres Echo"
             >
               <Settings className="w-5 h-5" />
@@ -188,7 +251,9 @@ export function DashboardLayout() {
                 folders={folders}
                 requests={requests} 
                 selectedRequestId={selectedRequestId} 
+                selectedFolderId={selectedFolderId}
                 onSelectRequest={setSelectedRequestId}
+                onSelectFolder={setSelectedFolderId}
                 onOpenSettings={() => setIsCollectionSettingsOpen(true)}
                 onOpenCollections={() => setIsCollectionsOpen(true)}
                 onRefresh={fetchAndSetCollection}
@@ -229,7 +294,8 @@ export function DashboardLayout() {
                    req.method === 'DELETE' ? 'text-red-600' : 'text-orange-600'
                  }`}>{req.method}</span>
                  <span className="font-bold flex-1 truncate">{req.name}</span>
-                 {req.isMocked && <span className="neo-badge bg-neo-yellow text-black shadow-[2px_2px_0px_black]">Modifié Localement</span>}
+                 {isPayloadModified(req) && <span className="neo-badge bg-neo-yellow text-black shadow-[2px_2px_0px_black]">Payload Surchargé</span>}
+                 {req.isMocked && !isPayloadModified(req) && <span className="neo-badge bg-neo-green text-black shadow-[2px_2px_0px_black]">Mock Actif</span>}
                </div>
              ))}
            </div>
@@ -279,6 +345,12 @@ export function DashboardLayout() {
         isOpen={isCollectionSettingsOpen} 
         onClose={() => setIsCollectionSettingsOpen(false)} 
         onSaved={fetchAndSetCollection} 
+      />
+      <EnvironmentViewerModal 
+        isOpen={isEnvViewerOpen}
+        onClose={() => setIsEnvViewerOpen(false)}
+        environments={environments}
+        activeEnvironmentName={activeEnvironment}
       />
     </div>
   );

@@ -31,7 +31,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
     setIsLoading(true);
     try {
       const data = await fetchScenarios();
-      setScenarios(data);
+      setScenarios(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     }
@@ -80,13 +80,12 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
       <div className="p-3 border-b border-border bg-card shrink-0 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Mes Scénarios</h3>
-        <Button 
+        <button 
           onClick={() => setIsCreating(!isCreating)} 
-          size="sm" 
-          className="h-7 text-xs bg-primary/20 text-primary hover:bg-primary/40 hover:text-primary-foreground"
+          className={`neo-button text-black font-black text-xs px-2 py-1 ${isCreating ? 'bg-slate-200' : 'bg-neo-blue'}`}
         >
           {isCreating ? 'Annuler' : '+ Nouveau'}
-        </Button>
+        </button>
       </div>
 
       {isCreating && (
@@ -148,19 +147,19 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
                       ×
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-background border-border text-foreground">
+                  <AlertDialogContent className="border-2 border-neo-border shadow-[8px_8px_0px_black] rounded-none">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer ce scénario ?</AlertDialogTitle>
-                      <AlertDialogDescription className="text-muted-foreground">
+                      <AlertDialogTitle className="font-black text-xl text-red-600">Supprimer ce scénario ?</AlertDialogTitle>
+                      <AlertDialogDescription className="font-bold text-black dark:text-white">
                         Cette action supprimera définitivement le scénario "{scenario.name}". 
                         Cela n'affectera pas les requêtes de votre collection.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="bg-card border-transparent hover:bg-muted text-foreground">Annuler</AlertDialogCancel>
+                      <AlertDialogCancel className="neo-button bg-slate-200 text-black font-black">Annuler</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
-                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        className="neo-button bg-neo-red text-black font-black hover:bg-red-500"
                       >
                         Supprimer
                       </AlertDialogAction>

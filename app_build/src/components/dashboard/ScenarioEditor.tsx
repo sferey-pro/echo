@@ -106,17 +106,16 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
           />
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-9 text-muted-foreground hover:text-foreground">
+          <button onClick={onClose} className="neo-button bg-slate-200 text-black font-black text-xs px-3 py-1.5">
             Fermer
-          </Button>
-          <Button 
+          </button>
+          <button 
             onClick={handleSave} 
             disabled={isSaving}
-            size="sm" 
-            className="h-9 font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/20"
+            className="neo-button bg-neo-pink text-black font-black text-xs px-3 py-1.5 disabled:opacity-50"
           >
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
-          </Button>
+          </button>
         </div>
       </div>
       
@@ -124,13 +123,12 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
         
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-foreground/80">Requêtes Mockées ({actions.length})</h3>
-          <Button 
+          <button 
             onClick={() => setIsAdding(!isAdding)}
-            size="sm" 
-            className="h-8 bg-card border border-border hover:bg-accent text-foreground"
+            className={`neo-button text-black font-black text-xs px-3 py-1.5 ${isAdding ? 'bg-slate-200' : 'bg-neo-blue'}`}
           >
             {isAdding ? 'Annuler' : '+ Ajouter une requête'}
-          </Button>
+          </button>
         </div>
 
         {isAdding && (

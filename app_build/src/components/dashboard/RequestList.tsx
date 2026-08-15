@@ -1,14 +1,16 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap, CloudDownload, Loader2 } from 'lucide-react';
+import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
 
 interface RequestListProps {
   folders: BrunoFolder[];
   requests: ApiRequest[];
   selectedRequestId: string | null;
+  selectedFolderId?: string | null;
   onSelectRequest: (id: string) => void;
+  onSelectFolder?: (id: string) => void;
   onOpenSettings: () => void;
   onOpenCollections: () => void;
   onRefresh: () => void;
@@ -28,12 +30,13 @@ type ListItem =
   | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
   | { type: 'request', request: ApiRequest, depth: number };
 
-export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings, onOpenCollections, onRefresh }: RequestListProps) {
+export function RequestList({ folders, requests, selectedRequestId, selectedFolderId, onSelectRequest, onSelectFolder, onOpenSettings, onOpenCollections, onRefresh }: RequestListProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const parentRef = useRef<HTMLDivElement>(null);
 
   const toggleFolder = (folderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (onSelectFolder) onSelectFolder(folderId);
     setExpandedFolders(prev => {
       const next = new Set(prev);
       if (next.has(folderId)) {
@@ -127,7 +130,10 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
-          className="flex items-center pr-2 hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground/80 transition-colors font-medium select-none group relative"
+          className={cn(
+            "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative",
+            selectedFolderId === item.folder.id ? "bg-neo-blue/20 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
+          )}
         >
           <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
             {/* Indentation guide lines */}
@@ -171,7 +177,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
               <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
             ))}
             
-            <span className={cn("neo-badge text-[10px] w-12 text-center shrink-0 z-10 mr-2", methodStyles[req.method] || 'bg-slate-200 text-slate-500')}>
+            <span className={cn("neo-badge text-[10px] w-16 text-center shrink-0 z-10 mr-2", methodStyles[req.method] || 'bg-slate-200 text-slate-500')}>
               {req.method}
             </span>
             <span className="truncate flex-1 z-10 font-medium">

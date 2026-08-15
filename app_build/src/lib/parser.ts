@@ -52,19 +52,20 @@ export interface ParserResult {
 }
 
 // In-memory cache for incremental parsing
-let cachedFolders: Map<string, BrunoFolder> = new Map();
-let cachedRequests: Map<string, ApiRequest> = new Map();
+const cachedFolders: Map<string, BrunoFolder> = new Map();
+let cachedRootFolders: BrunoFolder[] = [];
+const cachedRequests: Map<string, ApiRequest> = new Map();
 let cachedEnvironments: BrunoEnvironment[] = [];
 let isFullParseDone = false;
 
 function parseBruContent(content: string): any {
   // Simple bru parser
   const nameMatch = content.match(/meta\s*\{[\s\S]*?name:\s*(.+?)\n/);
-  const name = nameMatch ? nameMatch[1].trim() : "Unknown";
+  const name = nameMatch?.[1]?.trim() || "Unknown";
   
   const methodMatch = content.match(/(get|post|put|delete|patch|options|head)\s*\{[\s\S]*?url:\s*(.+?)\n/i);
-  const method = methodMatch ? methodMatch[1].toUpperCase() : "GET";
-  const url = methodMatch ? methodMatch[2].trim() : "";
+  const method = methodMatch?.[1]?.toUpperCase() || "GET";
+  const url = methodMatch?.[2]?.trim() || "";
   
   // Try to extract body (naive approach for examples)
   // Actually, bru doesn't store examples the same way. We'll return a mock example if not found
@@ -119,13 +120,14 @@ export function removeFileFromCache(basePath: string, fullPath: string) {
 export async function parseCollection(basePath: string, forceFull: boolean = false): Promise<ParserResult> {
   if (isFullParseDone && !forceFull) {
     return {
-      folders: Array.from(cachedFolders.values()),
+      folders: cachedRootFolders,
       requests: Array.from(cachedRequests.values()),
       environments: cachedEnvironments
     };
   }
 
   cachedFolders.clear();
+  cachedRootFolders = [];
   cachedRequests.clear();
   cachedEnvironments = [];
 
@@ -176,7 +178,8 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
     rootEntries.sort((a, b) => a.name.localeCompare(b.name));
     for (const entry of rootEntries) {
       if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'environments') {
-        await traverse(join(basePath, entry.name));
+        const rootFolder = await traverse(join(basePath, entry.name));
+        if (rootFolder) cachedRootFolders.push(rootFolder);
       } else if (entry.isFile() && (entry.name.endsWith('.yml') || entry.name.endsWith('.bru')) && entry.name !== 'opencollection.yml') {
         await parseFile(basePath, join(basePath, entry.name));
       }
@@ -190,14 +193,50 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
     if (existsSync(envPath)) {
       const envEntries = await readdir(envPath, { withFileTypes: true });
       for (const entry of envEntries) {
-        if (entry.isFile() && (entry.name.endsWith('.yml') || entry.name.endsWith('.json'))) {
+        if (entry.isFile()) {
            const content = await readFile(join(envPath, entry.name), 'utf-8');
            try {
-             const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : JSON.parse(content);
-             if (parsed && parsed.name) {
+             if (entry.name.endsWith('.yml') || entry.name.endsWith('.json')) {
+               const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : (JSON.parse(content) as any);
+               const name = parsed?.name || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
                cachedEnvironments.push({
-                 name: parsed.name,
-                 variables: parsed.variables || []
+                 name: name,
+                 variables: parsed?.variables || []
+               });
+             } else if (entry.name.endsWith('.bru')) {
+               const name = basename(entry.name, '.bru');
+               const variables: BrunoVariable[] = [];
+               
+               // Regex to capture content inside vars { ... }
+               const varsMatch = content.match(/vars\s*\{([\s\S]*?)\}/);
+               if (varsMatch) {
+                 const lines = varsMatch?.[1]?.split('\n') || [];
+                 for (const line of lines) {
+                   const trimmed = line.trim();
+                   if (!trimmed || trimmed.startsWith('//')) continue;
+                   
+                   const firstColon = trimmed.indexOf(':');
+                   if (firstColon > -1) {
+                     // Wait, bru files usually have format `key: value`, but they can also be `key [ value ]` in older bru specs?
+                     // Actually modern bru format for environments is `key: value`
+                     const key = trimmed.substring(0, firstColon).trim();
+                     // value can be wrapped in quotes or just raw text
+                     let val = trimmed.substring(firstColon + 1).trim();
+                     // Remove surrounding quotes if present (some versions of bru use them)
+                     if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+                         val = val.substring(1, val.length - 1);
+                     }
+                     
+                     if (key) {
+                       variables.push({ name: key, value: val });
+                     }
+                   }
+                 }
+               }
+               
+               cachedEnvironments.push({
+                 name: name,
+                 variables: variables
                });
              }
            } catch(e) {
@@ -213,7 +252,7 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
   isFullParseDone = true;
   
   return {
-    folders: Array.from(cachedFolders.values()).filter(f => f.id !== 'root'), // Keep tree structure but return root level
+    folders: cachedRootFolders,
     requests: Array.from(cachedRequests.values()),
     environments: cachedEnvironments
   };

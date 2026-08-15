@@ -4,7 +4,7 @@ import { parseCollection } from "./lib/parser";
 import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
-import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions } from './lib/db';
+import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions, resetDatabase } from './lib/db';
 import { existsSync, watch } from "node:fs";
 import { readdir } from "node:fs/promises";
 import type { Dirent } from "node:fs";
@@ -77,30 +77,38 @@ const server = serve({
     if (url.pathname === '/api/mocks/update' && req.method === 'POST') {
       try {
         const body = await req.json();
-        const state = mockStates.get(body.id);
-        if (state) {
-          if (body.isMocked !== undefined) state.isMocked = body.isMocked;
-          if (body.payload !== undefined) state.payload = body.payload;
-          if (body.isStarred !== undefined) state.isStarred = body.isStarred;
-          if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
-          if (body.statusCode !== undefined) state.statusCode = body.statusCode;
-          if (body.latencyMs !== undefined) state.latencyMs = body.latencyMs;
-          if (body.pathParamsOverrides !== undefined) state.pathParamsOverrides = body.pathParamsOverrides;
-          
-          // Persist the new state in SQLite
-          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs, state.pathParamsOverrides);
-          
-          // Mettre à jour l'état local dans mockStates sans redémarrer MSW
-          // Car mswProxy lit dynamiquement mockStates
-          
-          return new Response(JSON.stringify({ success: true }), {
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
-            }
-          });
+        let state = mockStates.get(body.id);
+        
+        if (!state) {
+          state = {
+            isMocked: false,
+            payload: '',
+            isStarred: false,
+            selectedExample: null,
+            statusCode: 200,
+            latencyMs: 0,
+            pathParamsOverrides: {}
+          };
+          mockStates.set(body.id, state);
         }
-        return new Response("Not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
+        
+        if (body.isMocked !== undefined) state.isMocked = body.isMocked;
+        if (body.payload !== undefined) state.payload = body.payload;
+        if (body.isStarred !== undefined) state.isStarred = body.isStarred;
+        if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
+        if (body.statusCode !== undefined) state.statusCode = body.statusCode;
+        if (body.latencyMs !== undefined) state.latencyMs = body.latencyMs;
+        if (body.pathParamsOverrides !== undefined) state.pathParamsOverrides = body.pathParamsOverrides;
+        
+        // Persist the new state in SQLite
+        updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs, state.pathParamsOverrides);
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
       } catch (err: unknown) {
         const e = err as Error;
         console.error("Erreur dans /api/mocks/update :", e);
@@ -136,6 +144,9 @@ const server = serve({
     }
 
     if (url.pathname === '/api/sync/status' && req.method === 'GET') {
+      if (url.searchParams.get('fetch') === 'true') {
+        await runSync();
+      }
       return new Response(JSON.stringify(gitSyncStatus), {
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
       });
@@ -158,7 +169,7 @@ const server = serve({
         gitSyncStatus.error = "";
         
         const data = await parseCollection(repo, true);
-        await initProxy(data.requests, data.environments, true);
+        await initProxy(data.requests, data.environments);
         
         return new Response(JSON.stringify({ success: true }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
@@ -340,6 +351,20 @@ const server = serve({
       }
     }
 
+    if (url.pathname === '/api/reset' && req.method === 'POST') {
+      try {
+        resetDatabase();
+        mockStates.clear();
+        updateBackgroundTasks(); // Re-init repo path and watcher
+        
+        const data = await parseCollection(getRepoPath());
+        await initProxy(data.requests, data.environments);
+        
+        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
 
     // Tout ce qui ne correspond ni aux routes (SPA), ni à l'API interne, part vers le proxy MSW !
     return handleProxyRequest(req);
@@ -357,13 +382,18 @@ console.log(`🚀 Unified Echo Server running at ${server.url} (Dashboard, API &
 console.log(`📂 Using Repo Path: ${REPO_PATH}`);
 
 function getRepoPath() {
-  return getSetting('REPO_PATH') || process.env.REPO_PATH || resolve(process.cwd(), '../collection');
+  const activeCol = getSetting('ACTIVE_COLLECTION_NAME');
+  const base = resolve(process.cwd(), '../collection');
+  if (activeCol) {
+    return resolve(base, activeCol);
+  }
+  return getSetting('REPO_PATH') || process.env.REPO_PATH || base;
 }
 
 // --- BACKGROUND SYNC ---
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentWatcher: any = null;
 let currentWatchPath: string | null = null;
-let syncTimer: any = null;
 
 export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "" };
 
@@ -394,14 +424,15 @@ async function runSync() {
          const errText = await new Response(fetchProc.stderr).text();
          gitSyncStatus.error = errText;
       }
-    } catch (e) {
+    } catch (err: unknown) {
+      const e = err as Error;
       console.error("[Git Polling] Failed to fetch", e);
-      gitSyncStatus.error = (e as Error).message;
+      gitSyncStatus.error = e.message;
     }
   }
   
   const interval = parseInt(getSetting('GIT_SYNC_INTERVAL') || process.env.GIT_SYNC_INTERVAL || "300000", 10);
-  syncTimer = setTimeout(runSync, interval);
+  setTimeout(runSync, interval);
 }
 
 export function updateBackgroundTasks() {
@@ -425,7 +456,7 @@ export function updateBackgroundTasks() {
             removeFileFromCache(repo, fullPath);
           }
           const data = await parseCollection(repo);
-          await initProxy(data.requests, data.environments, true);
+          await initProxy(data.requests, data.environments);
         }
       });
     }

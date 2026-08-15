@@ -42,17 +42,17 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md p-6">
+      <div className="bg-background border-2 border-neo-border rounded-xl shadow-[8px_8px_0px_black] w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-foreground">Paramètres de la Collection</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+          <h2 className="text-xl font-black text-foreground">Paramètres de la Collection</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground font-black">✕</button>
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                <label className="block text-sm font-black text-foreground/80 mb-1">
                   Chemin du dépôt Git (REPO_PATH)
                 </label>
                 <input 
@@ -60,13 +60,13 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
                   value={repoPath}
                   onChange={e => setRepoPath(e.target.value)}
                   placeholder="Ex: ../collection"
-                  className="w-full bg-muted/50 border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                  className="neo-input w-full bg-white dark:bg-slate-800 text-sm text-foreground focus:outline-none"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Le dossier local surveillé pour l'ingestion (collection actuelle).</p>
+                <p className="text-xs font-bold text-muted-foreground mt-1">Le dossier local surveillé pour l'ingestion (collection actuelle).</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                <label className="block text-sm font-black text-foreground/80 mb-1">
                   Intervalle de Synchronisation Git (ms)
                 </label>
                 <input 
@@ -74,9 +74,9 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
                   value={gitSyncInterval}
                   onChange={e => setGitSyncInterval(e.target.value)}
                   placeholder="Ex: 300000"
-                  className="w-full bg-muted/50 border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                  className="neo-input w-full bg-white dark:bg-slate-800 text-sm text-foreground focus:outline-none"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
+                <p className="text-xs font-bold text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
               </div>
             </div>
           </div>
@@ -85,14 +85,14 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
             <button 
               type="button" 
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+              className="neo-button bg-slate-200 text-black px-4 py-2 text-sm font-black transition-colors"
             >
               Annuler
             </button>
             <button 
               type="submit" 
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50"
+              className="neo-button bg-neo-blue text-black px-4 py-2 text-sm font-black transition-colors disabled:opacity-50"
             >
               {loading ? 'Sauvegarde...' : 'Enregistrer'}
             </button>
