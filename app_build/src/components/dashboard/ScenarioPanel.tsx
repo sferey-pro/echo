@@ -36,7 +36,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
     if (!newScenarioName.trim()) return;
     setIsSaving(true);
     try {
-      await createScenario(newScenarioName.trim());
+      await createScenario(newScenarioName.trim(), []);
       setNewScenarioName('');
       setIsCreating(false);
       await loadScenarios();
@@ -80,7 +80,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
 
       {isCreating && (
         <form onSubmit={handleSaveCurrent} className="p-3 border-b border-white/5 bg-black/40 flex flex-col gap-2">
-          <p className="text-xs text-neutral-400">Sauvegarder l'état actuel (mocks actifs) comme un nouveau scénario.</p>
+          <p className="text-xs text-neutral-400">Créer un nouveau scénario vide.</p>
           <div className="flex gap-2">
             <input 
               autoFocus
