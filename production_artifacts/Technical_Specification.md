@@ -1,44 +1,45 @@
-# Spécifications Techniques : Gestionnaire de Collections Multiples (Echo)
+# Spécifications Techniques : Contrôle Avancé du Mock (Latence & Statut HTTP)
 
 ## 1. Résumé Exécutif
-L'objectif est d'étendre les capacités d'Echo pour permettre la gestion de multiples projets Bruno (collections). L'utilisateur doit pouvoir cloner plusieurs dépôts Git contenant des collections, visualiser la liste de ces projets, et basculer facilement d'une collection active à une autre via une interface dédiée, distincte du Dashboard principal.
+L'objectif est d'enrichir le panneau de contrôle de chaque requête (actuellement binaire "Mock Actif" On/Off) pour permettre la simulation de conditions réelles de production (dégradation du réseau, erreurs serveur). Nous ajouterons des paramètres de **Latence** (pour simuler la lenteur) et de **Statut HTTP** (pour simuler les pannes ou les succès spécifiques).
 
 ## 2. Exigences Fonctionnelles
-- **Interface de gestion** : Une nouvelle interface (Vue dédiée ou grande modale plein écran) permettant d'administrer les collections.
-- **Clonage de dépôts** : Permettre de cloner un projet Bruno depuis une URL Git. Le projet sera stocké dans un sous-dossier du répertoire `collection/`.
-- **Lister les collections** : Afficher la liste de tous les projets Bruno actuellement stockés localement sur le serveur.
-- **Activer une collection** : Un bouton pour définir une collection spécifique comme "Active". Cela mettra à jour la configuration globale d'Echo (`BRUNO_COLLECTION_PATH`) et rafraîchira le Dashboard principal.
-- **Suppression (Optionnel mais recommandé)** : Permettre de supprimer un dépôt cloné localement pour libérer de l'espace.
+- **Sélecteur de Statut HTTP** : L'utilisateur pourra définir le code de statut HTTP de la réponse mockée via un menu déroulant (ex: 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 404 Not Found, 500 Internal Server Error).
+- **Curseur de Latence (Délai)** : Un contrôle (slider ou input numérique) permettant de définir un délai artificiel de réponse allant de 0ms (instantané) à 5000ms (5 secondes).
+- **Persistance par Requête** : Ces paramètres seront sauvegardés individuellement pour chaque requête dans la base de données locale (SQLite).
+- **Application en Temps Réel** : Le proxy (`proxy.ts`) appliquera automatiquement ce délai (via `setTimeout` ou `Bun.sleep`) et retournera le statut HTTP spécifié.
 
 ## 3. Architecture & Tech Stack
 
-### 3.1 Backend (Bun / ElysiaJS)
-Nous allons étendre l'API interne (`index.ts`) :
-- `GET /api/repositories` : Lit le répertoire `../collection` pour retourner la liste des dossiers existants (les projets clonés).
-- `POST /api/repositories/clone` : Clone un dépôt Git dans un sous-dossier de `../collection/` portant le nom du dépôt. *Modification : Ne définit plus automatiquement ce dépôt comme actif.*
-- `POST /api/settings` : Utilisé pour mettre à jour la collection active. La clé `ACTIVE_COLLECTION_NAME` stockera uniquement le **nom du dossier** (ex: `samples-bruno`), puisque toutes les collections sont désormais strictement stockées dans le dossier racine `collection/`. Le champ de saisie manuelle d'un chemin de collection disparaîtra de l'interface des paramètres généraux.
-- `DELETE /api/repositories/:name` : Supprime le dossier correspondant du disque.
+### 3.1 Base de données (SQLite)
+La table existante `mock_states` dans `.echo-state.sqlite` devra être mise à jour avec deux nouvelles colonnes (via une migration `ALTER TABLE` lors de l'initialisation) :
+- `status_code` (INTEGER) : Par défaut à `200`.
+- `latency_ms` (INTEGER) : Par défaut à `0`.
 
-### 3.2 Frontend (React / TailwindCSS / Shadcn UI)
-- **Nouvelle Vue ou Modale** : Création d'un composant `CollectionManager.tsx`.
-- **Composants UI (Shadcn)** :
-  - `Card` pour afficher chaque dépôt cloné sous forme de tuile.
-  - `Input` et `Button` pour le formulaire de clonage d'URL Git.
-  - `Badge` pour indiquer quelle collection est actuellement "ACTIVE".
-- **Navigation** : Un bouton "Gérer les Collections" (ex: 📚) sera ajouté dans la barre de menu ou dans le header pour accéder à cette interface de gestion.
-- **State Management** : L'état local du `CollectionManager` appellera `GET /api/repositories` au montage. Lors du clic sur "Activer", un appel à `POST /api/settings` est fait, suivi d'un rechargement de l'arborescence (ou rechargement complet de la page via `window.location.reload()`).
+### 3.2 Backend (Bun / ElysiaJS - `index.ts` & `proxy.ts`)
+- **API Mise à jour (`/api/mocks/update`)** : Sera modifiée pour accepter et traiter les champs `statusCode` et `latencyMs`.
+- **Proxy Engine (`proxy.ts`)** : Lors de l'interception (`handleProxyRequest`), si la requête est mockée :
+  1. Si `latencyMs > 0`, introduire une pause asynchrone avant de répondre.
+  2. Construire la réponse HTTP en injectant le `statusCode` paramétré plutôt que le code 200 par défaut.
+
+### 3.3 Frontend (React / TailwindCSS / Shadcn UI - `RequestDetails.tsx`)
+- **UI "Mock Settings"** : Un nouveau sous-panneau (ou encart dans l'en-tête de la requête) contenant :
+  - Un `<Select>` (ou menu Shadcn) pour les codes HTTP les plus courants, avec leurs codes couleurs habituels (Vert pour 200, Rouge pour 400/500).
+  - Un `<Slider>` ou champ `<Input type="number">` pour définir la latence en millisecondes.
+- **Sauvegarde Automatique** : La modification de ces paramètres déclenchera automatiquement la sauvegarde backend (similairement à la sélection d'un exemple).
 
 ## 4. Gestion de l'État et Flux de Données
-1. L'utilisateur ouvre le "Collection Manager". Le Frontend demande la liste des dossiers au backend.
-2. Pour cloner : le Frontend envoie l'URL Git. Le Backend exécute `git clone` dans `../collection/{repo_name}` et retourne le succès. Le Frontend rafraîchit la liste.
-3. Pour activer : le Frontend envoie le chemin absolu du dossier au backend via `/api/settings`. Le backend persiste cela dans SQLite. Le Frontend retourne au Dashboard et recharge les requêtes (via `fetchAndSetCollection()`).
+1. L'utilisateur modifie la latence via le curseur.
+2. Le composant `RequestDetails` met à jour son state local et debounce un appel `updateMock` au backend avec le nouveau `{ latencyMs }`.
+3. L'API backend met à jour la ligne correspondante dans `mock_states`.
+4. La prochaine requête frontend interceptée par le proxy lira l'état mis à jour, fera une pause (ex: `Bun.sleep(1500)`), puis répondra.
 
 ## 5. Design & Ergonomie (UX/UI)
-L'interface de gestion des collections conservera l'esthétique "Premium & Glassmorphism" :
-- Tuiles avec effet de survol (hover scale, lueur violette/bleue).
-- Boutons d'action clairs ("Cloner", "Activer", "Supprimer").
-- Indicateur visuel fort (bordure néon ou badge) pour la collection actuellement active.
+- Ces nouveaux réglages apparaîtront juste en dessous ou à côté du bouton "Mock Actif", de façon discrète mais accessible.
+- Le style "Glassmorphism" continuera de s'appliquer.
+- L'utilisation de badges colorés pour les statuts HTTP (ex: `🟢 200`, `🔴 500`) rendra l'interface très lisible d'un coup d'œil.
 
 ---
 **À l'attention de l'utilisateur :**
-Veuillez lire ce document et indiquer si cette approche (notamment l'idée d'une Vue dédiée ou Grande Modale) vous convient pour la gestion multi-projets.
+Veuillez vérifier cette proposition architecturale et les modifications prévues sur la base de données.
+Approuvez-vous ces spécifications ? (Si oui, répondez "Approuvé", sinon n'hésitez pas à proposer des modifications !)

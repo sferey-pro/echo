@@ -12,7 +12,9 @@ db.exec(`
     is_mocked BOOLEAN DEFAULT 0,
     payload TEXT,
     is_starred BOOLEAN DEFAULT 0,
-    selected_example TEXT DEFAULT NULL
+    selected_example TEXT DEFAULT NULL,
+    status_code INTEGER DEFAULT 200,
+    latency_ms INTEGER DEFAULT 0
   );
 `);
 
@@ -28,40 +30,56 @@ try {
   // Column might already exist
 }
 
+try {
+  db.exec(`ALTER TABLE mock_states ADD COLUMN status_code INTEGER DEFAULT 200;`);
+} catch (_e) {
+}
+
+try {
+  db.exec(`ALTER TABLE mock_states ADD COLUMN latency_ms INTEGER DEFAULT 0;`);
+} catch (_e) {
+}
+
 export interface DBMockState {
   request_id: string;
   is_mocked: number;
   payload: string;
   is_starred: number;
   selected_example: string | null;
+  status_code: number;
+  latency_ms: number;
 }
 
-export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null }> => {
+export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number }> => {
   const query = db.query("SELECT * FROM mock_states");
   const results = query.all() as DBMockState[];
   
-  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null }> = {};
+  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number }> = {};
   for (const row of results) {
     states[row.request_id] = {
       isMocked: row.is_mocked === 1,
       payload: row.payload,
       isStarred: row.is_starred === 1,
-      selectedExample: row.selected_example
+      selectedExample: row.selected_example,
+      statusCode: row.status_code ?? 200,
+      latencyMs: row.latency_ms ?? 0
     };
   }
   return states;
 };
 
-export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null) => {
+export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null, statusCode?: number, latencyMs?: number) => {
   if (isStarred !== undefined) {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example) 
-      VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms) 
+      VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample, $statusCode, $latencyMs) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
         payload = excluded.payload,
         is_starred = excluded.is_starred,
-        selected_example = excluded.selected_example;
+        selected_example = excluded.selected_example,
+        status_code = excluded.status_code,
+        latency_ms = excluded.latency_ms;
     `);
     
     query.run({
@@ -69,23 +87,29 @@ export const updateMockState = (requestId: string, isMocked: boolean, payload: s
       $isMocked: isMocked ? 1 : 0,
       $payload: payload,
       $isStarred: isStarred ? 1 : 0,
-      $selectedExample: selectedExample !== undefined ? selectedExample : null
+      $selectedExample: selectedExample !== undefined ? selectedExample : null,
+      $statusCode: statusCode !== undefined ? statusCode : 200,
+      $latencyMs: latencyMs !== undefined ? latencyMs : 0
     });
   } else {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example) 
-      VALUES ($id, $isMocked, $payload, 0, $selectedExample) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms) 
+      VALUES ($id, $isMocked, $payload, 0, $selectedExample, $statusCode, $latencyMs) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
         payload = excluded.payload,
-        selected_example = excluded.selected_example;
+        selected_example = excluded.selected_example,
+        status_code = excluded.status_code,
+        latency_ms = excluded.latency_ms;
     `);
     
     query.run({
       $id: requestId,
       $isMocked: isMocked ? 1 : 0,
       $payload: payload,
-      $selectedExample: selectedExample !== undefined ? selectedExample : null
+      $selectedExample: selectedExample !== undefined ? selectedExample : null,
+      $statusCode: statusCode !== undefined ? statusCode : 200,
+      $latencyMs: latencyMs !== undefined ? latencyMs : 0
     });
   }
 };

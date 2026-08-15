@@ -13,6 +13,8 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
   const defaultExamplePayload = request?.examples?.[0]?.response?.body?.data || '';
   const [payload, setPayload] = useState(request?.currentPayload || defaultExamplePayload);
   const [selectedExample, setSelectedExample] = useState<string>(request?.selectedExample || request?.examples?.[0]?.name || 'custom');
+  const [statusCode, setStatusCode] = useState<number>(request?.statusCode ?? 200);
+  const [latencyMs, setLatencyMs] = useState<number>(request?.latencyMs ?? 0);
   const [isSaving, setIsSaving] = useState(false);
 
   if (!request) {
@@ -28,14 +30,30 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
 
   const handleToggleMock = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { isMocked: !request.isMocked, payload });
+    await updateMock(request.id, { isMocked: !request.isMocked, payload, statusCode, latencyMs });
     onUpdate?.();
     setIsSaving(false);
   };
 
   const handleSavePayload = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { payload, selectedExample });
+    await updateMock(request.id, { payload, selectedExample, statusCode, latencyMs });
+    onUpdate?.();
+    setIsSaving(false);
+  };
+
+  const handleStatusChange = async (newCode: number) => {
+    setStatusCode(newCode);
+    setIsSaving(true);
+    await updateMock(request.id, { statusCode: newCode });
+    onUpdate?.();
+    setIsSaving(false);
+  };
+
+  const handleLatencyChange = async (newLatency: number) => {
+    setLatencyMs(newLatency);
+    setIsSaving(true);
+    await updateMock(request.id, { latencyMs: newLatency });
     onUpdate?.();
     setIsSaving(false);
   };
@@ -111,6 +129,44 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
       
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
         <div className="flex flex-col h-full bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm shadow-xl">
+          <div className="flex flex-wrap items-center gap-4 mb-4 bg-black/20 p-3 rounded-lg border border-white/5 shadow-inner">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-neutral-400">Statut HTTP:</span>
+              <select 
+                value={statusCode}
+                onChange={(e) => handleStatusChange(parseInt(e.target.value))}
+                className="bg-neutral-900 border border-white/10 rounded-md px-2 py-1 text-sm font-medium text-white focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer"
+              >
+                <option value={200}>🟢 200 OK</option>
+                <option value={201}>🟢 201 Created</option>
+                <option value={204}>🟢 204 No Content</option>
+                <option value={400}>🟠 400 Bad Request</option>
+                <option value={401}>🟠 401 Unauthorized</option>
+                <option value={403}>🟠 403 Forbidden</option>
+                <option value={404}>🟠 404 Not Found</option>
+                <option value={500}>🔴 500 Internal Error</option>
+              </select>
+            </div>
+            
+            <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-neutral-400">Latence simulée:</span>
+              <input 
+                type="number" 
+                min="0"
+                max="30000"
+                step="100"
+                value={latencyMs}
+                onChange={(e) => setLatencyMs(parseInt(e.target.value) || 0)}
+                onBlur={() => handleLatencyChange(latencyMs)}
+                className="w-24 bg-neutral-900 border border-white/10 rounded-md px-2 py-1 text-sm font-medium text-white focus:outline-none focus:border-purple-500/50 transition-colors"
+                title="Délai de réponse en millisecondes"
+              />
+              <span className="text-xs text-neutral-500">ms</span>
+            </div>
+          </div>
+          
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
             <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-white/5 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all" onClick={() => {

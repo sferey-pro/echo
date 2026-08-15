@@ -5,6 +5,8 @@ export interface MockState {
   payload: string;
   isStarred: boolean;
   selectedExample: string | null;
+  statusCode: number;
+  latencyMs: number;
 }
 
 export const mockStates = new Map<string, MockState>();
@@ -28,6 +30,8 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
       payload: pState ? pState.payload : (req.examples?.[0]?.response?.body?.data || '{}'),
       isStarred: pState ? pState.isStarred : false,
       selectedExample: pState ? pState.selectedExample : null,
+      statusCode: pState ? pState.statusCode : 200,
+      latencyMs: pState ? pState.latencyMs : 0,
     });
   }
 
@@ -50,10 +54,14 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
     // Si la méthode n'existe pas dans MSW (ex: HEAD), on utilise 'all'
     const mswMethod = http[method] || http.all;
 
-    return mswMethod(mswPath, () => {
+    return mswMethod(mswPath, async () => {
       const state = mockStates.get(req.id);
       if (state && state.isMocked) {
-        console.log(`[MSW] Intercepted & Mocked: ${mswPath}`);
+        if (state.latencyMs && state.latencyMs > 0) {
+          await new Promise(r => setTimeout(r, state.latencyMs));
+        }
+        
+        console.log(`[MSW] Intercepted & Mocked: ${mswPath} (Status: ${state.statusCode}, Latency: ${state.latencyMs}ms)`);
         
         const corsHeaders = {
           "Access-Control-Allow-Origin": "*",
@@ -63,9 +71,9 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
         };
 
         try {
-          return HttpResponse.json(JSON.parse(state.payload), { headers: corsHeaders });
+          return HttpResponse.json(JSON.parse(state.payload), { headers: corsHeaders, status: state.statusCode });
         } catch {
-          return new HttpResponse(state.payload, { headers: corsHeaders });
+          return new HttpResponse(state.payload, { headers: corsHeaders, status: state.statusCode });
         }
       }
       return; // Pass-through : on laisse la requête filer vers l'API cible

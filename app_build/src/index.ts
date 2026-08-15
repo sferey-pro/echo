@@ -43,7 +43,9 @@ const server = serve({
             isMocked: state?.isMocked || false,
             currentPayload: state?.payload || r.examples?.[0]?.response?.body?.data || '',
             isStarred: state?.isStarred || false,
-            selectedExample: state?.selectedExample || null
+            selectedExample: state?.selectedExample || null,
+            statusCode: state?.statusCode ?? 200,
+            latencyMs: state?.latencyMs ?? 0
           };
         });
 
@@ -75,9 +77,11 @@ const server = serve({
           if (body.payload !== undefined) state.payload = body.payload;
           if (body.isStarred !== undefined) state.isStarred = body.isStarred;
           if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
+          if (body.statusCode !== undefined) state.statusCode = body.statusCode;
+          if (body.latencyMs !== undefined) state.latencyMs = body.latencyMs;
           
           // Persist the new state in SQLite
-          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample);
+          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs);
           
           return new Response(JSON.stringify({ success: true }), {
             headers: {

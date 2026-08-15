@@ -30,6 +30,8 @@ export interface ApiRequest {
   currentPayload?: string;
   isStarred?: boolean;
   selectedExample?: string | null;
+  statusCode?: number;
+  latencyMs?: number;
 }
 
 export interface BrunoVariable {
