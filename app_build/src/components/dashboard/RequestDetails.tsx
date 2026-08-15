@@ -12,7 +12,7 @@ interface RequestDetailsProps {
 }
 
 export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
-  const getPayloadString = (data: any) => {
+  const getPayloadString = (data: unknown) => {
     if (typeof data === 'string') return data;
     if (data === null || data === undefined) return '';
     return JSON.stringify(data, null, 2);
@@ -110,9 +110,9 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     try {
       await updateMock(request.id, { payload: newPayload, selectedExample: ex.name });
       onUpdate?.();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert("Erreur: " + e.message);
+      alert("Erreur: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setIsSaving(false);
     }

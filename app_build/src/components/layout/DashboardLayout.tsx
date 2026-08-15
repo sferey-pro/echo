@@ -64,21 +64,18 @@ export function DashboardLayout() {
   }
 
   return (
-    <div className="h-screen w-full bg-background text-foreground overflow-hidden flex relative font-sans selection:bg-purple-500/30">
-      {/* Premium Background Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vh] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[40vw] h-[40vh] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+    <div className="h-screen w-full bg-accent text-foreground overflow-hidden flex relative font-mono selection:bg-primary selection:text-primary-foreground p-4 md:p-8">
       
-      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] divide-x divide-border">
-        <div className="flex flex-col h-full overflow-hidden relative bg-muted/10">
-          <div className="px-4 py-2 bg-transparent border-b border-border flex items-center justify-between">
+      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] bg-background border-4 border-foreground brutal-shadow divide-x-4 divide-foreground">
+        <div className="flex flex-col h-full overflow-hidden relative">
+          <div className="px-4 py-3 bg-primary text-primary-foreground border-b-4 border-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">Env :</span>
+              <span className="text-xs font-bold uppercase tracking-widest">ENV :</span>
               <Select value={activeEnvironment} onValueChange={handleEnvChange}>
-                <SelectTrigger className="w-[120px] h-7 text-xs bg-muted border-border text-foreground focus:ring-1 focus:ring-purple-500">
+                <SelectTrigger className="w-[120px] h-8 text-xs bg-background border-2 border-foreground text-foreground rounded-none brutal-shadow focus:ring-0">
                   <SelectValue placeholder="Aucun" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-none border-2 border-foreground brutal-shadow">
                   <SelectItem value="">Aucun</SelectItem>
                   {environments.map(env => (
                     <SelectItem key={env.name} value={env.name}>{env.name}</SelectItem>
@@ -88,16 +85,16 @@ export function DashboardLayout() {
             </div>
             <ThemeToggle />
           </div>
-          <div className="flex bg-muted/30 border-b border-border">
+          <div className="flex border-b-4 border-foreground">
             <button 
               onClick={() => { setActiveTab('explorer'); setSelectedScenarioId(null); }}
-              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'explorer' ? 'bg-background text-foreground border-b-2 border-purple-500' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
+              className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider text-center transition-none border-r-4 border-foreground ${activeTab === 'explorer' ? 'bg-background text-foreground' : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
             >
               Explorer
             </button>
             <button 
               onClick={() => setActiveTab('scenarios')}
-              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'scenarios' ? 'bg-background text-foreground border-b-2 border-purple-500' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
+              className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider text-center transition-none ${activeTab === 'scenarios' ? 'bg-background text-foreground' : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
             >
               Scénarios
             </button>

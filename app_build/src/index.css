@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "../styles/globals.css";
 
 html, body, #root {
@@ -13,24 +13,26 @@ html, body, #root {
     @apply antialiased;
   }
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Space Mono', monospace;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Brutalist */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--background);
+  border-left: 2px solid var(--foreground);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-md;
+  background: var(--primary);
+  border: 2px solid var(--foreground);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground/50;
+  background: var(--accent);
 }
