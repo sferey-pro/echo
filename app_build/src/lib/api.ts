@@ -52,3 +52,40 @@ export async function cloneCollection(repoUrl: string, force: boolean = false): 
     throw new Error(errorData.error || 'Erreur lors du clonage du dépôt');
   }
 }
+
+export interface Scenario {
+  id: string;
+  name: string;
+  actions: any[];
+}
+
+export async function fetchScenarios(): Promise<Scenario[]> {
+  const response = await fetch('/api/scenarios');
+  if (!response.ok) throw new Error('Erreur lors de la récupération des scénarios');
+  return response.json();
+}
+
+export async function createScenario(name: string, actions?: any[]): Promise<void> {
+  const response = await fetch('/api/scenarios', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, actions })
+  });
+  if (!response.ok) throw new Error('Erreur lors de la création du scénario');
+}
+
+export async function applyScenario(id: string): Promise<void> {
+  const response = await fetch('/api/scenarios/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  });
+  if (!response.ok) throw new Error("Erreur lors de l'application du scénario");
+}
+
+export async function deleteScenario(id: string): Promise<void> {
+  const response = await fetch(`/api/scenarios/${id}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error('Erreur lors de la suppression du scénario');
+}

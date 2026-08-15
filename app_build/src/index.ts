@@ -4,7 +4,7 @@ import { parseCollection } from "./lib/parser";
 import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
-import { updateMockState, getSetting, setSetting, getAllSettings } from './lib/db';
+import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, deleteScenario, applyScenarioActions } from './lib/db';
 import { existsSync } from "node:fs";
 
 
@@ -203,6 +203,86 @@ const server = serve({
        } catch (err: unknown) {
          return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
        }
+    }
+
+    if (url.pathname === '/api/scenarios' && req.method === 'GET') {
+      try {
+        const scenarios = getScenarios();
+        return new Response(JSON.stringify(scenarios), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    if (url.pathname === '/api/scenarios' && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        if (!body.name) return new Response("Bad Request: missing name", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        
+        let actionsToSave = body.actions;
+        // Si aucune action n'est fournie, on sauvegarde l'état actuel
+        if (!actionsToSave) {
+          const currentStates = getMockStates();
+          actionsToSave = Object.entries(currentStates)
+            .filter(([_, state]) => state.isMocked)
+            .map(([reqId, state]) => ({
+              requestId: reqId,
+              payload: state.payload,
+              statusCode: state.statusCode,
+              latencyMs: state.latencyMs,
+              selectedExample: state.selectedExample,
+              pathParamsOverrides: state.pathParamsOverrides
+            }));
+        }
+        
+        const id = `scenario-${Date.now()}`;
+        createScenario(id, body.name, actionsToSave);
+        
+        return new Response(JSON.stringify({ success: true, id }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    if (url.pathname === '/api/scenarios/apply' && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        if (!body.id) return new Response("Bad Request: missing id", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        
+        const scenarios = getScenarios();
+        const scenario = scenarios.find(s => s.id === body.id);
+        if (!scenario) return new Response("Scenario not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
+        
+        applyScenarioActions(scenario.actions as any[]);
+        
+        // Reset MSW
+        const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
+        const collectionPath = resolve(process.cwd(), '../collection', activeName);
+        const data = await parseCollection(collectionPath);
+        await initProxy(data.requests, data.environments);
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    const matchDeleteScenario = url.pathname.match(/^\/api\/scenarios\/(.+)$/);
+    if (matchDeleteScenario && req.method === 'DELETE') {
+      try {
+        const id = matchDeleteScenario[1];
+        if (!id) return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        deleteScenario(id);
+        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
     }
 
 

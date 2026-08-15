@@ -3,6 +3,7 @@ import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
 import type { BrunoFolder, ApiRequest, BrunoEnvironment } from '../../lib/parser';
+import { ScenarioPanel } from '../dashboard/ScenarioPanel';
 
 import { SettingsModal } from '../dashboard/SettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
@@ -19,6 +20,7 @@ export function DashboardLayout() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'explorer' | 'scenarios'>('explorer');
 
   const fetchAndSetCollection = () => {
     Promise.all([fetchCollection(), getSettings()])
@@ -79,16 +81,35 @@ export function DashboardLayout() {
               ))}
             </select>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <RequestList 
-              folders={folders}
-              requests={requests} 
-              selectedRequestId={selectedRequestId} 
-              onSelectRequest={setSelectedRequestId}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onOpenCollections={() => setIsCollectionsOpen(true)}
-              onRefresh={fetchAndSetCollection}
-            />
+          <div className="flex bg-black/40 border-b border-white/5">
+            <button 
+              onClick={() => setActiveTab('explorer')}
+              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'explorer' ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'}`}
+            >
+              Explorer
+            </button>
+            <button 
+              onClick={() => setActiveTab('scenarios')}
+              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'scenarios' ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'}`}
+            >
+              Scénarios
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-hidden relative">
+            {activeTab === 'explorer' ? (
+              <RequestList 
+                folders={folders}
+                requests={requests} 
+                selectedRequestId={selectedRequestId} 
+                onSelectRequest={setSelectedRequestId}
+                onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenCollections={() => setIsCollectionsOpen(true)}
+                onRefresh={fetchAndSetCollection}
+              />
+            ) : (
+              <ScenarioPanel onScenarioApplied={fetchAndSetCollection} />
+            )}
           </div>
         </div>
         <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />

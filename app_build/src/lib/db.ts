@@ -46,6 +46,15 @@ try {
 } catch (_e) {
 }
 
+// Create scenarios table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS scenarios (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    actions TEXT
+  );
+`);
+
 export interface DBMockState {
   request_id: string;
   is_mocked: number;
@@ -159,3 +168,82 @@ export const getAllSettings = (): Record<string, string> => {
   }
   return settings;
 };
+
+export interface DBScenario {
+  id: string;
+  name: string;
+  actions: string; // JSON
+}
+
+export const getScenarios = (): { id: string, name: string, actions: Record<string, any> }[] => {
+  const query = db.query("SELECT * FROM scenarios");
+  const results = query.all() as DBScenario[];
+  
+  return results.map(row => ({
+    id: row.id,
+    name: row.name,
+    actions: JSON.parse(row.actions || '[]')
+  }));
+};
+
+export const createScenario = (id: string, name: string, actions: Record<string, any>) => {
+  const query = db.query(`
+    INSERT INTO scenarios (id, name, actions) 
+    VALUES ($id, $name, $actions)
+  `);
+  query.run({ $id: id, $name: name, $actions: JSON.stringify(actions) });
+};
+
+export const deleteScenario = (id: string) => {
+  const query = db.query("DELETE FROM scenarios WHERE id = $id");
+  query.run({ $id: id });
+};
+
+export const applyScenarioActions = (actions: any[]) => {
+  // Reset all to is_mocked = 0 first
+  db.exec("UPDATE mock_states SET is_mocked = 0");
+  
+  // Then apply the specific ones
+  for (const action of actions) {
+    if (!action.requestId) continue;
+    
+    // Check if it exists
+    const checkQuery = db.query("SELECT request_id FROM mock_states WHERE request_id = $id");
+    const exists = checkQuery.get({ $id: action.requestId });
+    
+    if (exists) {
+      const updateQuery = db.query(`
+        UPDATE mock_states SET 
+          is_mocked = 1,
+          payload = $payload,
+          status_code = $statusCode,
+          latency_ms = $latencyMs,
+          selected_example = $selectedExample,
+          path_params_overrides = $pathParamsOverrides
+        WHERE request_id = $id
+      `);
+      updateQuery.run({
+        $id: action.requestId,
+        $payload: action.payload !== undefined ? action.payload : '{}',
+        $statusCode: action.statusCode !== undefined ? action.statusCode : 200,
+        $latencyMs: action.latencyMs !== undefined ? action.latencyMs : 0,
+        $selectedExample: action.selectedExample !== undefined ? action.selectedExample : null,
+        $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
+      });
+    } else {
+      const insertQuery = db.query(`
+        INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
+        VALUES ($id, 1, $payload, 0, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides)
+      `);
+      insertQuery.run({
+        $id: action.requestId,
+        $payload: action.payload !== undefined ? action.payload : '{}',
+        $statusCode: action.statusCode !== undefined ? action.statusCode : 200,
+        $latencyMs: action.latencyMs !== undefined ? action.latencyMs : 0,
+        $selectedExample: action.selectedExample !== undefined ? action.selectedExample : null,
+        $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
+      });
+    }
+  }
+};
+
