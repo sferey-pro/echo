@@ -1,0 +1,59 @@
+/* Neobrutalism Design System */
+
+@theme inline {
+  --color-neo-pink: #ffa6c9;
+  --color-neo-pink-dark: #ff6b9d;
+  --color-neo-green: #a7f3d0;
+  --color-neo-green-dark: #34d399;
+  --color-neo-blue: #bfdbfe;
+  --color-neo-blue-dark: #60a5fa;
+  --color-neo-yellow: #fde047;
+  --color-neo-yellow-dark: #eab308;
+  --color-neo-orange: #fed7aa;
+  --color-neo-orange-dark: #fb923c;
+  --color-neo-red: #fecaca;
+  --color-neo-red-dark: #f87171;
+  --color-neo-bg: #f8fafc;
+  --color-neo-bg-dark: #0f172a;
+  
+  --color-neo-border: #000000;
+  --color-neo-shadow: #000000;
+}
+
+.dark {
+  --color-neo-bg: #0f172a;
+  --color-neo-border: #ffffff;
+  --color-neo-shadow: #ffffff;
+}
+
+@layer utilities {
+  .neo-box {
+    @apply border-[3px] border-neo-border rounded-xl bg-white dark:bg-slate-900;
+    box-shadow: 4px 4px 0px var(--color-neo-shadow);
+  }
+  
+  .neo-button {
+    @apply border-[3px] border-neo-border rounded-xl font-bold cursor-pointer transition-transform;
+    box-shadow: 4px 4px 0px var(--color-neo-shadow);
+  }
+  
+  .neo-button:active {
+    box-shadow: 0px 0px 0px var(--color-neo-shadow);
+    transform: translate(4px, 4px);
+  }
+  
+  .neo-badge {
+    @apply border-[2px] border-neo-border rounded-md font-bold px-2 py-0.5 text-xs;
+  }
+  
+  .neo-input {
+    @apply border-[3px] border-neo-border rounded-xl px-3 py-2 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-neo-pink;
+    box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
+  }
+  
+  /* Mocks highlighting */
+  .neo-modified-glow {
+    box-shadow: 0 0 15px 5px var(--color-neo-yellow-dark), inset 0 0 10px 2px var(--color-neo-yellow-dark);
+    @apply border-[3px] border-neo-yellow-dark;
+  }
+}

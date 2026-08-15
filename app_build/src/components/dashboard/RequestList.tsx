@@ -14,12 +14,12 @@ interface RequestListProps {
   onRefresh: () => void;
 }
 
-const methodColors: Record<string, string> = {
-  GET: 'text-blue-400',
-  POST: 'text-green-500',
-  PUT: 'text-yellow-500',
-  PATCH: 'text-orange-400',
-  DELETE: 'text-red-500',
+const methodStyles: Record<string, string> = {
+  GET: 'bg-white dark:bg-slate-900 text-green-600',
+  POST: 'bg-white dark:bg-slate-900 text-blue-600',
+  PUT: 'bg-white dark:bg-slate-900 text-yellow-600',
+  PATCH: 'bg-white dark:bg-slate-900 text-orange-600',
+  DELETE: 'bg-white dark:bg-slate-900 text-red-600',
 };
 
 type ListItem = 
@@ -113,7 +113,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
             className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200", item.isExpanded && "rotate-90")} 
           />
           <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-500" fill="currentColor" />
-          <span className="truncate">Favoris</span>
+          <span className="truncate" style={{ textShadow: '0 0 8px var(--color-neo-pink)' }}>Mes Favoris</span>
         </div>
       );
     }
@@ -161,8 +161,8 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
             selectedRequestId === req.id 
-              ? "bg-primary/10 border-primary text-foreground" 
-              : "hover:bg-accent text-muted-foreground border-transparent"
+              ? "bg-neo-blue/30 text-foreground font-bold" 
+              : "hover:bg-slate-100 dark:hover:bg-slate-800 text-foreground border-transparent"
           )}
         >
           <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
@@ -171,7 +171,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
               <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
             ))}
             
-            <span className={cn("font-mono text-[9px] font-bold w-10 shrink-0 z-10", methodColors[req.method] || 'text-muted-foreground')}>
+            <span className={cn("neo-badge text-[10px] w-12 text-center shrink-0 z-10 mr-2", methodStyles[req.method] || 'bg-slate-200 text-slate-500')}>
               {req.method}
             </span>
             <span className="truncate flex-1 z-10 font-medium">
@@ -191,12 +191,12 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
 
   return (
     <div className="h-full bg-card/50 flex flex-col font-sans">
-      <div className="p-3 border-b border-border flex items-center gap-2 bg-transparent">
-        <h2 className="text-xs font-semibold text-foreground/80 tracking-wide uppercase flex-1">Collection</h2>
-        <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-muted border border-border">
+      <div className="p-3 bg-transparent flex items-center gap-2">
+        <h2 className="text-xs font-black text-foreground tracking-wide uppercase flex-1">Filtres</h2>
+        <span className="text-[10px] font-bold text-black px-1.5 py-0.5 rounded bg-neo-yellow border-2 border-neo-border">
           {requests.length}
         </span>
-        <div className="flex items-center gap-0.5 border-l border-border pl-2 ml-1">
+        <div className="flex items-center gap-1 border-l-2 border-neo-border pl-2 ml-1">
           <button 
             onClick={onRefresh}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

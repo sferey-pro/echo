@@ -124,22 +124,18 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
               onClick={() => onSelectScenario?.(scenario.id)}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <span>🎬</span> {scenario.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {scenario.actions.length} action(s)
+                <span className="text-sm font-black text-foreground flex items-center gap-2">
+                  <span>🎭</span> {scenario.name}
                 </span>
               </div>
               
               <div className="flex gap-2 mt-1">
-                <Button 
+                <button 
                   onClick={(e) => { e.stopPropagation(); handleApply(scenario.id); }}
-                  size="sm" 
-                  className="flex-1 h-7 text-xs bg-muted hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-colors"
+                  className="flex-1 neo-button bg-neo-yellow text-black text-xs py-1"
                 >
                   ▶ Appliquer
-                </Button>
+                </button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 

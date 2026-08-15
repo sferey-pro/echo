@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { ApiRequest } from '../../lib/parser';
-import { Button } from '@/components/ui/button';
 import Editor from '@monaco-editor/react';
 import { updateMock } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +11,7 @@ interface RequestDetailsProps {
 }
 
 export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
-  const getPayloadString = (data: any) => {
+  const getPayloadString = (data: unknown) => {
     if (typeof data === 'string') return data;
     if (data === null || data === undefined) return '';
     return JSON.stringify(data, null, 2);
@@ -110,9 +109,9 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     try {
       await updateMock(request.id, { payload: newPayload, selectedExample: ex.name });
       onUpdate?.();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert("Erreur: " + e.message);
+      alert("Erreur: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setIsSaving(false);
     }
@@ -131,41 +130,45 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
   };
 
   return (
-    <div className="h-full bg-transparent flex flex-col relative overflow-hidden">
+    <div className="h-full bg-transparent flex flex-col relative overflow-hidden font-sans">
       
-      <div className="p-4 border-b border-border bg-card/50 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0">
+      <div className="p-4 bg-white dark:bg-slate-800 border-b-2 border-neo-border z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="w-full">
-          <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
             <button 
               onClick={handleToggleStar}
               disabled={isSaving}
-              className={`text-xl hover:scale-110 transition-transform ${request.isStarred ? 'text-yellow-400' : 'text-muted-foreground hover:text-yellow-400/50'}`}
+              className={`text-2xl hover:scale-110 transition-transform ${request.isStarred ? 'text-neo-yellow-dark' : 'text-slate-400'}`}
               title={request.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
               {request.isStarred ? '⭐' : '☆'}
             </button>
-            {request.name}
+            <span className="truncate">{request.name}</span>
             {request.isMocked && (
-              <span className="text-[10px] uppercase font-bold bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">
-                Mocked
+              <span className="neo-badge bg-neo-green text-black">
+                MOCK ACTIF
               </span>
             )}
           </h2>
-          <div className="flex flex-col gap-1.5 mt-2">
+          <div className="flex flex-col gap-2 mt-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold bg-muted text-foreground/80 px-1.5 py-0.5 rounded border border-border">
+              <span className={`neo-badge bg-white dark:bg-slate-900 ${
+                 request.method === 'GET' ? 'text-green-600' : 
+                 request.method === 'POST' ? 'text-blue-600' : 
+                 request.method === 'DELETE' ? 'text-red-600' : 'text-orange-600'
+               }`}>
                 {request.method}
               </span>
-              <p className="text-sm text-muted-foreground font-mono truncate max-w-full">{request.url}</p>
+              <p className="text-sm text-foreground font-bold truncate max-w-full">{request.url}</p>
             </div>
             
             {/* Variables & Path Params UI */}
             {(urlParams.variables.length > 0 || urlParams.pathParams.length > 0) && (
               <div className="flex flex-wrap gap-2 mt-1 items-center">
-                <span className="text-[10px] uppercase font-semibold text-muted-foreground mr-1">URL Params:</span>
+                <span className="text-xs font-black uppercase mr-1">URL Params:</span>
                 {[...urlParams.variables, ...urlParams.pathParams].map(param => (
-                  <div key={param} className="flex items-center bg-muted/50 rounded border border-border overflow-hidden group focus-within:border-primary/50 transition-colors">
-                    <span className="text-[10px] font-mono text-primary/80 px-2 py-1 bg-border/50 border-r border-border">
+                  <div key={param} className="flex items-center neo-input p-0 overflow-hidden h-8">
+                    <span className="text-xs font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 border-r-2 border-neo-border h-full flex items-center">
                       {urlParams.variables.includes(param) ? `{{${param}}}` : `:${param}`}
                     </span>
                     <input 
@@ -174,7 +177,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
                       value={pathParamsOverrides[param] || ''}
                       onChange={(e) => setPathParamsOverrides({ ...pathParamsOverrides, [param]: e.target.value })}
                       onBlur={(e) => handleParamChange(param, e.target.value)}
-                      className="bg-transparent text-[10px] font-mono text-foreground px-2 py-1 w-24 focus:outline-none placeholder:text-muted-foreground"
+                      className="bg-transparent text-xs font-bold px-2 py-1 w-24 focus:outline-none"
                     />
                   </div>
                 ))}
@@ -183,35 +186,32 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <Button 
+          <button 
             onClick={handleToggleMock} 
             disabled={isSaving}
-            variant={request.isMocked ? "default" : "outline"} 
-            size="sm" 
-            className={`h-9 font-medium transition-all active:scale-95 ${request.isMocked ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20 border-green-400/50' : 'border-border bg-card text-foreground/80 hover:bg-muted hover:text-foreground'}`}>
+            className={`neo-button px-4 py-2 ${request.isMocked ? 'bg-neo-green text-black' : 'bg-slate-200 dark:bg-slate-700'}`}>
             {request.isMocked ? 'Mock Actif' : 'Pass-through'}
-          </Button>
-          <Button 
+          </button>
+          <button 
             onClick={handleSavePayload} 
             disabled={isSaving}
-            size="sm" 
-            className="h-9 font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95 border border-primary/20">
+            className="neo-button px-4 py-2 bg-neo-pink text-black">
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
-          </Button>
+          </button>
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
-        <div className="flex flex-col h-full bg-card p-4 rounded-xl border border-border backdrop-blur-sm shadow-xl">
-          <div className="flex flex-col xl:flex-row xl:items-center gap-6 mb-4 bg-muted/50 p-4 rounded-lg border border-border shadow-inner">
-            
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10 bg-slate-50 dark:bg-slate-900">
+        <div className="flex flex-col h-full bg-white dark:bg-slate-800 p-4 neo-box">
+          
+          <div className="flex flex-col xl:flex-row xl:items-center gap-6 mb-6 bg-neo-bg dark:bg-slate-900 p-4 border-2 border-neo-border rounded-xl">
             <div className="flex items-center gap-3 shrink-0">
-              <span className="text-sm font-semibold text-foreground/80">Statut HTTP :</span>
+              <span className="text-sm font-black uppercase">Statut :</span>
               <Select value={statusCode.toString()} onValueChange={(v) => handleStatusChange(parseInt(v))}>
-                <SelectTrigger className="w-[160px] h-9 bg-background border-border text-foreground font-medium focus:ring-1 focus:ring-primary/50">
+                <SelectTrigger className="w-[160px] h-10 neo-input font-bold bg-white text-black">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border-2 border-neo-border shadow-[4px_4px_0px_black] font-bold">
                   <SelectItem value="200">🟢 200 OK</SelectItem>
                   <SelectItem value="201">🟢 201 Created</SelectItem>
                   <SelectItem value="204">🟢 204 No Content</SelectItem>
@@ -224,12 +224,12 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
               </Select>
             </div>
             
-            <div className="h-px xl:h-8 xl:w-px bg-border w-full xl:w-px"></div>
+            <div className="h-px xl:h-10 xl:w-px bg-neo-border w-full xl:w-px"></div>
             
             <div className="flex flex-col flex-1 gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground/80">Latence simulée :</span>
-                <span className="text-xs font-mono bg-background px-2 py-0.5 rounded text-primary border border-border">
+                <span className="text-sm font-black uppercase">Latence :</span>
+                <span className="text-sm font-bold neo-badge bg-white dark:bg-slate-800 text-black dark:text-white">
                   {latencyMs} ms
                 </span>
               </div>
@@ -242,52 +242,46 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
                 onChange={(e) => setLatencyMs(parseInt(e.target.value))}
                 onMouseUp={() => handleLatencyChange(latencyMs)}
                 onTouchEnd={() => handleLatencyChange(latencyMs)}
-                className="w-full accent-primary h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
-                title="Délai de réponse"
+                className="w-full accent-neo-blue h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer border-2 border-neo-border"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-medium px-1">
-                <span>0ms</span>
-                <span>2.5s</span>
-                <span>5s</span>
-              </div>
             </div>
-
           </div>
           
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Payload de Réponse JSON</h3>
-            <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-card text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-all" onClick={() => {
-              setPayload(defaultExamplePayload);
-              setSelectedExample(request.examples?.[0]?.name || 'custom');
-            }}>
-              Reset (Bruno)
-            </Button>
+          <div className="flex flex-col gap-2 mb-4">
+            <h3 className="text-sm font-black uppercase">Exemple MSW à Activer :</h3>
+            {request.examples && request.examples.length > 0 ? (
+              <Select value={selectedExample} onValueChange={(v) => {
+                 if (v === 'custom') {
+                   setSelectedExample('custom');
+                 } else {
+                   const ex = request.examples?.find(e => e.name === v);
+                   if (ex) handleExampleClick(ex);
+                 }
+              }}>
+                <SelectTrigger className="w-full h-10 neo-input font-bold bg-white text-black">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="border-2 border-neo-border shadow-[4px_4px_0px_black] font-bold">
+                  {request.examples.map(ex => (
+                    <SelectItem key={ex.name} value={ex.name}>{ex.name}</SelectItem>
+                  ))}
+                  <SelectItem value="custom">Personnalisé</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="neo-input bg-slate-100 text-slate-500 font-bold">Aucun exemple disponible</div>
+            )}
           </div>
           
-          {/* Tabs d'accès rapide aux exemples */}
-          {request.examples && request.examples.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-3 bg-muted/50 p-1.5 rounded-lg border border-border">
-              <span className="text-xs font-medium text-muted-foreground pl-2">Exemples :</span>
-              {request.examples.map(ex => (
-                <button
-                  key={ex.name}
-                  onClick={() => handleExampleClick(ex)}
-                  className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all ${selectedExample === ex.name ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-                >
-                  {ex.name}
-                </button>
-              ))}
-              <div className="h-4 w-px bg-border mx-1"></div>
-              <button
-                onClick={() => setSelectedExample('custom')}
-                className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all ${selectedExample === 'custom' ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20' : 'bg-transparent text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-muted-foreground'}`}
-              >
-                Personnalisé
-              </button>
-            </div>
-          )}
-
-          <div className="flex-1 bg-background border border-border shadow-inner rounded-lg overflow-hidden pt-2">
+          <h3 className="text-sm font-black uppercase mb-2 mt-4">Payload de Réponse (JSON) :</h3>
+          
+          {/* L'éditeur avec l'effet Néo-brutaliste si modifié */}
+          <div className={`flex-1 flex flex-col rounded-xl overflow-hidden relative ${request.isMocked ? 'neo-modified-glow' : 'border-[3px] border-neo-border'}`}>
+            {request.isMocked && (
+               <div className="absolute top-2 right-6 z-20 text-neo-yellow-dark font-black text-sm pointer-events-none drop-shadow-md">
+                 Modifié localement - Prioritaire (Jaune)
+               </div>
+            )}
             <Editor
               height="100%"
               defaultLanguage="json"
@@ -301,7 +295,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                 wordWrap: "on",
                 formatOnPaste: true,
-                padding: { top: 8, bottom: 8 },
+                padding: { top: 32, bottom: 8 },
                 lineNumbersMinChars: 3,
                 renderLineHighlight: "none",
                 overviewRulerBorder: false,
@@ -309,6 +303,26 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
               }}
             />
           </div>
+
+          <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <button 
+              className="neo-button bg-neo-red text-black w-full sm:w-auto px-6 py-3 flex items-center justify-center gap-2"
+              onClick={() => {
+                setPayload(defaultExamplePayload);
+                setSelectedExample(request.examples?.[0]?.name || 'custom');
+              }}
+            >
+              <span>↺</span> Recharger l'original (Bruno Reset)
+            </button>
+            
+            <div className="flex items-center gap-2 font-black uppercase text-sm">
+              ÉTAT ACTUEL : 
+              <span className={`neo-badge text-black text-sm px-3 py-1 ${request.isMocked ? 'bg-neo-yellow' : 'bg-slate-200'}`}>
+                {request.isMocked ? 'Surchargé Localement' : 'Original Bruno'}
+              </span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
