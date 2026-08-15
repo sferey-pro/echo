@@ -81,7 +81,7 @@ const server = serve({
           });
         }
         return new Response("Not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
-      } catch (e) {
+      } catch (_e) {
         return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
       }
     }

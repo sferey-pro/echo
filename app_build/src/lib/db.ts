@@ -17,7 +17,7 @@ db.exec(`
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN is_starred BOOLEAN DEFAULT 0;`);
-} catch (e) {
+} catch (_e) {
   // Column might already exist
 }
 
