@@ -11,12 +11,11 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
   const [targetApiUrl, setTargetApiUrl] = useState('');
   const [collectionPath, setCollectionPath] = useState('');
   const [repoUrl, setRepoUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isOpen);
   const [cloning, setCloning] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setLoading(true);
       getSettings().then(settings => {
         setTargetApiUrl(settings.TARGET_API_URL || '');
         setCollectionPath(settings.BRUNO_COLLECTION_PATH || '');
@@ -32,7 +31,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
       if (collectionPath !== undefined) await updateSetting('BRUNO_COLLECTION_PATH', collectionPath);
       onSaved();
       onClose();
-    } catch (e) {
+    } catch (e: unknown) {
       console.error(e);
       alert("Failed to save settings");
     } finally {
@@ -40,18 +39,27 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
     }
   };
 
-  const handleClone = async () => {
+  const handleClone = async (force: boolean = false) => {
     if (!repoUrl) return;
     setCloning(true);
     try {
-      await cloneCollection(repoUrl);
+      await cloneCollection(repoUrl, force);
       const settings = await getSettings();
       setCollectionPath(settings.BRUNO_COLLECTION_PATH || '');
       setRepoUrl('');
       alert("Dépôt cloné avec succès ! N'oubliez pas d'enregistrer.");
-    } catch (e: any) {
-      console.error(e);
-      alert(e.message || "Erreur lors du clonage du dépôt");
+    } catch (e: unknown) {
+      const err = e as Error;
+      if (err.message === 'EXISTS') {
+         const confirmOverwrite = window.confirm("Ce dépôt existe déjà dans le dossier de collections. Voulez-vous le supprimer et le cloner à nouveau ?");
+         if (confirmOverwrite) {
+            setCloning(false);
+            return handleClone(true);
+         }
+      } else {
+         console.error(err);
+         alert(err.message || "Erreur lors du clonage du dépôt");
+      }
     } finally {
       setCloning(false);
     }
@@ -110,7 +118,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
               />
               <button 
                 type="button" 
-                onClick={handleClone}
+                onClick={() => handleClone(false)}
                 disabled={cloning || !repoUrl}
                 className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
               >

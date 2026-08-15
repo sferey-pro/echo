@@ -10,6 +10,7 @@ let isInitialized = false;
 
 import { getMockStates, getSetting } from './db';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mswServer: any = null;
 
 export async function initProxy(requests: ApiRequest[]) {
@@ -116,8 +117,9 @@ export async function handleProxyRequest(req: Request): Promise<Response> {
       statusText: response.statusText,
       headers: responseHeaders
     });
-  } catch (err: any) {
-    console.error("[PROXY ERROR]", err);
-    return new Response(err.stack || String(err), { status: 500 });
+  } catch (err: unknown) {
+    const e = err as Error;
+    console.error("[PROXY ERROR]", e);
+    return new Response(e.stack || String(e), { status: 500 });
   }
 }

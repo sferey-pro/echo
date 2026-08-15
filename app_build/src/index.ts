@@ -5,6 +5,7 @@ import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
 import { updateMockState, getSetting, setSetting, getAllSettings } from './lib/db';
+import { existsSync } from "node:fs";
 
 
 const server = serve({
@@ -98,7 +99,9 @@ const server = serve({
               headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
             });
           }
-        } catch {}
+        } catch (e: unknown) {
+           console.error("Settings parse error", e);
+        }
         return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
       }
     }
@@ -107,6 +110,7 @@ const server = serve({
       try {
         const body = await req.json();
         const repoUrl = body.repoUrl;
+        const force = body.force;
         if (!repoUrl || typeof repoUrl !== 'string') {
           return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
         }
@@ -117,10 +121,15 @@ const server = serve({
         if (lastPart) {
            repoName = lastPart.replace(/\.git$/, '');
         }
-        const targetDir = resolve(process.cwd(), '../cloned_collections', repoName);
+        const targetDir = resolve(process.cwd(), '../collection', repoName);
+        
+        if (existsSync(targetDir) && !force) {
+          return new Response(JSON.stringify({ error: "EXISTS" }), { status: 409, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+        }
         
         const rmProc = Bun.spawn(["rm", "-rf", targetDir]);
         await rmProc.exited;
+
         
         const proc = Bun.spawn(["git", "clone", repoUrl, targetDir]);
         await proc.exited;
@@ -136,9 +145,10 @@ const server = serve({
         return new Response(JSON.stringify({ success: true, path: targetDir }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
         });
-      } catch (err: any) {
-         console.error("Clone error", err);
-         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+         const e = err as Error;
+         console.error("Clone error", e);
+         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
       }
     }
 
