@@ -41,9 +41,12 @@ const app = new Elysia()
           })
         ),
       })
-      .get("/users/:id", ({ params: { id }, error }) => {
+      .get("/users/:id", ({ params: { id }, set }) => {
         const user = MOCK_DB.users.find((u) => u.id === id);
-        if (!user) return error(404, { error: "User not found" });
+        if (!user) {
+          set.status = 404;
+          return { error: "User not found" };
+        }
         return user;
       }, {
         detail: { summary: "Get User" },
