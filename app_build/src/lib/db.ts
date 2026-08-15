@@ -14,7 +14,8 @@ db.exec(`
     is_starred BOOLEAN DEFAULT 0,
     selected_example TEXT DEFAULT NULL,
     status_code INTEGER DEFAULT 200,
-    latency_ms INTEGER DEFAULT 0
+    latency_ms INTEGER DEFAULT 0,
+    path_params_overrides TEXT DEFAULT NULL
   );
 `);
 
@@ -40,6 +41,11 @@ try {
 } catch (_e) {
 }
 
+try {
+  db.exec(`ALTER TABLE mock_states ADD COLUMN path_params_overrides TEXT DEFAULT NULL;`);
+} catch (_e) {
+}
+
 export interface DBMockState {
   request_id: string;
   is_mocked: number;
@@ -48,13 +54,14 @@ export interface DBMockState {
   selected_example: string | null;
   status_code: number;
   latency_ms: number;
+  path_params_overrides: string | null;
 }
 
-export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number }> => {
+export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number, pathParamsOverrides: Record<string, string> }> => {
   const query = db.query("SELECT * FROM mock_states");
   const results = query.all() as DBMockState[];
   
-  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number }> = {};
+  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number, pathParamsOverrides: Record<string, string> }> = {};
   for (const row of results) {
     states[row.request_id] = {
       isMocked: row.is_mocked === 1,
@@ -62,24 +69,26 @@ export const getMockStates = (): Record<string, { isMocked: boolean, payload: st
       isStarred: row.is_starred === 1,
       selectedExample: row.selected_example,
       statusCode: row.status_code ?? 200,
-      latencyMs: row.latency_ms ?? 0
+      latencyMs: row.latency_ms ?? 0,
+      pathParamsOverrides: row.path_params_overrides ? JSON.parse(row.path_params_overrides) : {}
     };
   }
   return states;
 };
 
-export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null, statusCode?: number, latencyMs?: number) => {
+export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null, statusCode?: number, latencyMs?: number, pathParamsOverrides?: Record<string, string>) => {
   if (isStarred !== undefined) {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms) 
-      VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample, $statusCode, $latencyMs) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
+      VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
         payload = excluded.payload,
         is_starred = excluded.is_starred,
         selected_example = excluded.selected_example,
         status_code = excluded.status_code,
-        latency_ms = excluded.latency_ms;
+        latency_ms = excluded.latency_ms,
+        path_params_overrides = excluded.path_params_overrides;
     `);
     
     query.run({
@@ -89,18 +98,20 @@ export const updateMockState = (requestId: string, isMocked: boolean, payload: s
       $isStarred: isStarred ? 1 : 0,
       $selectedExample: selectedExample !== undefined ? selectedExample : null,
       $statusCode: statusCode !== undefined ? statusCode : 200,
-      $latencyMs: latencyMs !== undefined ? latencyMs : 0
+      $latencyMs: latencyMs !== undefined ? latencyMs : 0,
+      $pathParamsOverrides: pathParamsOverrides ? JSON.stringify(pathParamsOverrides) : null
     });
   } else {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms) 
-      VALUES ($id, $isMocked, $payload, 0, $selectedExample, $statusCode, $latencyMs) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
+      VALUES ($id, $isMocked, $payload, 0, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
         payload = excluded.payload,
         selected_example = excluded.selected_example,
         status_code = excluded.status_code,
-        latency_ms = excluded.latency_ms;
+        latency_ms = excluded.latency_ms,
+        path_params_overrides = excluded.path_params_overrides;
     `);
     
     query.run({
@@ -109,7 +120,8 @@ export const updateMockState = (requestId: string, isMocked: boolean, payload: s
       $payload: payload,
       $selectedExample: selectedExample !== undefined ? selectedExample : null,
       $statusCode: statusCode !== undefined ? statusCode : 200,
-      $latencyMs: latencyMs !== undefined ? latencyMs : 0
+      $latencyMs: latencyMs !== undefined ? latencyMs : 0,
+      $pathParamsOverrides: pathParamsOverrides ? JSON.stringify(pathParamsOverrides) : null
     });
   }
 };

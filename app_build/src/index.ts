@@ -45,7 +45,8 @@ const server = serve({
             isStarred: state?.isStarred || false,
             selectedExample: state?.selectedExample || null,
             statusCode: state?.statusCode ?? 200,
-            latencyMs: state?.latencyMs ?? 0
+            latencyMs: state?.latencyMs ?? 0,
+            pathParamsOverrides: state?.pathParamsOverrides ?? {}
           };
         });
 
@@ -79,9 +80,16 @@ const server = serve({
           if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
           if (body.statusCode !== undefined) state.statusCode = body.statusCode;
           if (body.latencyMs !== undefined) state.latencyMs = body.latencyMs;
+          if (body.pathParamsOverrides !== undefined) state.pathParamsOverrides = body.pathParamsOverrides;
           
           // Persist the new state in SQLite
-          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs);
+          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs, state.pathParamsOverrides);
+          
+          // Reset MSW
+          const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
+          const collectionPath = resolve(process.cwd(), '../collection', activeName);
+          const data = await parseCollection(collectionPath);
+          await initProxy(data.requests, data.environments);
           
           return new Response(JSON.stringify({ success: true }), {
             headers: {

@@ -32,6 +32,7 @@ export interface ApiRequest {
   selectedExample?: string | null;
   statusCode?: number;
   latencyMs?: number;
+  pathParamsOverrides?: Record<string, string>;
 }
 
 export interface BrunoVariable {

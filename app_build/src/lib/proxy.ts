@@ -7,6 +7,7 @@ export interface MockState {
   selectedExample: string | null;
   statusCode: number;
   latencyMs: number;
+  pathParamsOverrides: Record<string, string>;
 }
 
 export const mockStates = new Map<string, MockState>();
@@ -32,14 +33,28 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
       selectedExample: pState ? pState.selectedExample : null,
       statusCode: pState ? pState.statusCode : 200,
       latencyMs: pState ? pState.latencyMs : 0,
+      pathParamsOverrides: pState ? pState.pathParamsOverrides : {},
     });
   }
 
   const handlers = requests.map(req => {
     const method = req.method.toLowerCase() as keyof typeof http;
+    const state = mockStates.get(req.id);
     
     let mswPath = req.url;
-    // Remplace les variables d'environnement actives
+    
+    // 1. Appliquer les overrides locaux (variables {{var}} et params :id)
+    if (state && state.pathParamsOverrides) {
+      for (const [key, value] of Object.entries(state.pathParamsOverrides)) {
+        if (!value) continue;
+        // Si c'est une variable {{var}}
+        mswPath = mswPath.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+        // Si c'est un paramètre :param
+        mswPath = mswPath.replace(new RegExp(`:${key}\\b`, 'g'), value);
+      }
+    }
+
+    // 2. Remplacer les variables d'environnement actives (si pas déjà overridées)
     if (activeEnv) {
       for (const v of activeEnv.variables) {
         mswPath = mswPath.replace(new RegExp(`\\{\\{${v.name}\\}\\}`, 'g'), v.value);
