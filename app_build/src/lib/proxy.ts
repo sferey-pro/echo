@@ -4,6 +4,7 @@ export interface MockState {
   isMocked: boolean;
   payload: string;
   isStarred: boolean;
+  selectedExample: string | null;
 }
 
 export const mockStates = new Map<string, MockState>();
@@ -14,8 +15,10 @@ import { getMockStates, getSetting } from './db';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mswServer: any = null;
 
-export async function initProxy(requests: ApiRequest[]) {
+export async function initProxy(requests: ApiRequest[], environments: { name: string, variables: { name: string, value: string }[] }[] = []) {
   const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
+  const activeEnvironmentName = getSetting('ACTIVE_ENVIRONMENT');
+  const activeEnv = environments.find(e => e.name === activeEnvironmentName) || null;
   const persistedStates = getMockStates();
 
   for (const req of requests) {
@@ -24,15 +27,23 @@ export async function initProxy(requests: ApiRequest[]) {
       isMocked: pState ? pState.isMocked : false,
       payload: pState ? pState.payload : (req.examples?.[0]?.response?.body?.data || '{}'),
       isStarred: pState ? pState.isStarred : false,
+      selectedExample: pState ? pState.selectedExample : null,
     });
   }
 
   const handlers = requests.map(req => {
-    // Le cast ici est sûr, on suppose que les méthodes sont valides
     const method = req.method.toLowerCase() as keyof typeof http;
     
-    // Remplacer {{baseUrl}} ou tout autre variable par la cible réelle
-    let mswPath = req.url.replace(/\{\{[^}]+\}\}/g, targetApiUrl);
+    let mswPath = req.url;
+    // Remplace les variables d'environnement actives
+    if (activeEnv) {
+      for (const v of activeEnv.variables) {
+        mswPath = mswPath.replace(new RegExp(`\\{\\{${v.name}\\}\\}`, 'g'), v.value);
+      }
+    }
+    // Fallback baseUrl si non défini
+    mswPath = mswPath.replace(/\{\{baseUrl\}\}/g, targetApiUrl);
+    
     // Éviter les doubles slashes accidentels (sauf pour http://)
     mswPath = mswPath.replace(/([^:])\/\//g, '$1/');
 

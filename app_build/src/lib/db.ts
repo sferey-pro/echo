@@ -11,7 +11,8 @@ db.exec(`
     request_id TEXT PRIMARY KEY,
     is_mocked BOOLEAN DEFAULT 0,
     payload TEXT,
-    is_starred BOOLEAN DEFAULT 0
+    is_starred BOOLEAN DEFAULT 0,
+    selected_example TEXT DEFAULT NULL
   );
 `);
 
@@ -21,62 +22,70 @@ try {
   // Column might already exist
 }
 
+try {
+  db.exec(`ALTER TABLE mock_states ADD COLUMN selected_example TEXT DEFAULT NULL;`);
+} catch (_e) {
+  // Column might already exist
+}
+
 export interface DBMockState {
   request_id: string;
   is_mocked: number;
   payload: string;
   is_starred: number;
+  selected_example: string | null;
 }
 
-export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean }> => {
+export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null }> => {
   const query = db.query("SELECT * FROM mock_states");
   const results = query.all() as DBMockState[];
   
-  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean }> = {};
+  const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null }> = {};
   for (const row of results) {
     states[row.request_id] = {
       isMocked: row.is_mocked === 1,
       payload: row.payload,
-      isStarred: row.is_starred === 1
+      isStarred: row.is_starred === 1,
+      selectedExample: row.selected_example
     };
   }
   return states;
 };
 
-export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean) => {
-  // If isStarred is not provided, we should keep the existing value. 
-  // We can do this by using COALESCE if we don't pass it, or fetch first.
-  // The simplest is to use COALESCE with a parameter, but we need to know if we are updating it.
-  
+export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null) => {
   if (isStarred !== undefined) {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred) 
-      VALUES ($id, $isMocked, $payload, $isStarred) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example) 
+      VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
         payload = excluded.payload,
-        is_starred = excluded.is_starred;
+        is_starred = excluded.is_starred,
+        selected_example = excluded.selected_example;
     `);
     
     query.run({
       $id: requestId,
       $isMocked: isMocked ? 1 : 0,
       $payload: payload,
-      $isStarred: isStarred ? 1 : 0
+      $isStarred: isStarred ? 1 : 0,
+      $selectedExample: selectedExample !== undefined ? selectedExample : null
     });
   } else {
     const query = db.query(`
-      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred) 
-      VALUES ($id, $isMocked, $payload, 0) 
+      INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example) 
+      VALUES ($id, $isMocked, $payload, 0, $selectedExample) 
       ON CONFLICT(request_id) DO UPDATE SET 
         is_mocked = excluded.is_mocked,
-        payload = excluded.payload;
+        payload = excluded.payload,
+        selected_example = excluded.selected_example;
     `);
     
     query.run({
       $id: requestId,
       $isMocked: isMocked ? 1 : 0,
-      $payload: payload
+      $payload: payload,
+      $selectedExample: selectedExample !== undefined ? selectedExample : null
     });
   }
 };

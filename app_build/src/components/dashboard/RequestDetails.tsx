@@ -12,6 +12,7 @@ interface RequestDetailsProps {
 export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
   const defaultExamplePayload = request?.examples?.[0]?.response?.body?.data || '';
   const [payload, setPayload] = useState(request?.currentPayload || defaultExamplePayload);
+  const [selectedExample, setSelectedExample] = useState<string>(request?.selectedExample || request?.examples?.[0]?.name || 'custom');
   const [isSaving, setIsSaving] = useState(false);
 
   if (!request) {
@@ -34,9 +35,25 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
 
   const handleSavePayload = async () => {
     setIsSaving(true);
-    await updateMock(request.id, { payload });
+    await updateMock(request.id, { payload, selectedExample });
     onUpdate?.();
     setIsSaving(false);
+  };
+
+  const handleExampleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedExample(val);
+    if (val !== 'custom') {
+      const ex = request.examples?.find(ex => ex.name === val);
+      if (ex && ex.response?.body?.data) {
+        setPayload(ex.response.body.data);
+      }
+    }
+  };
+
+  const handlePayloadChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPayload(e.target.value);
+    setSelectedExample('custom');
   };
 
   const handleToggleStar = async () => {
@@ -96,15 +113,32 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
         <div className="flex flex-col h-full bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm shadow-xl">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
-            <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-white/5 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all" onClick={() => setPayload(defaultExamplePayload)}>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
+              {request.examples && request.examples.length > 0 && (
+                <select 
+                  value={selectedExample}
+                  onChange={handleExampleChange}
+                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-purple-500"
+                >
+                  <option value="custom">Custom Payload</option>
+                  {request.examples.map(ex => (
+                    <option key={ex.name} value={ex.name}>{ex.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-white/5 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all" onClick={() => {
+              setPayload(defaultExamplePayload);
+              setSelectedExample(request.examples?.[0]?.name || 'custom');
+            }}>
               Reset (Bruno)
             </Button>
           </div>
           <Textarea 
             className="flex-1 font-mono text-sm bg-black/40 border-white/5 text-green-400 resize-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 shadow-inner p-4 rounded-lg transition-all"
             value={payload}
-            onChange={(e) => setPayload(e.target.value)}
+            onChange={handlePayloadChange}
             spellCheck={false}
           />
         </div>

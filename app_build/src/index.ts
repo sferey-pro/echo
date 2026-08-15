@@ -33,20 +33,24 @@ const server = serve({
       const collectionPath = getSetting('BRUNO_COLLECTION_PATH') || process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../collection');
       try {
         const data = await parseCollection(collectionPath);
-        await initProxy(data.requests);
+        await initProxy(data.requests, data.environments);
         
-        // Enrichir avec l'état en mémoire
         const enrichedRequests = data.requests.map(r => {
           const state = mockStates.get(r.id);
           return {
             ...r,
             isMocked: state?.isMocked || false,
             currentPayload: state?.payload || r.examples?.[0]?.response?.body?.data || '',
-            isStarred: state?.isStarred || false
+            isStarred: state?.isStarred || false,
+            selectedExample: state?.selectedExample || null
           };
         });
 
-        return new Response(JSON.stringify({ ...data, requests: enrichedRequests }), {
+        return new Response(JSON.stringify({ 
+          folders: data.folders,
+          requests: enrichedRequests,
+          environments: data.environments || []
+        }), {
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*"
@@ -69,9 +73,10 @@ const server = serve({
           if (body.isMocked !== undefined) state.isMocked = body.isMocked;
           if (body.payload !== undefined) state.payload = body.payload;
           if (body.isStarred !== undefined) state.isStarred = body.isStarred;
+          if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
           
           // Persist the new state in SQLite
-          updateMockState(body.id, state.isMocked, state.payload, state.isStarred);
+          updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample);
           
           return new Response(JSON.stringify({ success: true }), {
             headers: {

@@ -8,7 +8,7 @@ export async function fetchCollection(): Promise<ParserResult> {
   return response.json();
 }
 
-export async function updateMock(id: string, updates: { isMocked?: boolean, payload?: string, isStarred?: boolean }): Promise<void> {
+export async function updateMock(id: string, updates: { isMocked?: boolean, payload?: string, isStarred?: boolean, selectedExample?: string | null }): Promise<void> {
   const response = await fetch('/api/mocks/update', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

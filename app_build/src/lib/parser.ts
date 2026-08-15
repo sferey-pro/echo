@@ -1,6 +1,7 @@
 import { readdir, readFile } from "fs/promises";
 import { join, basename } from "path";
 import { parse } from "yaml";
+import { existsSync } from "fs";
 
 export interface BrunoFolder {
   id: string;
@@ -28,11 +29,23 @@ export interface ApiRequest {
   isMocked?: boolean;
   currentPayload?: string;
   isStarred?: boolean;
+  selectedExample?: string | null;
+}
+
+export interface BrunoVariable {
+  name: string;
+  value: string;
+}
+
+export interface BrunoEnvironment {
+  name: string;
+  variables: BrunoVariable[];
 }
 
 export interface ParserResult {
   folders: BrunoFolder[];
   requests: ApiRequest[];
+  environments: BrunoEnvironment[];
 }
 
 export async function parseCollection(basePath: string): Promise<ParserResult> {
@@ -126,5 +139,31 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
     console.error("Error reading basePath: " + basePath, e);
   }
 
-  return { folders, requests };
+  const environments: BrunoEnvironment[] = [];
+  try {
+    const envPath = join(basePath, 'environments');
+    if (existsSync(envPath)) {
+      const envEntries = await readdir(envPath, { withFileTypes: true });
+      for (const entry of envEntries) {
+        if (entry.isFile() && (entry.name.endsWith('.yml') || entry.name.endsWith('.json'))) {
+           const content = await readFile(join(envPath, entry.name), 'utf-8');
+           try {
+             const parsed = entry.name.endsWith('.yml') ? parse(content) : JSON.parse(content);
+             if (parsed && parsed.name) {
+               environments.push({
+                 name: parsed.name,
+                 variables: parsed.variables || []
+               });
+             }
+           } catch(e) {
+             console.error(`Error parsing environment ${entry.name}`, e);
+           }
+        }
+      }
+    }
+  } catch(e) {
+    console.error("Error reading environments dir", e);
+  }
+
+  return { folders, requests, environments };
 }

@@ -52,21 +52,24 @@ const app = new Elysia()
         detail: { summary: "Get User" },
         params: t.Object({ id: t.Numeric() }),
       })
-      .post("/users", ({ body }) => {
+      .post("/users", ({ body, set }) => {
+        set.status = 201;
         return { id: 3, message: "User created successfully" };
       }, {
         detail: { summary: "Create User" },
         body: t.Any(),
       })
-      .put("/users/:id", ({ params: { id }, body }) => {
-        return { message: "User updated successfully" };
+      .put("/users/:id", ({ params: { id }, body, set }) => {
+        set.status = 204;
+        return null;
       }, {
         detail: { summary: "Update User" },
         params: t.Object({ id: t.Numeric() }),
         body: t.Any(),
       })
-      .delete("/users/:id", ({ params: { id } }) => {
-        return { message: "User deleted successfully" };
+      .delete("/users/:id", ({ params: { id }, set }) => {
+        set.status = 204;
+        return null;
       }, {
         detail: { summary: "Delete User" },
         params: t.Object({ id: t.Numeric() }),
@@ -83,7 +86,8 @@ const app = new Elysia()
         query: t.Object({ q: t.Optional(t.String()) }),
       })
       
-      .post("/orders", () => {
+      .post("/orders", ({ set }) => {
+        set.status = 201;
         return { orderId: "ORD-999888", status: "processing" };
       }, {
         detail: { summary: "Checkout Order" },
