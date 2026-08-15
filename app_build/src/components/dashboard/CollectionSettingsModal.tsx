@@ -2,20 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting } from '../../lib/api';
 import { toast } from 'sonner';
 
-interface SettingsModalProps {
+interface CollectionSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) {
-  const [targetApiUrl, setTargetApiUrl] = useState('');
+export function CollectionSettingsModal({ isOpen, onClose, onSaved }: CollectionSettingsModalProps) {
+  const [repoPath, setRepoPath] = useState('');
+  const [gitSyncInterval, setGitSyncInterval] = useState('');
   const [loading, setLoading] = useState(isOpen);
 
   useEffect(() => {
     if (isOpen) {
       getSettings().then(settings => {
-        setTargetApiUrl(settings.TARGET_API_URL || '');
+        setRepoPath(settings.REPO_PATH || '');
+        setGitSyncInterval(settings.GIT_SYNC_INTERVAL || '300000');
       }).finally(() => setLoading(false));
     }
   }, [isOpen]);
@@ -24,12 +26,13 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
     e.preventDefault();
     setLoading(true);
     try {
-      if (targetApiUrl !== undefined) await updateSetting('TARGET_API_URL', targetApiUrl);
+      if (repoPath !== undefined) await updateSetting('REPO_PATH', repoPath);
+      if (gitSyncInterval !== undefined) await updateSetting('GIT_SYNC_INTERVAL', gitSyncInterval);
       onSaved();
       onClose();
     } catch (e: unknown) {
       console.error(e);
-      toast.error("Failed to save settings");
+      toast.error("Failed to save collection settings");
     } finally {
       setLoading(false);
     }
@@ -41,7 +44,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-foreground">Paramètres de l'Application Echo</h2>
+          <h2 className="text-xl font-bold text-foreground">Paramètres de la Collection</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
         </div>
 
@@ -50,16 +53,30 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground/80 mb-1">
-                  Target API URL
+                  Chemin du dépôt Git (REPO_PATH)
                 </label>
                 <input 
                   type="text" 
-                  value={targetApiUrl}
-                  onChange={e => setTargetApiUrl(e.target.value)}
-                  placeholder="Ex: http://localhost:8080"
+                  value={repoPath}
+                  onChange={e => setRepoPath(e.target.value)}
+                  placeholder="Ex: ../collection"
                   className="w-full bg-muted/50 border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
                 />
-                <p className="text-xs text-muted-foreground mt-1">L'URL vers laquelle le proxy redirige les requêtes non-mockées.</p>
+                <p className="text-xs text-muted-foreground mt-1">Le dossier local surveillé pour l'ingestion (collection actuelle).</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                  Intervalle de Synchronisation Git (ms)
+                </label>
+                <input 
+                  type="number" 
+                  value={gitSyncInterval}
+                  onChange={e => setGitSyncInterval(e.target.value)}
+                  placeholder="Ex: 300000"
+                  className="w-full bg-muted/50 border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
               </div>
             </div>
           </div>

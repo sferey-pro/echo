@@ -7,11 +7,14 @@ import { ScenarioPanel } from '../dashboard/ScenarioPanel';
 import { ScenarioEditor } from '../dashboard/ScenarioEditor';
 
 import { SettingsModal } from '../dashboard/SettingsModal';
+import { CollectionSettingsModal } from '../dashboard/CollectionSettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 import { CommandPalette } from '../dashboard/CommandPalette';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThemeToggle } from '../ThemeToggle';
+import { Settings, CloudDownload, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function DashboardLayout() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -20,12 +23,49 @@ export function DashboardLayout() {
   const [environments, setEnvironments] = useState<BrunoEnvironment[]>([]);
   const [activeEnvironment, setActiveEnvironment] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Global settings
+  const [isCollectionSettingsOpen, setIsCollectionSettingsOpen] = useState(false);
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
 
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "" });
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/sync/status');
+        if (res.ok) {
+          const data = await res.json();
+          setSyncStatus(data);
+        }
+      } catch (e) {}
+    };
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleGitSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/sync/pull', { method: 'POST' });
+      if (res.ok) {
+        setSyncStatus(prev => ({ ...prev, commitsBehind: 0, isSynced: true }));
+        fetchAndSetCollection(); // Recharger la collection après le sync
+      } else {
+        const error = await res.json();
+        toast.error(error.error || "Erreur lors de la synchronisation Git");
+      }
+    } catch (e) {
+      toast.error("Erreur réseau lors de la synchronisation Git");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const fetchAndSetCollection = () => {
     Promise.all([fetchCollection(), getSettings()])
@@ -95,13 +135,47 @@ export function DashboardLayout() {
                 ))}
               </SelectContent>
             </Select>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="ml-2 p-1.5 bg-neo-blue text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-neo-blue/80 transition-colors"
+              title="Paramètres Echo"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <div className="mr-2 flex items-center border-r-2 border-neo-border pr-4">
+            <button
+              onClick={handleGitSync}
+              disabled={isSyncing}
+              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] transition-transform active:translate-y-[2px] active:shadow-none ${
+                syncStatus.commitsBehind > 0 
+                  ? 'bg-neo-orange hover:bg-orange-400' 
+                  : 'bg-neo-green hover:bg-green-400'
+              } ${isSyncing ? 'opacity-50 cursor-wait shadow-none translate-y-[2px]' : ''}`}
+              title="Cliquer pour forcer la synchronisation avec Git"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : syncStatus.commitsBehind > 0 ? (
+                <CloudDownload className="w-4 h-4" />
+              ) : (
+                <CloudDownload className="w-4 h-4 opacity-50" />
+              )}
+              <span className="text-xs">
+                {syncStatus.commitsBehind > 0 
+                  ? `${syncStatus.commitsBehind} Maj en attente` 
+                  : 'Synchro OK'}
+              </span>
+            </button>
+          </div>
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Grid 3 colonnes */}
-      <div className="flex-1 min-h-0 w-full p-4 grid grid-cols-1 md:grid-cols-[280px_1fr_450px] gap-6">
+      <div className="flex-1 min-h-0 w-full p-4 grid grid-cols-1 md:grid-cols-[280px_350px_1fr] xl:grid-cols-[300px_400px_1fr] gap-6">
         
         {/* Colonne 1 : Collection & Scénarios */}
         <div className="flex flex-col gap-6 h-full overflow-hidden">
@@ -115,7 +189,7 @@ export function DashboardLayout() {
                 requests={requests} 
                 selectedRequestId={selectedRequestId} 
                 onSelectRequest={setSelectedRequestId}
-                onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenSettings={() => setIsCollectionSettingsOpen(true)}
                 onOpenCollections={() => setIsCollectionsOpen(true)}
                 onRefresh={fetchAndSetCollection}
               />
@@ -199,6 +273,11 @@ export function DashboardLayout() {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
+        onSaved={fetchAndSetCollection} 
+      />
+      <CollectionSettingsModal
+        isOpen={isCollectionSettingsOpen} 
+        onClose={() => setIsCollectionSettingsOpen(false)} 
         onSaved={fetchAndSetCollection} 
       />
     </div>

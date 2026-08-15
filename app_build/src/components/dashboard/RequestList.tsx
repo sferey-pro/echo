@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
+import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap, CloudDownload, Loader2 } from 'lucide-react';
 
 interface RequestListProps {
   folders: BrunoFolder[];
@@ -214,7 +214,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           <button 
             onClick={onOpenSettings}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            title="Paramètres"
+            title="Paramètres de la Collection"
           >
             <Settings className="w-3.5 h-3.5" />
           </button>

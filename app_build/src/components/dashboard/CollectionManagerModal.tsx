@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting, cloneCollection } from '../../lib/api';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -59,6 +60,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
       await cloneCollection(repoUrl, force);
       await fetchCollections();
       setRepoUrl('');
+      toast.success("Dépôt cloné avec succès");
     } catch (e: unknown) {
       const err = e as Error;
       if (err.message === 'EXISTS') {
@@ -70,7 +72,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
          });
       } else {
          console.error(err);
-         alert(err.message || "Erreur lors du clonage du dépôt");
+         toast.error(err.message || "Erreur lors du clonage du dépôt");
       }
     } finally {
       setCloning(false);
@@ -85,7 +87,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
       onSaved();
     } catch (e) {
       console.error(e);
-      alert("Erreur lors de l'activation");
+      toast.error("Erreur lors de l'activation");
     } finally {
       setLoading(false);
     }
@@ -98,11 +100,16 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
       description: `Êtes-vous sûr de vouloir supprimer la collection ${name} ?`,
       onConfirm: async () => {
         try {
-          await fetch(`/api/repositories/${name}`, { method: 'DELETE' });
-          await fetchCollections();
+          const res = await fetch(`/api/repositories/${name}`, { method: 'DELETE' });
+          if (res.ok) {
+            await fetchCollections();
+            toast.success("Collection supprimée");
+          } else {
+            toast.error("Erreur lors de la suppression");
+          }
         } catch (e) {
           console.error(e);
-          alert("Erreur lors de la suppression");
+          toast.error("Erreur lors de la suppression");
         }
       }
     });

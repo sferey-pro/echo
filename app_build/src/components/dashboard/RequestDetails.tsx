@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { updateMock } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '../theme-provider';
+import { toast } from 'sonner';
 
 interface RequestDetailsProps {
   request: ApiRequest | null;
@@ -111,7 +112,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
       onUpdate?.();
     } catch (e: unknown) {
       console.error(e);
-      alert("Erreur: " + (e instanceof Error ? e.message : String(e)));
+      toast.error("Erreur: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setIsSaving(false);
     }
