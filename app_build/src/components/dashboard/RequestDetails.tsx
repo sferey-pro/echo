@@ -113,21 +113,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
         <div className="flex flex-col h-full bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm shadow-xl">
           <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
-              {request.examples && request.examples.length > 0 && (
-                <select 
-                  value={selectedExample}
-                  onChange={handleExampleChange}
-                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-purple-500"
-                >
-                  <option value="custom">Custom Payload</option>
-                  {request.examples.map(ex => (
-                    <option key={ex.name} value={ex.name}>{ex.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
+            <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
             <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-white/5 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all" onClick={() => {
               setPayload(defaultExamplePayload);
               setSelectedExample(request.examples?.[0]?.name || 'custom');
@@ -135,6 +121,35 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
               Reset (Bruno)
             </Button>
           </div>
+          
+          {/* Tabs d'accès rapide aux exemples */}
+          {request.examples && request.examples.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-3 bg-black/20 p-1.5 rounded-lg border border-white/5">
+              <span className="text-xs font-medium text-neutral-500 pl-2">Exemples :</span>
+              {request.examples.map(ex => (
+                <button
+                  key={ex.name}
+                  onClick={() => {
+                    setSelectedExample(ex.name);
+                    if (ex.response?.body?.data) {
+                      setPayload(ex.response.body.data);
+                    }
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all ${selectedExample === ex.name ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20' : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'}`}
+                >
+                  {ex.name}
+                </button>
+              ))}
+              <div className="h-4 w-px bg-white/10 mx-1"></div>
+              <button
+                onClick={() => setSelectedExample('custom')}
+                className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all ${selectedExample === 'custom' ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20' : 'bg-transparent text-neutral-500 hover:text-white border border-dashed border-neutral-600 hover:border-neutral-400'}`}
+              >
+                Personnalisé
+              </button>
+            </div>
+          )}
+
           <Textarea 
             className="flex-1 font-mono text-sm bg-black/40 border-white/5 text-green-400 resize-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 shadow-inner p-4 rounded-lg transition-all"
             value={payload}
