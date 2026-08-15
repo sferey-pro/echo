@@ -4,6 +4,7 @@ import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
 import type { BrunoFolder, ApiRequest, BrunoEnvironment } from '../../lib/parser';
 import { ScenarioPanel } from '../dashboard/ScenarioPanel';
+import { ScenarioEditor } from '../dashboard/ScenarioEditor';
 
 import { SettingsModal } from '../dashboard/SettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
@@ -21,6 +22,7 @@ export function DashboardLayout() {
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'explorer' | 'scenarios'>('explorer');
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
 
   const fetchAndSetCollection = () => {
     Promise.all([fetchCollection(), getSettings()])
@@ -83,7 +85,7 @@ export function DashboardLayout() {
           </div>
           <div className="flex bg-black/40 border-b border-white/5">
             <button 
-              onClick={() => setActiveTab('explorer')}
+              onClick={() => { setActiveTab('explorer'); setSelectedScenarioId(null); }}
               className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'explorer' ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'}`}
             >
               Explorer
@@ -108,11 +110,25 @@ export function DashboardLayout() {
                 onRefresh={fetchAndSetCollection}
               />
             ) : (
-              <ScenarioPanel onScenarioApplied={fetchAndSetCollection} />
+              <ScenarioPanel 
+                onScenarioApplied={fetchAndSetCollection}
+                selectedScenarioId={selectedScenarioId}
+                onSelectScenario={setSelectedScenarioId}
+              />
             )}
           </div>
         </div>
-        <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+        {activeTab === 'scenarios' && selectedScenarioId ? (
+          <ScenarioEditor 
+            key={selectedScenarioId}
+            scenarioId={selectedScenarioId} 
+            requests={requests}
+            onUpdate={fetchAndSetCollection}
+            onClose={() => setSelectedScenarioId(null)}
+          />
+        ) : (
+          <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+        )}
       </div>
       
       <CommandPalette 

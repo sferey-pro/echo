@@ -83,6 +83,15 @@ export async function applyScenario(id: string): Promise<void> {
   if (!response.ok) throw new Error("Erreur lors de l'application du scénario");
 }
 
+export async function updateScenario(id: string, name: string, actions: any[]): Promise<void> {
+  const response = await fetch(`/api/scenarios/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, actions })
+  });
+  if (!response.ok) throw new Error("Erreur lors de la mise à jour du scénario");
+}
+
 export async function deleteScenario(id: string): Promise<void> {
   const response = await fetch(`/api/scenarios/${id}`, {
     method: 'DELETE'

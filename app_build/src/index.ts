@@ -4,7 +4,7 @@ import { parseCollection } from "./lib/parser";
 import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
-import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, deleteScenario, applyScenarioActions } from './lib/db';
+import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions } from './lib/db';
 import { existsSync } from "node:fs";
 
 
@@ -279,6 +279,21 @@ const server = serve({
         const id = matchDeleteScenario[1];
         if (!id) return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
         deleteScenario(id);
+        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+    
+    const matchUpdateScenario = url.pathname.match(/^\/api\/scenarios\/(.+)$/);
+    if (matchUpdateScenario && req.method === 'PUT') {
+      try {
+        const id = matchUpdateScenario[1];
+        if (!id) return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        const body = await req.json();
+        if (!body.name || !body.actions) return new Response("Bad Request: missing name or actions", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        
+        updateScenario(id, body.name, body.actions);
         return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
       } catch (err: unknown) {
         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });

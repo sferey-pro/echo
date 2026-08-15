@@ -5,9 +5,11 @@ import type { Scenario } from '../../lib/api';
 
 interface ScenarioPanelProps {
   onScenarioApplied: () => void;
+  selectedScenarioId?: string | null;
+  onSelectScenario?: (id: string) => void;
 }
 
-export function ScenarioPanel({ onScenarioApplied }: ScenarioPanelProps) {
+export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectScenario }: ScenarioPanelProps) {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,7 +107,11 @@ export function ScenarioPanel({ onScenarioApplied }: ScenarioPanelProps) {
           </div>
         ) : (
           scenarios.map(scenario => (
-            <div key={scenario.id} className="group flex flex-col bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 transition-colors">
+            <div 
+              key={scenario.id} 
+              className={`group flex flex-col hover:bg-white/10 border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? 'bg-white/10 border-purple-500/50' : 'bg-white/5 border-white/5'}`}
+              onClick={() => onSelectScenario?.(scenario.id)}
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-neutral-200 flex items-center gap-2">
                   <span>🎬</span> {scenario.name}
@@ -117,14 +123,14 @@ export function ScenarioPanel({ onScenarioApplied }: ScenarioPanelProps) {
               
               <div className="flex gap-2 mt-1">
                 <Button 
-                  onClick={() => handleApply(scenario.id)}
+                  onClick={(e) => { e.stopPropagation(); handleApply(scenario.id); }}
                   size="sm" 
                   className="flex-1 h-7 text-xs bg-white/10 hover:bg-purple-600 hover:text-white text-neutral-300 transition-colors"
                 >
                   ▶ Appliquer
                 </Button>
                 <Button 
-                  onClick={() => handleDelete(scenario.id)}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
                   size="sm" 
                   variant="ghost"
                   className="h-7 w-7 p-0 text-neutral-500 hover:text-red-400 hover:bg-red-400/10"

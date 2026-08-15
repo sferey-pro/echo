@@ -194,6 +194,13 @@ export const createScenario = (id: string, name: string, actions: Record<string,
   query.run({ $id: id, $name: name, $actions: JSON.stringify(actions) });
 };
 
+export const updateScenario = (id: string, name: string, actions: Record<string, any>) => {
+  const query = db.query(`
+    UPDATE scenarios SET name = $name, actions = $actions WHERE id = $id
+  `);
+  query.run({ $id: id, $name: name, $actions: JSON.stringify(actions) });
+};
+
 export const deleteScenario = (id: string) => {
   const query = db.query("DELETE FROM scenarios WHERE id = $id");
   query.run({ $id: id });
