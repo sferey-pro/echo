@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ApiRequest } from '../../lib/parser';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import Editor from '@monaco-editor/react';
 import { updateMock } from '../../lib/api';
 
 interface RequestDetailsProps {
@@ -68,8 +68,8 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(false);
   };
 
-  const handlePayloadChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPayload(e.target.value);
+  const handlePayloadChange = (value: string | undefined) => {
+    setPayload(value || '');
     setSelectedExample('custom');
   };
 
@@ -200,12 +200,28 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
             </div>
           )}
 
-          <Textarea 
-            className="flex-1 font-mono text-sm bg-black/40 border-white/5 text-green-400 resize-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 shadow-inner p-4 rounded-lg transition-all"
-            value={payload}
-            onChange={handlePayloadChange}
-            spellCheck={false}
-          />
+          <div className="flex-1 bg-[#1e1e1e]/80 border border-white/5 shadow-inner rounded-lg overflow-hidden pt-2">
+            <Editor
+              height="100%"
+              defaultLanguage="json"
+              theme="vs-dark"
+              value={payload}
+              onChange={handlePayloadChange}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                wordWrap: "on",
+                formatOnPaste: true,
+                padding: { top: 8, bottom: 8 },
+                lineNumbersMinChars: 3,
+                renderLineHighlight: "none",
+                overviewRulerBorder: false,
+                hideCursorInOverviewRuler: true
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
