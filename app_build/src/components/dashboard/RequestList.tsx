@@ -4,16 +4,11 @@ import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
 
+import { useStore } from '../../store/useStore';
+
 interface RequestListProps {
-  folders: BrunoFolder[];
-  requests: ApiRequest[];
-  selectedRequestId: string | null;
-  selectedFolderId?: string | null;
-  onSelectRequest: (id: string) => void;
-  onSelectFolder?: (id: string) => void;
   onOpenSettings: () => void;
   onOpenCollections: () => void;
-  onRefresh: () => void;
 }
 
 const methodStyles: Record<string, string> = {
@@ -30,13 +25,14 @@ type ListItem =
   | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
   | { type: 'request', request: ApiRequest, depth: number };
 
-export function RequestList({ folders, requests, selectedRequestId, selectedFolderId, onSelectRequest, onSelectFolder, onOpenSettings, onOpenCollections, onRefresh }: RequestListProps) {
+export function RequestList({ onOpenSettings, onOpenCollections }: RequestListProps) {
+  const { folders, requests, selectedRequestId, selectedFolderId, setSelectedRequestId, setSelectedFolderId, loadCollection } = useStore();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const parentRef = useRef<HTMLDivElement>(null);
 
   const toggleFolder = (folderId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onSelectFolder) onSelectFolder(folderId);
+    if (setSelectedFolderId) setSelectedFolderId(folderId);
     setExpandedFolders(prev => {
       const next = new Set(prev);
       if (next.has(folderId)) {
@@ -163,7 +159,7 @@ export function RequestList({ folders, requests, selectedRequestId, selectedFold
         <div
           key={virtualItem.key}
           style={style}
-          onClick={() => onSelectRequest(req.id)}
+          onClick={() => setSelectedRequestId(req.id)}
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
             selectedRequestId === req.id 
@@ -204,7 +200,7 @@ export function RequestList({ folders, requests, selectedRequestId, selectedFold
         </span>
         <div className="flex items-center gap-1 border-l-2 border-neo-border pl-2 ml-1">
           <button 
-            onClick={onRefresh}
+            onClick={loadCollection}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Actualiser la collection"
           >

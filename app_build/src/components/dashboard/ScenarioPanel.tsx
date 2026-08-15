@@ -14,13 +14,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface ScenarioPanelProps {
-  onScenarioApplied: () => void;
-  selectedScenarioId?: string | null;
-  onSelectScenario?: (id: string) => void;
-}
+import { useStore } from '../../store/useStore';
 
-export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectScenario }: ScenarioPanelProps) {
+export function ScenarioPanel() {
+  const { selectedScenarioId, setSelectedScenarioId, loadCollection } = useStore();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,7 +58,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
   const handleApply = async (id: string) => {
     try {
       await applyScenario(id);
-      onScenarioApplied();
+      loadCollection();
     } catch (err) {
       console.error(err);
     }
@@ -120,7 +117,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
             <div 
               key={scenario.id} 
               className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? 'bg-accent border-primary/50' : 'bg-card border-border'}`}
-              onClick={() => onSelectScenario?.(scenario.id)}
+              onClick={() => setSelectedScenarioId(scenario.id)}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-black text-foreground flex items-center gap-2">

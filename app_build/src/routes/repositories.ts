@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import { resolve } from "path";
-import { getRepoPath } from "../services/git";
 
 export async function handleRepositoriesRoute(req: Request, url: URL): Promise<Response | null> {
   if (url.pathname === '/api/repositories' && req.method === 'GET') {

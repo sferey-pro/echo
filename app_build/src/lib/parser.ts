@@ -53,7 +53,7 @@ export interface ParserResult {
 
 import { BruParser } from "./parsers/BruParser";
 import { YamlParser } from "./parsers/YamlParser";
-import type { IParserStrategy, ParsedRequestData } from "./parsers/types";
+import type { IParserStrategy } from "./parsers/types";
 
 // In-memory cache for incremental parsing
 const cachedFolders: Map<string, BrunoFolder> = new Map();
@@ -191,11 +191,11 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
            const content = await readFile(join(envPath, entry.name), 'utf-8');
            try {
              if (entry.name.endsWith('.yml') || entry.name.endsWith('.json')) {
-               const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : (JSON.parse(content) as any);
-               const name = parsed?.name || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
+               const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : (JSON.parse(content) as Record<string, unknown>);
+               const name = (parsed?.name as string) || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
                cachedEnvironments.push({
                  name: name,
-                 variables: parsed?.variables || []
+                 variables: (parsed?.variables as BrunoVariable[]) || []
                });
              } else if (entry.name.endsWith('.bru')) {
                const name = basename(entry.name, '.bru');

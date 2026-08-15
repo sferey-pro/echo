@@ -6,12 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTheme } from '../theme-provider';
 import { toast } from 'sonner';
 
-interface RequestDetailsProps {
-  request: ApiRequest | null;
-  onUpdate?: () => void;
-}
+import { useStore } from '../../store/useStore';
 
-export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
+export function RequestDetails() {
+  const { requests, selectedRequestId, loadCollection } = useStore();
+  const request = requests.find(r => r.id === selectedRequestId) || null;
   const getPayloadString = (data: unknown) => {
     if (typeof data === 'string') return data;
     if (data === null || data === undefined) return '';
@@ -67,7 +66,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { isMocked: !request.isMocked, payload, statusCode, latencyMs, pathParamsOverrides });
-      onUpdate?.();
+      loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
     } finally {
@@ -79,7 +78,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { payload, selectedExample, statusCode, latencyMs, pathParamsOverrides });
-      onUpdate?.();
+      loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
     } finally {
@@ -92,7 +91,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { statusCode: newCode });
-      onUpdate?.();
+      loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de statut');
     } finally {
@@ -104,7 +103,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { latencyMs: newLatency });
-      onUpdate?.();
+      loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de latence');
     } finally {
@@ -120,7 +119,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { pathParamsOverrides: newOverrides });
-      onUpdate?.();
+      loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des paramètres');
     } finally {
@@ -135,7 +134,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(true);
     try {
       await updateMock(request.id, { payload: newPayload, selectedExample: ex.name });
-      onUpdate?.();
+      loadCollection();
     } catch (e: unknown) {
       console.error(e);
       toast.error("Erreur: " + (e instanceof Error ? e.message : String(e)));
@@ -152,7 +151,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
   const handleToggleStar = async () => {
     setIsSaving(true);
     await updateMock(request.id, { isStarred: !request.isStarred });
-    onUpdate?.();
+    loadCollection();
     setIsSaving(false);
   };
 

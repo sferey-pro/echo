@@ -11,6 +11,7 @@ import { CollectionSettingsModal } from '../dashboard/CollectionSettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 import { CommandPalette } from '../dashboard/CommandPalette';
 import { EnvironmentViewerModal } from '../dashboard/EnvironmentViewerModal';
+import { useStore } from '../../store/useStore';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThemeToggle } from '../ThemeToggle';
@@ -18,20 +19,27 @@ import { Settings, CloudDownload, Loader2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DashboardLayout() {
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [folders, setFolders] = useState<BrunoFolder[]>([]);
-  const [requests, setRequests] = useState<ApiRequest[]>([]);
-  const [environments, setEnvironments] = useState<BrunoEnvironment[]>([]);
-  const [activeEnvironment, setActiveEnvironment] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Global settings
+  const {
+    folders,
+    requests,
+    environments,
+    activeEnvironment,
+    isLoading,
+    selectedRequestId,
+    selectedFolderId,
+    selectedScenarioId,
+    setActiveEnvironment,
+    setSelectedFolderId,
+    setSelectedRequestId,
+    setSelectedScenarioId,
+    loadCollection
+  } = useStore();
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCollectionSettingsOpen, setIsCollectionSettingsOpen] = useState(false);
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isEnvViewerOpen, setIsEnvViewerOpen] = useState(false);
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
-
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "" });
@@ -49,7 +57,7 @@ export function DashboardLayout() {
       }
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 30000); // Check every 30s
+    const interval = setInterval(checkStatus, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -59,7 +67,7 @@ export function DashboardLayout() {
       const res = await fetch('http://localhost:3000/api/sync/pull', { method: 'POST' });
       if (res.ok) {
         setSyncStatus(prev => ({ ...prev, commitsBehind: 0, isSynced: true }));
-        fetchAndSetCollection(); // Recharger la collection après le sync
+        loadCollection(); // Recharger la collection après le sync
       } else {
         const error = await res.json();
         toast.error(error.error || "Erreur lors de la synchronisation Git");
@@ -71,29 +79,13 @@ export function DashboardLayout() {
     }
   };
 
-  const fetchAndSetCollection = () => {
-    Promise.all([fetchCollection(), getSettings()])
-      .then(([data, settings]) => {
-        setFolders(data.folders);
-        setRequests(data.requests);
-        setEnvironments(data.environments || []);
-        setActiveEnvironment(settings['ACTIVE_ENVIRONMENT'] || '');
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load data", err);
-        setIsLoading(false);
-      });
-  };
+  useEffect(() => {
+    loadCollection();
+  }, [loadCollection]);
 
   const handleEnvChange = (val: string) => {
     setActiveEnvironment(val);
-    updateSetting('ACTIVE_ENVIRONMENT', val);
   };
-
-  useEffect(() => {
-    fetchAndSetCollection();
-  }, []);
 
   const selectedRequest = requests.find(r => r.id === selectedRequestId) || null;
   
@@ -151,14 +143,11 @@ export function DashboardLayout() {
     return req.currentPayload !== defaultPayload;
   };
 
-  // Find folder when a request is selected if not already matched
   useEffect(() => {
     if (selectedRequest && selectedRequest.folderId !== selectedFolderId && selectedRequest.folderId !== 'root') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedFolderId(selectedRequest.folderId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRequest]);
+  }, [selectedRequest, selectedFolderId, setSelectedFolderId]);
 
   if (isLoading) {
     return (
@@ -248,15 +237,8 @@ export function DashboardLayout() {
             </div>
             <div className="flex-1 overflow-hidden">
               <RequestList 
-                folders={folders}
-                requests={requests} 
-                selectedRequestId={selectedRequestId} 
-                selectedFolderId={selectedFolderId}
-                onSelectRequest={setSelectedRequestId}
-                onSelectFolder={setSelectedFolderId}
                 onOpenSettings={() => setIsCollectionSettingsOpen(true)}
                 onOpenCollections={() => setIsCollectionsOpen(true)}
-                onRefresh={fetchAndSetCollection}
               />
             </div>
           </div>
@@ -266,11 +248,7 @@ export function DashboardLayout() {
               <h2 className="font-black text-sm uppercase dark:text-black">Scénarios Rapides</h2>
             </div>
             <div className="flex-1 overflow-hidden">
-              <ScenarioPanel 
-                onScenarioApplied={fetchAndSetCollection}
-                selectedScenarioId={selectedScenarioId}
-                onSelectScenario={setSelectedScenarioId}
-              />
+              <ScenarioPanel />
             </div>
           </div>
         </div>
@@ -312,11 +290,11 @@ export function DashboardLayout() {
                  key={selectedScenarioId}
                  scenarioId={selectedScenarioId} 
                  requests={requests}
-                 onUpdate={fetchAndSetCollection}
+                 onUpdate={loadCollection}
                  onClose={() => setSelectedScenarioId(null)}
                />
              ) : (
-               <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+               <RequestDetails key={selectedRequest?.id} />
              )}
            </div>
         </div>
@@ -334,17 +312,17 @@ export function DashboardLayout() {
       <CollectionManagerModal
         isOpen={isCollectionsOpen}
         onClose={() => setIsCollectionsOpen(false)}
-        onSaved={fetchAndSetCollection}
+        onSaved={loadCollection}
       />
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
-        onSaved={fetchAndSetCollection} 
+        onSaved={loadCollection} 
       />
       <CollectionSettingsModal
         isOpen={isCollectionSettingsOpen} 
         onClose={() => setIsCollectionSettingsOpen(false)} 
-        onSaved={fetchAndSetCollection} 
+        onSaved={loadCollection} 
       />
       <EnvironmentViewerModal 
         isOpen={isEnvViewerOpen}

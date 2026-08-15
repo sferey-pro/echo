@@ -26,7 +26,7 @@ examples:
     expect(result?.http.method).toBe("POST");
     expect(result?.http.url).toBe("https://api.test.com/users");
     expect(result?.examples.length).toBe(1);
-    expect(result?.examples[0].response.status).toBe(200);
+    expect(result?.examples?.[0]?.response.status).toBe(200);
   });
 
   test("BruParser should parse basic BRU content", () => {
