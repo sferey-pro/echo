@@ -18,7 +18,7 @@ import { getMockStates, getSetting } from './db';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mswServer: any = null;
 
-export async function initProxy(requests: ApiRequest[], environments: { name: string, variables: { name: string, value: string }[] }[] = []) {
+export async function initProxy(requests: ApiRequest[], environments: { name: string, variables: { name: string, value: string }[] }[] = [], incremental: boolean = false) {
   const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
   const activeEnvironmentName = getSetting('ACTIVE_ENVIRONMENT');
   const activeEnv = environments.find(e => e.name === activeEnvironmentName) || null;

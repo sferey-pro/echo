@@ -5,10 +5,14 @@ import { resolve } from "path";
 
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
 import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions } from './lib/db';
-import { existsSync } from "node:fs";
+import { existsSync, watch } from "node:fs";
 import { readdir } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import type { ScenarioAction } from "./lib/api";
+import { parseFile, removeFileFromCache } from "./lib/parser";
+
+const defaultRepoPath = resolve(process.cwd(), '../collection');
+const REPO_PATH = process.env.REPO_PATH || defaultRepoPath;
 
 
 const server = serve({
@@ -33,10 +37,8 @@ const server = serve({
     }
 
     if (url.pathname === '/api/collections') {
-      const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
-      const collectionPath = resolve(process.cwd(), '../collection', activeName);
       try {
-        const data = await parseCollection(collectionPath);
+        const data = await parseCollection(REPO_PATH);
         await initProxy(data.requests, data.environments);
         
         const enrichedRequests = data.requests.map(r => {
@@ -88,11 +90,8 @@ const server = serve({
           // Persist the new state in SQLite
           updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs, state.pathParamsOverrides);
           
-          // Reset MSW
-          const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
-          const collectionPath = resolve(process.cwd(), '../collection', activeName);
-          const data = await parseCollection(collectionPath);
-          await initProxy(data.requests, data.environments);
+          // Mettre à jour l'état local dans mockStates sans redémarrer MSW
+          // Car mswProxy lit dynamiquement mockStates
           
           return new Response(JSON.stringify({ success: true }), {
             headers: {
@@ -120,6 +119,11 @@ const server = serve({
           const body = await req.json();
           if (body.key && typeof body.value === 'string') {
             setSetting(body.key, body.value);
+            
+            if (body.key === 'REPO_PATH') {
+              updateBackgroundTasks();
+            }
+            
             return new Response(JSON.stringify({ success: true }), {
               headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
             });
@@ -128,6 +132,37 @@ const server = serve({
            console.error("Settings parse error", e);
         }
         return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    if (url.pathname === '/api/sync/status' && req.method === 'GET') {
+      return new Response(JSON.stringify(gitSyncStatus), {
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+
+    if (url.pathname === '/api/sync/pull' && req.method === 'POST') {
+      try {
+        const repo = getRepoPath();
+        const proc = Bun.spawn(["git", "pull"], { cwd: repo });
+        await proc.exited;
+        if (proc.exitCode !== 0) {
+           const errText = await new Response(proc.stderr).text();
+           return new Response(JSON.stringify({ error: "Git pull failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+        }
+        
+        gitSyncStatus.commitsBehind = 0;
+        gitSyncStatus.isSynced = true;
+        gitSyncStatus.error = "";
+        
+        const data = await parseCollection(repo, true);
+        await initProxy(data.requests, data.environments, true);
+        
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err: unknown) {
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
       }
     }
 
@@ -263,10 +298,9 @@ const server = serve({
         
         applyScenarioActions(scenario.actions as ScenarioAction[]);
         
-        // Reset MSW
-        const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
-        const collectionPath = resolve(process.cwd(), '../collection', activeName);
-        const data = await parseCollection(collectionPath);
+        // Refresh all states in MSW proxy logic is handled dynamically, but we re-init if new routes were affected
+        // Actually, since applyScenarioActions only updates DB, we must update the memory map
+        const data = await parseCollection(REPO_PATH);
         await initProxy(data.requests, data.environments);
         
         return new Response(JSON.stringify({ success: true }), {
@@ -318,3 +352,85 @@ const server = serve({
 });
 
 console.log(`🚀 Unified Echo Server running at ${server.url} (Dashboard, API & Proxy)`);
+console.log(`📂 Using Repo Path: ${REPO_PATH}`);
+
+function getRepoPath() {
+  return getSetting('REPO_PATH') || process.env.REPO_PATH || resolve(process.cwd(), '../collection');
+}
+
+// --- BACKGROUND SYNC ---
+let currentWatcher: any = null;
+let currentWatchPath: string | null = null;
+let syncTimer: any = null;
+
+export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "" };
+
+async function runSync() {
+  const repo = getRepoPath();
+  if (existsSync(repo) && existsSync(resolve(repo, '.git'))) {
+    try {
+      // Execute fetch
+      const fetchProc = Bun.spawn(["git", "fetch"], { cwd: repo });
+      await fetchProc.exited;
+      if (fetchProc.exitCode === 0) {
+        // Check delta
+        const revProc = Bun.spawn(["git", "rev-list", "HEAD..@{u}", "--count"], { cwd: repo });
+        await revProc.exited;
+        if (revProc.exitCode === 0) {
+           const countStr = await new Response(revProc.stdout).text();
+           const count = parseInt(countStr.trim(), 10);
+           if (!isNaN(count)) {
+             gitSyncStatus.commitsBehind = count;
+             gitSyncStatus.isSynced = count === 0;
+             gitSyncStatus.error = "";
+           }
+        } else {
+           // Si pas d'upstream configuré, on le log mais on ne crash pas
+           gitSyncStatus.error = "Pas d'upstream configuré pour la branche courante.";
+        }
+      } else {
+         const errText = await new Response(fetchProc.stderr).text();
+         gitSyncStatus.error = errText;
+      }
+    } catch (e) {
+      console.error("[Git Polling] Failed to fetch", e);
+      gitSyncStatus.error = (e as Error).message;
+    }
+  }
+  
+  const interval = parseInt(getSetting('GIT_SYNC_INTERVAL') || process.env.GIT_SYNC_INTERVAL || "300000", 10);
+  syncTimer = setTimeout(runSync, interval);
+}
+
+export function updateBackgroundTasks() {
+  const repo = getRepoPath();
+  if (repo !== currentWatchPath) {
+    if (currentWatcher) {
+      currentWatcher.close();
+      currentWatcher = null;
+    }
+    currentWatchPath = repo;
+    
+    if (existsSync(repo)) {
+      console.log(`📂 Using Repo Path: ${repo}`);
+      currentWatcher = watch(repo, { recursive: true }, async (event, filename) => {
+        if (!filename || filename.startsWith('.git') || filename.startsWith('node_modules')) return;
+        if (filename.endsWith('.yml') || filename.endsWith('.bru') || filename.endsWith('.json')) {
+          const fullPath = resolve(repo, filename);
+          if (existsSync(fullPath)) {
+            await parseFile(repo, fullPath);
+          } else {
+            removeFileFromCache(repo, fullPath);
+          }
+          const data = await parseCollection(repo);
+          await initProxy(data.requests, data.environments, true);
+        }
+      });
+    }
+  }
+}
+
+// Initial start
+updateBackgroundTasks();
+runSync();
+
