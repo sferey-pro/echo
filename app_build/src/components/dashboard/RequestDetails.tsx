@@ -40,15 +40,14 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(false);
   };
 
-  const handleExampleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setSelectedExample(val);
-    if (val !== 'custom') {
-      const ex = request.examples?.find(ex => ex.name === val);
-      if (ex && ex.response?.body?.data) {
-        setPayload(ex.response.body.data);
-      }
-    }
+  const handleExampleClick = async (ex: NonNullable<ApiRequest['examples']>[0]) => {
+    setSelectedExample(ex.name);
+    const newPayload = ex.response?.body?.data || '';
+    setPayload(newPayload);
+    setIsSaving(true);
+    await updateMock(request.id, { payload: newPayload, selectedExample: ex.name });
+    onUpdate?.();
+    setIsSaving(false);
   };
 
   const handlePayloadChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -129,12 +128,7 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
               {request.examples.map(ex => (
                 <button
                   key={ex.name}
-                  onClick={() => {
-                    setSelectedExample(ex.name);
-                    if (ex.response?.body?.data) {
-                      setPayload(ex.response.body.data);
-                    }
-                  }}
+                  onClick={() => handleExampleClick(ex)}
                   className={`text-xs px-3 py-1.5 rounded-md font-medium transition-all ${selectedExample === ex.name ? 'bg-purple-500 text-white shadow-md shadow-purple-500/20' : 'bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white'}`}
                 >
                   {ex.name}
