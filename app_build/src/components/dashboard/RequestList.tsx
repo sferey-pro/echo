@@ -108,7 +108,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder('__starred__', e)}
-          className="flex items-center py-1.5 pr-2 hover:bg-neutral-800 rounded-md cursor-pointer text-sm text-neutral-200 transition-colors font-medium select-none"
+          className="flex items-center py-1.5 pr-2 hover:bg-white/5 active:scale-[0.99] rounded-md cursor-pointer text-sm text-neutral-200 transition-all duration-200 font-medium select-none"
         >
           <div style={{ paddingLeft: `0.5rem` }} className="flex items-center w-full">
             <span className="mr-2 text-[10px] opacity-70 w-3 text-center transition-transform duration-200" style={{ transform: item.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -127,7 +127,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
-          className="flex items-center py-1.5 pr-2 hover:bg-neutral-800 rounded-md cursor-pointer text-sm text-neutral-200 transition-colors font-medium select-none"
+          className="flex items-center py-1.5 pr-2 hover:bg-white/5 active:scale-[0.99] rounded-md cursor-pointer text-sm text-neutral-200 transition-all duration-200 font-medium select-none"
         >
           <div style={{ paddingLeft: `${item.depth * 1 + 0.5}rem` }} className="flex items-center w-full">
             <span className="mr-2 text-[10px] opacity-70 w-3 text-center transition-transform duration-200" style={{ transform: item.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -150,10 +150,10 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           style={style}
           onClick={() => onSelectRequest(req.id)}
           className={cn(
-            "flex items-center py-1.5 pr-2 rounded-md cursor-pointer text-sm transition-all border-l-2",
+            "flex items-center py-1.5 pr-2 rounded-md cursor-pointer text-sm transition-all duration-200 border-l-2 active:scale-[0.98]",
             selectedRequestId === req.id 
-              ? "bg-purple-900/20 border-purple-500 text-white" 
-              : "hover:bg-neutral-900 text-neutral-300 border-transparent"
+              ? "bg-gradient-to-r from-purple-500/20 to-transparent border-purple-500 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]" 
+              : "hover:bg-white/5 text-neutral-300 border-transparent"
           )}
         >
           <div style={{ paddingLeft: `${depth * 1 + 0.75}rem` }} className="flex items-center w-full">
@@ -182,19 +182,19 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
   };
 
   return (
-    <div className="h-full bg-neutral-950 border-r border-neutral-800 flex flex-col">
-      <div className="p-4 border-b border-neutral-800 flex items-center gap-2 bg-neutral-900/50">
-        <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white font-bold text-[10px]">
+    <div className="h-full bg-neutral-950/40 backdrop-blur-3xl border-r border-white/5 flex flex-col">
+      <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-transparent">
+        <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-[10px] shadow-lg shadow-purple-500/20">
           E
         </div>
-        <h2 className="text-sm font-bold text-white tracking-tight">Echo Explorer</h2>
+        <h2 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400 tracking-tight">Echo Explorer</h2>
         <div className="flex-1"></div>
-        <span className="text-xs font-mono text-neutral-500 bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-800">
-          {requests.length} requêtes
+        <span className="text-xs font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+          {requests.length} req
         </span>
         <button 
           onClick={onOpenSettings}
-          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors ml-1"
+          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
           title="Paramètres"
         >
           ⚙️

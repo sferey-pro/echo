@@ -44,15 +44,22 @@ export function DashboardLayout() {
   }
 
   return (
-    <div className="h-screen w-full bg-black text-white overflow-hidden grid grid-cols-1 md:grid-cols-[350px_1fr]">
-      <RequestList 
-        folders={folders}
-        requests={requests} 
-        selectedRequestId={selectedRequestId} 
-        onSelectRequest={setSelectedRequestId}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-      />
-      <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+    <div className="h-screen w-full bg-[#030303] text-neutral-100 overflow-hidden flex relative font-sans selection:bg-purple-500/30">
+      {/* Premium Background Glows */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vh] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[40vw] h-[40vh] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+      
+      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] divide-x divide-white/5">
+        <RequestList 
+          folders={folders}
+          requests={requests} 
+          selectedRequestId={selectedRequestId} 
+          onSelectRequest={setSelectedRequestId}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+        />
+        <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
+      </div>
+      
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 

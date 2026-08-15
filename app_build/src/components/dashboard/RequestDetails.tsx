@@ -47,10 +47,9 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
   };
 
   return (
-    <div className="h-full bg-neutral-900 flex flex-col relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-900/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+    <div className="h-full bg-transparent flex flex-col relative overflow-hidden">
       
-      <div className="p-4 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-md z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="p-4 border-b border-white/5 bg-white/5 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
             <button 
@@ -75,35 +74,35 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
             <p className="text-sm text-neutral-400 font-mono truncate max-w-md">{request.url}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button 
             onClick={handleToggleMock} 
             disabled={isSaving}
             variant={request.isMocked ? "default" : "outline"} 
             size="sm" 
-            className={`h-8 ${request.isMocked ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20' : 'border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:bg-neutral-800 hover:text-white'}`}>
+            className={`h-9 font-medium transition-all active:scale-95 ${request.isMocked ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20 border-green-400/50' : 'border-white/10 bg-white/5 text-neutral-300 hover:bg-white/10 hover:text-white'}`}>
             {request.isMocked ? 'Mock Actif' : 'Pass-through'}
           </Button>
           <Button 
             onClick={handleSavePayload} 
             disabled={isSaving}
             size="sm" 
-            className="h-8 bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-900/20">
+            className="h-9 font-medium bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95 border border-white/10">
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder Payload'}
           </Button>
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10">
-        <div className="flex flex-col h-full">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold text-neutral-300">Payload de Réponse JSON</h3>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-neutral-400 hover:text-white" onClick={() => setPayload(defaultExamplePayload)}>
+        <div className="flex flex-col h-full bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm shadow-xl">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-semibold text-neutral-200">Payload de Réponse JSON</h3>
+            <Button variant="ghost" size="sm" className="h-6 px-3 rounded-full bg-white/5 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all" onClick={() => setPayload(defaultExamplePayload)}>
               Reset (Bruno)
             </Button>
           </div>
           <Textarea 
-            className="flex-1 font-mono text-sm bg-neutral-950/50 border-neutral-800 text-green-400 resize-none focus-visible:ring-1 focus-visible:ring-purple-500 focus-visible:border-purple-500/50 shadow-inner p-4 rounded-xl"
+            className="flex-1 font-mono text-sm bg-black/40 border-white/5 text-green-400 resize-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:border-purple-500/50 shadow-inner p-4 rounded-lg transition-all"
             value={payload}
             onChange={(e) => setPayload(e.target.value)}
             spellCheck={false}

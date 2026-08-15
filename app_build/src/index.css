@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "../styles/globals.css";
 
 html, body, #root {
@@ -9,6 +10,9 @@ html, body, #root {
 
 @layer base {
   :root {
-    @apply font-sans antialiased;
+    @apply antialiased;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
   }
 }
