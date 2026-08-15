@@ -144,11 +144,13 @@ const server = serve({
     if (url.pathname === '/api/sync/pull' && req.method === 'POST') {
       try {
         const repo = getRepoPath();
-        const proc = Bun.spawn(["git", "pull"], { cwd: repo });
+        const proc = Bun.spawn(["git", "pull"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
         await proc.exited;
         if (proc.exitCode !== 0) {
            const errText = await new Response(proc.stderr).text();
-           return new Response(JSON.stringify({ error: "Git pull failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+           const outText = await new Response(proc.stdout).text();
+           const fullError = (errText + "\n" + outText).trim();
+           return new Response(JSON.stringify({ error: "Git pull failed:\n" + fullError }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
         }
         
         gitSyncStatus.commitsBehind = 0;
@@ -201,10 +203,10 @@ const server = serve({
           return new Response(JSON.stringify({ error: "EXISTS" }), { status: 409, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
         }
         
-        const rmProc = Bun.spawn(["rm", "-rf", targetDir]);
+        const rmProc = Bun.spawn(["rm", "-rf", targetDir], { stdout: "pipe", stderr: "pipe" });
         await rmProc.exited;
         
-        const proc = Bun.spawn(["git", "clone", repoUrl, targetDir]);
+        const proc = Bun.spawn(["git", "clone", repoUrl, targetDir], { stdout: "pipe", stderr: "pipe" });
         await proc.exited;
         
         if (proc.exitCode !== 0) {
@@ -370,11 +372,11 @@ async function runSync() {
   if (existsSync(repo) && existsSync(resolve(repo, '.git'))) {
     try {
       // Execute fetch
-      const fetchProc = Bun.spawn(["git", "fetch"], { cwd: repo });
+      const fetchProc = Bun.spawn(["git", "fetch"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
       await fetchProc.exited;
       if (fetchProc.exitCode === 0) {
         // Check delta
-        const revProc = Bun.spawn(["git", "rev-list", "HEAD..@{u}", "--count"], { cwd: repo });
+        const revProc = Bun.spawn(["git", "rev-list", "HEAD..@{u}", "--count"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
         await revProc.exited;
         if (revProc.exitCode === 0) {
            const countStr = await new Response(revProc.stdout).text();
