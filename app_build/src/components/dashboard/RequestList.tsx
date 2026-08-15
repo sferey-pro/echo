@@ -9,6 +9,7 @@ interface RequestListProps {
   selectedRequestId: string | null;
   onSelectRequest: (id: string) => void;
   onOpenSettings: () => void;
+  onRefresh: () => void;
 }
 
 const methodColors: Record<string, string> = {
@@ -25,7 +26,7 @@ type ListItem =
   | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
   | { type: 'request', request: ApiRequest, depth: number };
 
-export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings }: RequestListProps) {
+export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings, onRefresh }: RequestListProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +193,13 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
         <span className="text-xs font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
           {requests.length} req
         </span>
+        <button 
+          onClick={onRefresh}
+          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
+          title="Actualiser la collection"
+        >
+          🔄
+        </button>
         <button 
           onClick={onOpenSettings}
           className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"

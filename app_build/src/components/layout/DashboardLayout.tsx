@@ -81,6 +81,7 @@ export function DashboardLayout() {
               selectedRequestId={selectedRequestId} 
               onSelectRequest={setSelectedRequestId}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onRefresh={fetchAndSetCollection}
             />
           </div>
         </div>
