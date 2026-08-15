@@ -1,31 +1,39 @@
-# Spécifications Techniques : Page de Paramétrage
+# Spécification Technique : Clonage de Collection Bruno via Git
 
 ## Résumé Exécutif
-Pour offrir plus de flexibilité aux développeurs frontend, Echo doit permettre la configuration de ses paramètres clés (comme l'URL de l'API cible ou le chemin de la collection Bruno) directement depuis l'interface utilisateur, sans avoir à manipuler le fichier `.env` ou relancer le serveur. Ces paramètres seront sauvegardés de manière persistante dans la base de données SQLite embarquée récemment implémentée.
+L'application Echo utilise Bruno comme source de vérité pour les mocks d'API. Actuellement, le chemin de cette collection doit être configuré manuellement. Pour simplifier l'onboarding et l'utilisation quotidienne, les développeurs frontend doivent pouvoir cloner un dépôt Git distant contenant une collection Bruno directement depuis l'interface utilisateur d'Echo (Dashboard), sans avoir à utiliser un terminal ou un client Git externe.
 
 ## Exigences
-- **Fonctionnelles** :
-  - L'utilisateur peut consulter et modifier les paramètres système depuis l'interface web.
-  - Paramètres à exposer : `TARGET_API_URL` et `BRUNO_COLLECTION_PATH`.
-  - La modification du chemin de la collection Bruno doit déclencher un rechargement à chaud (`hot-reload`) des requêtes MSW sans redémarrer le serveur.
-  - La modification de l'URL cible doit être prise en compte instantanément pour le mode Pass-through.
-- **Non-fonctionnelles** :
-  - Persistance dans Bun SQLite (`bun:sqlite`).
-  - L'interface de paramétrage doit s'intégrer harmonieusement (fenêtre modale ou onglet dédié) avec le design existant (Shadcn UI + TailwindCSS).
+
+### Fonctionnelles
+- L'utilisateur doit pouvoir saisir une URL de dépôt Git valide dans l'interface des paramètres d'Echo.
+- L'application doit télécharger (cloner) ce dépôt Git dans un dossier spécifique (ex: `cloned_collections/`).
+- En cas de succès, le paramètre `BRUNO_COLLECTION_PATH` de l'application doit être automatiquement mis à jour pour pointer vers ce nouveau dossier.
+- L'utilisateur doit être notifié du succès ou de l'échec de l'opération via l'interface utilisateur.
+- Le serveur MSW d'Echo doit ensuite recharger la nouvelle collection de façon transparente.
+
+### Non Fonctionnelles
+- **Sécurité** : Les commandes systèmes exécutées sur le serveur doivent être sécurisées (échappement des URLs).
+- **Performance** : Le processus de clonage ne doit pas bloquer le thread principal de l'interface utilisateur (traitement asynchrone).
+- **Fiabilité** : Si un dépôt de même nom existe déjà localement, le système doit le remplacer proprement pour garantir une arborescence à jour, ou exécuter un `git pull`.
 
 ## Architecture & Tech Stack
-- **Base de données (SQLite)** : 
-  - Ajout d'une table `settings` (colonnes : `key` TEXT PRIMARY KEY, `value` TEXT).
-- **Backend (Bun)** :
-  - `GET /api/settings` : Récupère les paramètres actuels.
-  - `POST /api/settings` : Met à jour la base de données SQLite.
-  - Modification de `index.ts` et `proxy.ts` pour lire la configuration depuis la base de données en priorité. Si la clé est introuvable, on se rabat sur la variable d'environnement, puis sur les valeurs par défaut.
-- **Frontend (React)** :
-  - **Composant `SettingsModal.tsx`** : Une fenêtre modale (Dialog Shadcn) accessible via un bouton ⚙️ (engrenage) dans le header de l'explorateur.
-  - Le formulaire gérera un état local et un appel POST vers le backend.
-  - Lors de la sauvegarde, l'interface déclenchera un re-fetch global de la collection (`/api/collections`) pour rafraîchir l'arbre de navigation.
+
+### Backend (Bun)
+- **Nouvelle Route API** : Ajout d'une route `POST /api/collections/clone` dans le serveur interne Bun (`index.ts`).
+- **Gestion des Processus** : Utilisation de l'API native `Bun.spawn()` pour exécuter la commande système `git clone <URL> <TARGET_DIR>`.
+- **Sauvegarde d'État** : Une fois cloné, le chemin local est enregistré via la fonction SQLite existante `setSetting('BRUNO_COLLECTION_PATH', targetDir)`.
+
+### Frontend (React, TailwindCSS, Shadcn UI)
+- **Composant Modale (SettingsModal.tsx)** : Intégration d'une nouvelle section dédiée au clonage de dépôt, placée logiquement sous la configuration du chemin manuel.
+- **Design System** : Utilisation des classes utilitaires de TailwindCSS pour maintenir le thème "Dark Mode" (fonds `bg-neutral-950`, bordures `border-neutral-800`, boutons `bg-blue-600` ou `bg-purple-600`).
+- **Composants d'Interface** :
+  - Un champ `input` de type texte pour saisir l'URL Git.
+  - Un bouton `button` d'action (Shadcn-like) pour déclencher le clonage, avec désactivation (`disabled`) pendant le chargement pour éviter le multi-clic.
+- **Gestion des Requêtes** : Une nouvelle méthode asynchrone dans `lib/api.ts` pour appeler le point de terminaison de clonage.
 
 ## Gestion de l'État
-1. **Lecture Backend** : La fonction `getSettings()` lira la table `settings`. Si la configuration `BRUNO_COLLECTION_PATH` est lue, le serveur charge cette collection.
-2. **Mise à jour** : Le endpoint POST fera un `INSERT ... ON CONFLICT REPLACE` dans la table `settings`.
-3. **Application MSW** : MSW intercepte dynamiquement les requêtes. Le `targetApiUrl` sera lu dynamiquement à chaque requête non-mockée (dans `handleProxyRequest` et le remplacement de `{{baseUrl}}`).
+1. **Frontend (Saisie)** : L'utilisateur tape l'URL (état local React `repoUrl`).
+2. **Action** : Clic sur le bouton de clonage, déclenchant l'état de chargement (`cloning = true`). L'appel réseau est effectué vers `/api/collections/clone`.
+3. **Backend (Traitement)** : Bun exécute `git clone` et met à jour la base SQLite. La réponse HTTP 200 renvoie le nouveau chemin local.
+4. **Frontend (Feedback)** : L'application React met à jour le champ `collectionPath` visible avec la nouvelle valeur, désactive l'état de chargement, affiche une alerte de succès (ou d'erreur le cas échéant), et invite l'utilisateur à sauvegarder pour recharger MSW.

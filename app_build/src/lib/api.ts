@@ -37,3 +37,15 @@ export async function updateSetting(key: string, value: string): Promise<void> {
     throw new Error('Erreur lors de la mise à jour du paramètre');
   }
 }
+
+export async function cloneCollection(repoUrl: string): Promise<void> {
+  const response = await fetch('/api/collections/clone', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ repoUrl })
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Erreur lors du clonage du dépôt');
+  }
+}

@@ -103,6 +103,45 @@ const server = serve({
       }
     }
 
+    if (url.pathname === '/api/collections/clone' && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        const repoUrl = body.repoUrl;
+        if (!repoUrl || typeof repoUrl !== 'string') {
+          return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        }
+        
+        let repoName = `repo-${Date.now()}`;
+        const parts = repoUrl.split('/');
+        const lastPart = parts[parts.length - 1];
+        if (lastPart) {
+           repoName = lastPart.replace(/\.git$/, '');
+        }
+        const targetDir = resolve(process.cwd(), '../cloned_collections', repoName);
+        
+        const rmProc = Bun.spawn(["rm", "-rf", targetDir]);
+        await rmProc.exited;
+        
+        const proc = Bun.spawn(["git", "clone", repoUrl, targetDir]);
+        await proc.exited;
+        
+        if (proc.exitCode !== 0) {
+           const errText = await new Response(proc.stderr).text();
+           console.error("Git clone failed:", errText);
+           return new Response(JSON.stringify({ error: "Git clone failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+        }
+        
+        setSetting('BRUNO_COLLECTION_PATH', targetDir);
+        
+        return new Response(JSON.stringify({ success: true, path: targetDir }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+        });
+      } catch (err: any) {
+         console.error("Clone error", err);
+         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
     // Tout ce qui ne correspond ni aux routes (SPA), ni à l'API interne, part vers le proxy MSW !
     return handleProxyRequest(req);
   },
