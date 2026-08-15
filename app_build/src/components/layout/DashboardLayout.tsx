@@ -10,6 +10,8 @@ import { SettingsModal } from '../dashboard/SettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 import { CommandPalette } from '../dashboard/CommandPalette';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ThemeToggle } from '../ThemeToggle';
 
 export function DashboardLayout() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -39,8 +41,7 @@ export function DashboardLayout() {
       });
   };
 
-  const handleEnvChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleEnvChange = (val: string) => {
     setActiveEnvironment(val);
     updateSetting('ACTIVE_ENVIRONMENT', val);
   };
@@ -63,36 +64,40 @@ export function DashboardLayout() {
   }
 
   return (
-    <div className="h-screen w-full bg-[#030303] text-neutral-100 overflow-hidden flex relative font-sans selection:bg-purple-500/30">
+    <div className="h-screen w-full bg-background text-foreground overflow-hidden flex relative font-sans selection:bg-purple-500/30">
       {/* Premium Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vh] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[40vw] h-[40vh] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none"></div>
       
-      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] divide-x divide-white/5">
-        <div className="flex flex-col h-full overflow-hidden relative bg-black/20">
-          <div className="px-4 py-2 bg-transparent border-b border-white/5 flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-400">Environnement :</span>
-            <select 
-              value={activeEnvironment} 
-              onChange={handleEnvChange}
-              className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-purple-500"
-            >
-              <option value="">Aucun</option>
-              {environments.map(env => (
-                <option key={env.name} value={env.name}>{env.name}</option>
-              ))}
-            </select>
+      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] divide-x divide-border">
+        <div className="flex flex-col h-full overflow-hidden relative bg-muted/10">
+          <div className="px-4 py-2 bg-transparent border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">Env :</span>
+              <Select value={activeEnvironment} onValueChange={handleEnvChange}>
+                <SelectTrigger className="w-[120px] h-7 text-xs bg-muted border-border text-foreground focus:ring-1 focus:ring-purple-500">
+                  <SelectValue placeholder="Aucun" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Aucun</SelectItem>
+                  {environments.map(env => (
+                    <SelectItem key={env.name} value={env.name}>{env.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <ThemeToggle />
           </div>
-          <div className="flex bg-black/40 border-b border-white/5">
+          <div className="flex bg-muted/30 border-b border-border">
             <button 
               onClick={() => { setActiveTab('explorer'); setSelectedScenarioId(null); }}
-              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'explorer' ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'}`}
+              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'explorer' ? 'bg-background text-foreground border-b-2 border-purple-500' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               Explorer
             </button>
             <button 
               onClick={() => setActiveTab('scenarios')}
-              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'scenarios' ? 'bg-white/10 text-white border-b-2 border-purple-500' : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'}`}
+              className={`flex-1 py-2 text-xs font-semibold text-center transition-colors ${activeTab === 'scenarios' ? 'bg-background text-foreground border-b-2 border-purple-500' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               Scénarios
             </button>
@@ -135,7 +140,6 @@ export function DashboardLayout() {
         open={isCommandPaletteOpen}
         setOpen={setIsCommandPaletteOpen}
         requests={requests}
-        folders={folders}
         onSelectRequest={setSelectedRequestId}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenCollectionManager={() => setIsCollectionsOpen(true)}

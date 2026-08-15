@@ -6,6 +6,9 @@ import { resolve } from "path";
 import { initProxy, mockStates, handleProxyRequest } from "./lib/proxy";
 import { updateMockState, getSetting, setSetting, getAllSettings, getMockStates, getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions } from './lib/db';
 import { existsSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+import type { Dirent } from "node:fs";
+import type { ScenarioAction } from "./lib/api";
 
 
 const server = serve({
@@ -41,7 +44,7 @@ const server = serve({
           return {
             ...r,
             isMocked: state?.isMocked || false,
-            currentPayload: state?.payload || r.examples?.[0]?.response?.body?.data || '',
+            currentPayload: state?.payload || (typeof r.examples?.[0]?.response?.body?.data === 'string' ? r.examples[0].response.body.data : (r.examples?.[0]?.response?.body?.data ? JSON.stringify(r.examples[0].response.body.data, null, 2) : '')),
             isStarred: state?.isStarred || false,
             selectedExample: state?.selectedExample || null,
             statusCode: state?.statusCode ?? 200,
@@ -99,8 +102,10 @@ const server = serve({
           });
         }
         return new Response("Not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
-      } catch (_e) {
-        return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+        const e = err as Error;
+        console.error("Erreur dans /api/mocks/update :", e);
+        return new Response(e.message || "Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
       }
     }
 
@@ -132,9 +137,8 @@ const server = serve({
         if (!existsSync(collDir)) {
            return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
         }
-        const { readdir } = require('node:fs/promises');
         const entries = await readdir(collDir, { withFileTypes: true });
-        const repos = entries.filter((e: any) => e.isDirectory()).map((e: any) => e.name);
+        const repos = entries.filter((e: Dirent) => e.isDirectory()).map((e: Dirent) => e.name);
         return new Response(JSON.stringify(repos), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
       } catch (err: unknown) {
          return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
@@ -226,7 +230,7 @@ const server = serve({
         if (!actionsToSave) {
           const currentStates = getMockStates();
           actionsToSave = Object.entries(currentStates)
-            .filter(([_, state]) => state.isMocked)
+            .filter(([, state]) => state.isMocked)
             .map(([reqId, state]) => ({
               requestId: reqId,
               payload: state.payload,
@@ -257,7 +261,7 @@ const server = serve({
         const scenario = scenarios.find(s => s.id === body.id);
         if (!scenario) return new Response("Scenario not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
         
-        applyScenarioActions(scenario.actions as any[]);
+        applyScenarioActions(scenario.actions as ScenarioAction[]);
         
         // Reset MSW
         const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';

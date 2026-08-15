@@ -39,6 +39,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadScenarios();
   }, []);
 
@@ -77,20 +78,20 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
 
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
-      <div className="p-3 border-b border-white/5 bg-white/5 shrink-0 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-neutral-200">Mes Scénarios</h3>
+      <div className="p-3 border-b border-border bg-card shrink-0 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground">Mes Scénarios</h3>
         <Button 
           onClick={() => setIsCreating(!isCreating)} 
           size="sm" 
-          className="h-7 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/40 hover:text-white"
+          className="h-7 text-xs bg-primary/20 text-primary hover:bg-primary/40 hover:text-primary-foreground"
         >
           {isCreating ? 'Annuler' : '+ Nouveau'}
         </Button>
       </div>
 
       {isCreating && (
-        <form onSubmit={handleSaveCurrent} className="p-3 border-b border-white/5 bg-black/40 flex flex-col gap-2">
-          <p className="text-xs text-neutral-400">Créer un nouveau scénario vide.</p>
+        <form onSubmit={handleSaveCurrent} className="p-3 border-b border-border bg-muted flex flex-col gap-2">
+          <p className="text-xs text-muted-foreground">Créer un nouveau scénario vide.</p>
           <div className="flex gap-2">
             <input 
               autoFocus
@@ -98,9 +99,9 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
               placeholder="Nom du scénario (ex: Parcours 500)" 
               value={newScenarioName}
               onChange={e => setNewScenarioName(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-purple-500/50"
+              className="flex-1 bg-card border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary/50"
             />
-            <Button type="submit" disabled={isSaving || !newScenarioName.trim()} size="sm" className="h-8 bg-purple-600 hover:bg-purple-500 text-white">
+            <Button type="submit" disabled={isSaving || !newScenarioName.trim()} size="sm" className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground">
               {isSaving ? '...' : 'Save'}
             </Button>
           </div>
@@ -109,9 +110,9 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
 
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {isLoading ? (
-          <p className="text-xs text-neutral-500 text-center p-4">Chargement...</p>
+          <p className="text-xs text-muted-foreground text-center p-4">Chargement...</p>
         ) : scenarios.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-6 text-center text-neutral-500 space-y-2">
+          <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground space-y-2">
             <span className="text-2xl">🎭</span>
             <p className="text-xs">Aucun scénario sauvegardé.</p>
           </div>
@@ -119,14 +120,14 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
           scenarios.map(scenario => (
             <div 
               key={scenario.id} 
-              className={`group flex flex-col hover:bg-white/10 border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? 'bg-white/10 border-purple-500/50' : 'bg-white/5 border-white/5'}`}
+              className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? 'bg-accent border-primary/50' : 'bg-card border-border'}`}
               onClick={() => onSelectScenario?.(scenario.id)}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-neutral-200 flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground flex items-center gap-2">
                   <span>🎬</span> {scenario.name}
                 </span>
-                <span className="text-[10px] text-neutral-500 bg-black/40 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                   {scenario.actions.length} action(s)
                 </span>
               </div>
@@ -135,7 +136,7 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
                 <Button 
                   onClick={(e) => { e.stopPropagation(); handleApply(scenario.id); }}
                   size="sm" 
-                  className="flex-1 h-7 text-xs bg-white/10 hover:bg-purple-600 hover:text-white text-neutral-300 transition-colors"
+                  className="flex-1 h-7 text-xs bg-muted hover:bg-primary hover:text-primary-foreground text-foreground/80 transition-colors"
                 >
                   ▶ Appliquer
                 </Button>
@@ -145,25 +146,25 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
                       onClick={(e) => { e.stopPropagation(); }}
                       size="sm" 
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-neutral-500 hover:text-red-400 hover:bg-red-400/10"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Supprimer"
                     >
                       ×
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-black/90 border-white/10 text-white">
+                  <AlertDialogContent className="bg-background border-border text-foreground">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Supprimer ce scénario ?</AlertDialogTitle>
-                      <AlertDialogDescription className="text-neutral-400">
+                      <AlertDialogDescription className="text-muted-foreground">
                         Cette action supprimera définitivement le scénario "{scenario.name}". 
                         Cela n'affectera pas les requêtes de votre collection.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="bg-white/5 border-transparent hover:bg-white/10 text-white">Annuler</AlertDialogCancel>
+                      <AlertDialogCancel className="bg-card border-transparent hover:bg-muted text-foreground">Annuler</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
-                        className="bg-red-600 hover:bg-red-700 text-white"
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                       >
                         Supprimer
                       </AlertDialogAction>

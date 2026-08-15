@@ -41,6 +41,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       Promise.all([
         getSettings(),
@@ -111,50 +112,50 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[85vh]">
-        <div className="p-6 flex items-center justify-between border-b border-white/5">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+      <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[85vh]">
+        <div className="p-6 flex items-center justify-between border-b border-border">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
             <span className="text-2xl">📚</span> Gestionnaire de Collections
           </h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-white transition-colors">✕</button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">✕</button>
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto">
-          <div className="mb-8 p-4 bg-white/5 rounded-lg border border-white/10">
-            <h3 className="text-sm font-medium text-neutral-200 mb-3">Cloner un nouveau dépôt Git</h3>
+          <div className="mb-8 p-4 bg-muted/50 rounded-lg border border-border">
+            <h3 className="text-sm font-medium text-foreground mb-3">Cloner un nouveau dépôt Git</h3>
             <div className="flex gap-2">
               <Input 
                 type="text" 
                 value={repoUrl}
                 onChange={e => setRepoUrl(e.target.value)}
                 placeholder="Ex: https://github.com/user/repo.git"
-                className="flex-1 bg-black/40 border-white/10"
+                className="flex-1 bg-background border-border text-foreground"
               />
               <Button 
                 onClick={() => handleClone(false)}
                 disabled={cloning || !repoUrl}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {cloning ? 'Clonage...' : 'Cloner'}
               </Button>
             </div>
           </div>
 
-          <h3 className="text-sm font-medium text-neutral-400 mb-3 uppercase tracking-wider">Collections Disponibles</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Collections Disponibles</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {collections.map(name => (
               <div 
                 key={name} 
-                className={`p-4 rounded-xl border transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg-purple-500/10 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.15)]' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg-primary/10 border-primary/50 shadow-md shadow-primary/20' : 'bg-card border-border hover:border-primary/30'}`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex flex-col">
-                    <span className="font-semibold text-white truncate w-48" title={name}>{name}</span>
-                    <span className="text-xs text-neutral-500 mt-1">/collection/{name}</span>
+                    <span className="font-semibold text-foreground truncate w-48" title={name}>{name}</span>
+                    <span className="text-xs text-muted-foreground mt-1">/collection/{name}</span>
                   </div>
                   {activeCollection === name && (
-                    <span className="text-[10px] uppercase font-bold bg-purple-500 text-white px-2 py-0.5 rounded shadow-sm">Actif</span>
+                    <span className="text-[10px] uppercase font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded shadow-sm">Actif</span>
                   )}
                 </div>
                 
@@ -162,7 +163,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    className="text-red-400 hover:text-red-300 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-opacity h-8"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity h-8"
                     onClick={() => handleDelete(name)}
                   >
                     Supprimer
@@ -172,7 +173,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
                     <Button 
                       variant="default"
                       size="sm"
-                      className="bg-white/10 text-white hover:bg-white/20 ml-auto h-8"
+                      className="bg-secondary text-secondary-foreground hover:bg-secondary/80 ml-auto h-8"
                       onClick={() => handleActivate(name)}
                       disabled={loading}
                     >
@@ -184,7 +185,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
             ))}
             
             {collections.length === 0 && (
-              <div className="col-span-full py-8 text-center text-neutral-500 bg-white/5 rounded-lg border border-dashed border-white/10">
+              <div className="col-span-full py-8 text-center text-muted-foreground bg-card rounded-lg border border-dashed border-border">
                 Aucune collection trouvée. Clonez un dépôt ci-dessus.
               </div>
             )}
@@ -193,21 +194,21 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
       </div>
 
       <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
-        <AlertDialogContent className="bg-black/90 border-white/10 text-white">
+        <AlertDialogContent className="bg-background border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>{confirmDialog?.title}</AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {confirmDialog?.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-transparent hover:bg-white/10 text-white">Annuler</AlertDialogCancel>
+            <AlertDialogCancel className="bg-card border-transparent hover:bg-muted text-foreground">Annuler</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
                 confirmDialog?.onConfirm();
                 setConfirmDialog(null);
               }}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Confirmer
             </AlertDialogAction>

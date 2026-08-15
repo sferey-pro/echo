@@ -28,7 +28,7 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
     const pState = persistedStates[req.id];
     mockStates.set(req.id, {
       isMocked: pState ? pState.isMocked : false,
-      payload: pState ? pState.payload : (req.examples?.[0]?.response?.body?.data || '{}'),
+      payload: pState ? pState.payload : (typeof req.examples?.[0]?.response?.body?.data === 'string' ? req.examples[0].response.body.data : (req.examples?.[0]?.response?.body?.data ? JSON.stringify(req.examples[0].response.body.data) : '{}')),
       isStarred: pState ? pState.isStarred : false,
       selectedExample: pState ? pState.selectedExample : null,
       statusCode: pState ? pState.statusCode : 200,

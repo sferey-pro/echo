@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { join } from "path";
+import type { ScenarioAction } from "./api";
 
 // Initialize the SQLite database
 const dbPath = join(process.cwd(), '.echo-state.sqlite');
@@ -21,30 +22,27 @@ db.exec(`
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN is_starred BOOLEAN DEFAULT 0;`);
-} catch (_e) {
+} catch {
   // Column might already exist
 }
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN selected_example TEXT DEFAULT NULL;`);
-} catch (_e) {
+} catch {
   // Column might already exist
 }
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN status_code INTEGER DEFAULT 200;`);
-} catch (_e) {
-}
+} catch { /* ignore */ }
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN latency_ms INTEGER DEFAULT 0;`);
-} catch (_e) {
-}
+} catch { /* ignore */ }
 
 try {
   db.exec(`ALTER TABLE mock_states ADD COLUMN path_params_overrides TEXT DEFAULT NULL;`);
-} catch (_e) {
-}
+} catch { /* ignore */ }
 
 // Create scenarios table
 db.exec(`
@@ -175,7 +173,7 @@ export interface DBScenario {
   actions: string; // JSON
 }
 
-export const getScenarios = (): { id: string, name: string, actions: Record<string, any> }[] => {
+export const getScenarios = (): { id: string, name: string, actions: ScenarioAction[] }[] => {
   const query = db.query("SELECT * FROM scenarios");
   const results = query.all() as DBScenario[];
   
@@ -186,7 +184,7 @@ export const getScenarios = (): { id: string, name: string, actions: Record<stri
   }));
 };
 
-export const createScenario = (id: string, name: string, actions: Record<string, any>) => {
+export const createScenario = (id: string, name: string, actions: ScenarioAction[]) => {
   const query = db.query(`
     INSERT INTO scenarios (id, name, actions) 
     VALUES ($id, $name, $actions)
@@ -194,7 +192,7 @@ export const createScenario = (id: string, name: string, actions: Record<string,
   query.run({ $id: id, $name: name, $actions: JSON.stringify(actions) });
 };
 
-export const updateScenario = (id: string, name: string, actions: Record<string, any>) => {
+export const updateScenario = (id: string, name: string, actions: ScenarioAction[]) => {
   const query = db.query(`
     UPDATE scenarios SET name = $name, actions = $actions WHERE id = $id
   `);
@@ -206,7 +204,7 @@ export const deleteScenario = (id: string) => {
   query.run({ $id: id });
 };
 
-export const applyScenarioActions = (actions: any[]) => {
+export const applyScenarioActions = (actions: ScenarioAction[]) => {
   // Reset all to is_mocked = 0 first
   db.exec("UPDATE mock_states SET is_mocked = 0");
   

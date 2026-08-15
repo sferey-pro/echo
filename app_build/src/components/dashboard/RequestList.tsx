@@ -82,6 +82,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
     return items;
   }, [folders, requests, expandedFolders]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: flattenedItems.length,
     getScrollElement: () => parentRef.current,
@@ -106,10 +107,10 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder('__starred__', e)}
-          className="flex items-center px-2 hover:bg-white/5 active:scale-[0.99] cursor-pointer text-xs text-neutral-200 transition-colors font-semibold select-none group"
+          className="flex items-center px-2 hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
         >
           <ChevronRight 
-            className={cn("w-3.5 h-3.5 mr-1 text-neutral-500 transition-transform duration-200", item.isExpanded && "rotate-90")} 
+            className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200", item.isExpanded && "rotate-90")} 
           />
           <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-500" fill="currentColor" />
           <span className="truncate">Favoris</span>
@@ -126,15 +127,15 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
-          className="flex items-center pr-2 hover:bg-white/5 active:scale-[0.99] cursor-pointer text-xs text-neutral-300 transition-colors font-medium select-none group relative"
+          className="flex items-center pr-2 hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground/80 transition-colors font-medium select-none group relative"
         >
           <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
             {/* Indentation guide lines */}
             {Array.from({ length: item.depth }).map((_, i) => (
-              <div key={i} className="absolute top-0 bottom-0 w-px bg-white/5 group-hover:bg-white/10 transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
+              <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
             ))}
             <ChevronRight 
-              className={cn("w-3.5 h-3.5 mr-1 text-neutral-500 transition-transform duration-200 z-10", item.isExpanded && "rotate-90")} 
+              className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200 z-10", item.isExpanded && "rotate-90")} 
             />
             {item.isExpanded ? (
               <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" />
@@ -160,17 +161,17 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
             selectedRequestId === req.id 
-              ? "bg-indigo-500/10 border-indigo-500 text-white" 
-              : "hover:bg-white/5 text-neutral-400 border-transparent"
+              ? "bg-primary/10 border-primary text-foreground" 
+              : "hover:bg-accent text-muted-foreground border-transparent"
           )}
         >
           <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
              {/* Indentation guide lines */}
             {Array.from({ length: depth }).map((_, i) => (
-              <div key={i} className="absolute top-0 bottom-0 w-px bg-white/5 group-hover:bg-white/10 transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
+              <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
             ))}
             
-            <span className={cn("font-mono text-[9px] font-bold w-10 shrink-0 z-10", methodColors[req.method] || 'text-neutral-500')}>
+            <span className={cn("font-mono text-[9px] font-bold w-10 shrink-0 z-10", methodColors[req.method] || 'text-muted-foreground')}>
               {req.method}
             </span>
             <span className="truncate flex-1 z-10 font-medium">
@@ -189,30 +190,30 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
   };
 
   return (
-    <div className="h-full bg-neutral-900/50 flex flex-col font-sans">
-      <div className="p-3 border-b border-white/5 flex items-center gap-2 bg-transparent">
-        <h2 className="text-xs font-semibold text-neutral-200 tracking-wide uppercase flex-1">Collection</h2>
-        <span className="text-[10px] font-mono text-neutral-500 px-1.5 py-0.5 rounded bg-black/40 border border-white/5">
+    <div className="h-full bg-card/50 flex flex-col font-sans">
+      <div className="p-3 border-b border-border flex items-center gap-2 bg-transparent">
+        <h2 className="text-xs font-semibold text-foreground/80 tracking-wide uppercase flex-1">Collection</h2>
+        <span className="text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-muted border border-border">
           {requests.length}
         </span>
-        <div className="flex items-center gap-0.5 border-l border-white/10 pl-2 ml-1">
+        <div className="flex items-center gap-0.5 border-l border-border pl-2 ml-1">
           <button 
             onClick={onRefresh}
-            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Actualiser la collection"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={onOpenCollections}
-            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Gérer les Collections"
           >
             <Library className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={onOpenSettings}
-            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Paramètres"
           >
             <Settings className="w-3.5 h-3.5" />

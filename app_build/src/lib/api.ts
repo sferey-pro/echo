@@ -53,10 +53,20 @@ export async function cloneCollection(repoUrl: string, force: boolean = false): 
   }
 }
 
+export interface ScenarioAction {
+  requestId: string;
+  isMocked: boolean;
+  statusCode: number;
+  latencyMs: number;
+  payload: string;
+  selectedExample: string | null;
+  pathParamsOverrides: Record<string, string>;
+}
+
 export interface Scenario {
   id: string;
   name: string;
-  actions: any[];
+  actions: ScenarioAction[];
 }
 
 export async function fetchScenarios(): Promise<Scenario[]> {
@@ -65,7 +75,7 @@ export async function fetchScenarios(): Promise<Scenario[]> {
   return response.json();
 }
 
-export async function createScenario(name: string, actions?: any[]): Promise<void> {
+export async function createScenario(name: string, actions?: ScenarioAction[]): Promise<void> {
   const response = await fetch('/api/scenarios', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -83,7 +93,7 @@ export async function applyScenario(id: string): Promise<void> {
   if (!response.ok) throw new Error("Erreur lors de l'application du scénario");
 }
 
-export async function updateScenario(id: string, name: string, actions: any[]): Promise<void> {
+export async function updateScenario(id: string, name: string, actions: ScenarioAction[]): Promise<void> {
   const response = await fetch(`/api/scenarios/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
