@@ -1,0 +1,9 @@
+# Database files
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# Ignore collections downloaded via the UI
+collection/*
+!collection/.gitkeep
