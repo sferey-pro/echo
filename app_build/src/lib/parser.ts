@@ -51,6 +51,10 @@ export interface ParserResult {
   environments: BrunoEnvironment[];
 }
 
+import { BruParser } from "./parsers/BruParser";
+import { YamlParser } from "./parsers/YamlParser";
+import type { IParserStrategy, ParsedRequestData } from "./parsers/types";
+
 // In-memory cache for incremental parsing
 const cachedFolders: Map<string, BrunoFolder> = new Map();
 let cachedRootFolders: BrunoFolder[] = [];
@@ -58,34 +62,24 @@ const cachedRequests: Map<string, ApiRequest> = new Map();
 let cachedEnvironments: BrunoEnvironment[] = [];
 let isFullParseDone = false;
 
-function parseBruContent(content: string): any {
-  // Simple bru parser
-  const nameMatch = content.match(/meta\s*\{[\s\S]*?name:\s*(.+?)\n/);
-  const name = nameMatch?.[1]?.trim() || "Unknown";
-  
-  const methodMatch = content.match(/(get|post|put|delete|patch|options|head)\s*\{[\s\S]*?url:\s*(.+?)\n/i);
-  const method = methodMatch?.[1]?.toUpperCase() || "GET";
-  const url = methodMatch?.[2]?.trim() || "";
-  
-  // Try to extract body (naive approach for examples)
-  // Actually, bru doesn't store examples the same way. We'll return a mock example if not found
-  return {
-    info: { name, type: 'http' },
-    http: { method, url },
-    examples: []
-  };
+const bruParser = new BruParser();
+const yamlParser = new YamlParser();
+
+function getParserForFile(filename: string): IParserStrategy | null {
+  if (filename.endsWith('.bru')) return bruParser;
+  if (filename.endsWith('.yml') || filename.endsWith('.yaml')) return yamlParser;
+  return null;
 }
 
 export async function parseFile(basePath: string, fullPath: string): Promise<ApiRequest | null> {
   try {
     if (!existsSync(fullPath)) return null;
+    
+    const parser = getParserForFile(fullPath);
+    if (!parser) return null;
+
     const content = await readFile(fullPath, 'utf-8');
-    let parsed;
-    if (fullPath.endsWith('.bru')) {
-      parsed = parseBruContent(content);
-    } else if (fullPath.endsWith('.yml') || fullPath.endsWith('.yaml')) {
-      parsed = parseYaml(content);
-    }
+    const parsed = parser.parse(content);
     
     if (parsed?.info?.type === 'http') {
       const relativeFilePath = fullPath.replace(basePath, '');
