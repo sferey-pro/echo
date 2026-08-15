@@ -111,7 +111,7 @@ export async function parseCollection(basePath: string): Promise<ParserResult> {
     const rootEntries = await readdir(basePath, { withFileTypes: true });
     rootEntries.sort((a, b) => a.name.localeCompare(b.name));
     for (const entry of rootEntries) {
-      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+      if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'environments') {
         const folder = await traverse(join(basePath, entry.name));
         if (folder) folders.push(folder);
       } else if (entry.isFile() && entry.name.endsWith('.yml') && entry.name !== 'opencollection.yml') {
