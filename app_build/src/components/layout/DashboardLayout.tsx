@@ -5,6 +5,7 @@ import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
 import type { BrunoFolder, ApiRequest, BrunoEnvironment } from '../../lib/parser';
 
 import { SettingsModal } from '../dashboard/SettingsModal';
+import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 
 export function DashboardLayout() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -14,6 +15,7 @@ export function DashboardLayout() {
   const [activeEnvironment, setActiveEnvironment] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
 
   const fetchAndSetCollection = () => {
     Promise.all([fetchCollection(), getSettings()])
@@ -81,6 +83,7 @@ export function DashboardLayout() {
               selectedRequestId={selectedRequestId} 
               onSelectRequest={setSelectedRequestId}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenCollections={() => setIsCollectionsOpen(true)}
               onRefresh={fetchAndSetCollection}
             />
           </div>
@@ -88,6 +91,11 @@ export function DashboardLayout() {
         <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
       </div>
       
+      <CollectionManagerModal
+        isOpen={isCollectionsOpen}
+        onClose={() => setIsCollectionsOpen(false)}
+        onSaved={fetchAndSetCollection}
+      />
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 

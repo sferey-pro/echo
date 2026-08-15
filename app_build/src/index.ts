@@ -30,7 +30,8 @@ const server = serve({
     }
 
     if (url.pathname === '/api/collections') {
-      const collectionPath = getSetting('BRUNO_COLLECTION_PATH') || process.env.BRUNO_COLLECTION_PATH || resolve(process.cwd(), '../collection');
+      const activeName = getSetting('ACTIVE_COLLECTION_NAME') || 'samples-bruno';
+      const collectionPath = resolve(process.cwd(), '../collection', activeName);
       try {
         const data = await parseCollection(collectionPath);
         await initProxy(data.requests, data.environments);
@@ -113,7 +114,22 @@ const server = serve({
       }
     }
 
-    if (url.pathname === '/api/collections/clone' && req.method === 'POST') {
+    if (url.pathname === '/api/repositories' && req.method === 'GET') {
+      try {
+        const collDir = resolve(process.cwd(), '../collection');
+        if (!existsSync(collDir)) {
+           return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+        }
+        const { readdir } = require('node:fs/promises');
+        const entries = await readdir(collDir, { withFileTypes: true });
+        const repos = entries.filter((e: any) => e.isDirectory()).map((e: any) => e.name);
+        return new Response(JSON.stringify(repos), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      } catch (err: unknown) {
+         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    if (url.pathname === '/api/repositories/clone' && req.method === 'POST') {
       try {
         const body = await req.json();
         const repoUrl = body.repoUrl;
@@ -136,7 +152,6 @@ const server = serve({
         
         const rmProc = Bun.spawn(["rm", "-rf", targetDir]);
         await rmProc.exited;
-
         
         const proc = Bun.spawn(["git", "clone", repoUrl, targetDir]);
         await proc.exited;
@@ -147,9 +162,8 @@ const server = serve({
            return new Response(JSON.stringify({ error: "Git clone failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
         }
         
-        setSetting('BRUNO_COLLECTION_PATH', targetDir);
-        
-        return new Response(JSON.stringify({ success: true, path: targetDir }), {
+        // We DO NOT set it as active automatically anymore
+        return new Response(JSON.stringify({ success: true, name: repoName }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
         });
       } catch (err: unknown) {
@@ -158,6 +172,27 @@ const server = serve({
          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
       }
     }
+
+    const matchDelete = url.pathname.match(/^\/api\/repositories\/(.+)$/);
+    if (matchDelete && req.method === 'DELETE') {
+       try {
+         const repoName = matchDelete[1];
+         if (!repoName) return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+         // Protect against path traversal
+         if (repoName.includes('..') || repoName.includes('/')) {
+            return new Response("Forbidden", { status: 403, headers: { "Access-Control-Allow-Origin": "*" } });
+         }
+         const targetDir = resolve(process.cwd(), '../collection', repoName);
+         if (existsSync(targetDir)) {
+            const rmProc = Bun.spawn(["rm", "-rf", targetDir]);
+            await rmProc.exited;
+         }
+         return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+       } catch (err: unknown) {
+         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+       }
+    }
+
 
     // Tout ce qui ne correspond ni aux routes (SPA), ni à l'API interne, part vers le proxy MSW !
     return handleProxyRequest(req);

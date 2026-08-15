@@ -9,6 +9,7 @@ interface RequestListProps {
   selectedRequestId: string | null;
   onSelectRequest: (id: string) => void;
   onOpenSettings: () => void;
+  onOpenCollections: () => void;
   onRefresh: () => void;
 }
 
@@ -26,7 +27,7 @@ type ListItem =
   | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
   | { type: 'request', request: ApiRequest, depth: number };
 
-export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings, onRefresh }: RequestListProps) {
+export function RequestList({ folders, requests, selectedRequestId, onSelectRequest, onOpenSettings, onOpenCollections, onRefresh }: RequestListProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -199,6 +200,13 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           title="Actualiser la collection"
         >
           🔄
+        </button>
+        <button 
+          onClick={onOpenCollections}
+          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
+          title="Gérer les Collections"
+        >
+          📚
         </button>
         <button 
           onClick={onOpenSettings}

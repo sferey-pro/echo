@@ -9,16 +9,12 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) {
   const [targetApiUrl, setTargetApiUrl] = useState('');
-  const [collectionPath, setCollectionPath] = useState('');
-  const [repoUrl, setRepoUrl] = useState('');
   const [loading, setLoading] = useState(isOpen);
-  const [cloning, setCloning] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       getSettings().then(settings => {
         setTargetApiUrl(settings.TARGET_API_URL || '');
-        setCollectionPath(settings.BRUNO_COLLECTION_PATH || '');
       }).finally(() => setLoading(false));
     }
   }, [isOpen]);
@@ -28,7 +24,6 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
     setLoading(true);
     try {
       if (targetApiUrl !== undefined) await updateSetting('TARGET_API_URL', targetApiUrl);
-      if (collectionPath !== undefined) await updateSetting('BRUNO_COLLECTION_PATH', collectionPath);
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -36,32 +31,6 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
       alert("Failed to save settings");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleClone = async (force: boolean = false) => {
-    if (!repoUrl) return;
-    setCloning(true);
-    try {
-      await cloneCollection(repoUrl, force);
-      const settings = await getSettings();
-      setCollectionPath(settings.BRUNO_COLLECTION_PATH || '');
-      setRepoUrl('');
-      alert("Dépôt cloné avec succès ! N'oubliez pas d'enregistrer.");
-    } catch (e: unknown) {
-      const err = e as Error;
-      if (err.message === 'EXISTS') {
-         const confirmOverwrite = window.confirm("Ce dépôt existe déjà dans le dossier de collections. Voulez-vous le supprimer et le cloner à nouveau ?");
-         if (confirmOverwrite) {
-            setCloning(false);
-            return handleClone(true);
-         }
-      } else {
-         console.error(err);
-         alert(err.message || "Erreur lors du clonage du dépôt");
-      }
-    } finally {
-      setCloning(false);
     }
   };
 
@@ -90,43 +59,6 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
             <p className="text-xs text-neutral-500 mt-1">L'URL vers laquelle le proxy redirige les requêtes non-mockées.</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-1">
-              Chemin de la Collection Bruno
-            </label>
-            <input 
-              type="text" 
-              value={collectionPath}
-              onChange={e => setCollectionPath(e.target.value)}
-              placeholder="Ex: ../collection"
-              className="w-full bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
-            />
-            <p className="text-xs text-neutral-500 mt-1">Dossier contenant les fichiers .bru (ex: chemin absolu ou relatif). Sauvegarder rechargera la collection.</p>
-          </div>
-
-          <div className="pt-2 pb-2 border-t border-neutral-800">
-            <label className="block text-sm font-medium text-neutral-300 mb-1 mt-2">
-              Cloner un dépôt Git (Collection Bruno)
-            </label>
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                value={repoUrl}
-                onChange={e => setRepoUrl(e.target.value)}
-                placeholder="Ex: https://github.com/user/repo.git"
-                className="flex-1 bg-neutral-950 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
-              />
-              <button 
-                type="button" 
-                onClick={() => handleClone(false)}
-                disabled={cloning || !repoUrl}
-                className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
-              >
-                {cloning ? 'Clonage...' : 'Cloner'}
-              </button>
-            </div>
-            <p className="text-xs text-neutral-500 mt-1">Clone le dépôt et met automatiquement à jour le chemin ci-dessus.</p>
-          </div>
 
           <div className="pt-4 flex justify-end gap-2">
             <button 

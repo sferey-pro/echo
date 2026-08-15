@@ -39,7 +39,7 @@ export async function updateSetting(key: string, value: string): Promise<void> {
 }
 
 export async function cloneCollection(repoUrl: string, force: boolean = false): Promise<void> {
-  const response = await fetch('/api/collections/clone', {
+  const response = await fetch('/api/repositories/clone', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ repoUrl, force })

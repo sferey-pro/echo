@@ -1,44 +1,44 @@
-# Spécifications Techniques : Support des Environnements et Exemples Bruno
+# Spécifications Techniques : Gestionnaire de Collections Multiples (Echo)
 
 ## 1. Résumé Exécutif
-Cette spécification détaille l'implémentation de la lecture complète des informations issues de Bruno dans l'application Echo. Actuellement, Echo charge l'arborescence des requêtes mais gère de manière rudimentaire les variables (ex: `{{baseUrl}}` codé en dur) et ignore les multiples "examples" définis dans Bruno.
-L'objectif est d'améliorer :
-1. **Les variables d'environnement** : Analyser les fichiers du dossier `environments/` de Bruno pour permettre l'interpolation dynamique des variables lors du routage Proxy (MSW).
-2. **Les exemples (Examples)** : Permettre à l'utilisateur de choisir parmi les multiples réponses factices (ex: "200 OK", "404 Not Found") prédéfinies dans les fichiers de requêtes Bruno.
+L'objectif est d'étendre les capacités d'Echo pour permettre la gestion de multiples projets Bruno (collections). L'utilisateur doit pouvoir cloner plusieurs dépôts Git contenant des collections, visualiser la liste de ces projets, et basculer facilement d'une collection active à une autre via une interface dédiée, distincte du Dashboard principal.
 
 ## 2. Exigences Fonctionnelles
-* **F1** : Le parseur de collection doit analyser les fichiers `environments/*.yml` (ou JSON) et extraire la liste des environnements et leurs variables.
-* **F2** : L'interface utilisateur doit permettre de sélectionner l'environnement actif (via un sélecteur global).
-* **F3** : Le proxy MSW doit remplacer les variables comme `{{baseUrl}}` dynamiquement dans l'URL et les headers en fonction de l'environnement actif.
-* **F4** : Dans le panneau de détail (`RequestDetails.tsx`), une liste déroulante doit afficher les exemples disponibles (tirés du fichier YAML de la requête).
-* **F5** : La sélection d'un exemple doit immédiatement préremplir le "Payload de Réponse JSON". Toute modification manuelle du textarea basculera le choix sur "Personnalisé" (Custom).
+- **Interface de gestion** : Une nouvelle interface (Vue dédiée ou grande modale plein écran) permettant d'administrer les collections.
+- **Clonage de dépôts** : Permettre de cloner un projet Bruno depuis une URL Git. Le projet sera stocké dans un sous-dossier du répertoire `collection/`.
+- **Lister les collections** : Afficher la liste de tous les projets Bruno actuellement stockés localement sur le serveur.
+- **Activer une collection** : Un bouton pour définir une collection spécifique comme "Active". Cela mettra à jour la configuration globale d'Echo (`BRUNO_COLLECTION_PATH`) et rafraîchira le Dashboard principal.
+- **Suppression (Optionnel mais recommandé)** : Permettre de supprimer un dépôt cloné localement pour libérer de l'espace.
 
-## 3. Architecture & Tech Stack (Bun, React, TailwindCSS, Shadcn)
+## 3. Architecture & Tech Stack
 
-### 3.1. Parsing Côté Backend (Bun / Elysia)
-*   **Fichier : `app_build/src/lib/parser.ts`**
-    *   **Ajout** : Exploration du dossier `environments/`.
-    *   **Parsing** : Utilisation de la librairie `yaml` existante pour lire les fichiers `name: "Demo"`, `variables: [{name, value}]`.
-    *   **Retour** : Le point de terminaison `/api/collections` exposera un tableau d'environnements `environments: Environment[]` en plus de `folders` et `requests`.
+### 3.1 Backend (Bun / ElysiaJS)
+Nous allons étendre l'API interne (`index.ts`) :
+- `GET /api/repositories` : Lit le répertoire `../collection` pour retourner la liste des dossiers existants (les projets clonés).
+- `POST /api/repositories/clone` : Clone un dépôt Git dans un sous-dossier de `../collection/` portant le nom du dépôt. *Modification : Ne définit plus automatiquement ce dépôt comme actif.*
+- `POST /api/settings` : Utilisé pour mettre à jour la collection active. La clé `ACTIVE_COLLECTION_NAME` stockera uniquement le **nom du dossier** (ex: `samples-bruno`), puisque toutes les collections sont désormais strictement stockées dans le dossier racine `collection/`. Le champ de saisie manuelle d'un chemin de collection disparaîtra de l'interface des paramètres généraux.
+- `DELETE /api/repositories/:name` : Supprime le dossier correspondant du disque.
 
-### 3.2. Gestion de l'État (SQLite & React)
-*   **Backend (`lib/db.ts`)** :
-    *   Ajout d'une clé de réglage globale (Settings) : `ACTIVE_ENVIRONMENT`.
-*   **Frontend (`DashboardLayout.tsx` & `RequestDetails.tsx`)** :
-    *   Ajout d'un menu déroulant type *Shadcn `Select`* dans le Header global pour basculer entre les environnements de la collection.
-    *   Ajout d'un composant de choix d'exemple (Select/Boutons radio) au-dessus du textarea du Payload.
+### 3.2 Frontend (React / TailwindCSS / Shadcn UI)
+- **Nouvelle Vue ou Modale** : Création d'un composant `CollectionManager.tsx`.
+- **Composants UI (Shadcn)** :
+  - `Card` pour afficher chaque dépôt cloné sous forme de tuile.
+  - `Input` et `Button` pour le formulaire de clonage d'URL Git.
+  - `Badge` pour indiquer quelle collection est actuellement "ACTIVE".
+- **Navigation** : Un bouton "Gérer les Collections" (ex: 📚) sera ajouté dans la barre de menu ou dans le header pour accéder à cette interface de gestion.
+- **State Management** : L'état local du `CollectionManager` appellera `GET /api/repositories` au montage. Lors du clic sur "Activer", un appel à `POST /api/settings` est fait, suivi d'un rechargement de l'arborescence (ou rechargement complet de la page via `window.location.reload()`).
 
-### 3.3. Proxy MSW (`app_build/src/lib/proxy.ts`)
-*   **Interpolation** : 
-    *   Actuellement, la ligne `req.url.replace(/\{\{[^}]+\}\}/g, targetApiUrl)` cible `TARGET_API_URL`.
-    *   **Nouvelle logique** : Récupérer l'environnement actif depuis la BDD SQLite. Pour chaque variable `{{key}}`, vérifier si elle existe dans l'environnement actif. Si oui, effectuer le remplacement (ex: `baseUrl` -> `http://localhost:8080`).
+## 4. Gestion de l'État et Flux de Données
+1. L'utilisateur ouvre le "Collection Manager". Le Frontend demande la liste des dossiers au backend.
+2. Pour cloner : le Frontend envoie l'URL Git. Le Backend exécute `git clone` dans `../collection/{repo_name}` et retourne le succès. Le Frontend rafraîchit la liste.
+3. Pour activer : le Frontend envoie le chemin absolu du dossier au backend via `/api/settings`. Le backend persiste cela dans SQLite. Le Frontend retourne au Dashboard et recharge les requêtes (via `fetchAndSetCollection()`).
 
-## 4. Portes d'Approbation et Questions Ouvertes
+## 5. Design & Ergonomie (UX/UI)
+L'interface de gestion des collections conservera l'esthétique "Premium & Glassmorphism" :
+- Tuiles avec effet de survol (hover scale, lueur violette/bleue).
+- Boutons d'action clairs ("Cloner", "Activer", "Supprimer").
+- Indicateur visuel fort (bordure néon ou badge) pour la collection actuellement active.
 
-> [!IMPORTANT]
-> **Validation Requise** : L'architecture ci-dessus repose sur le couplage entre l'état local persistant (SQLite) et le proxy (MSW).
-
-> [!WARNING]
-> **Questions pour vous :**
-> 1. Si une requête contient des variables dans son Corps (Body JSON) ou ses Headers, devons-nous également les remplacer par leurs valeurs d'environnement via MSW ?
-> 2. L'interface pour les "Exemples" doit-elle se présenter sous la forme d'un menu déroulant (*Select*), ou préférez-vous des "Tabs" (Onglets) si le nombre d'exemples est généralement faible (1 à 3) ?
+---
+**À l'attention de l'utilisateur :**
+Veuillez lire ce document et indiquer si cette approche (notamment l'idée d'une Vue dédiée ou Grande Modale) vous convient pour la gestion multi-projets.
