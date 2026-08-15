@@ -50,7 +50,10 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
         <span className={cn("font-mono text-[10px] font-bold w-12 tracking-wider shrink-0", methodColors[req.method] || 'text-neutral-400')}>
           {req.method}
         </span>
-        <span className="truncate flex-1 font-medium">{req.name}</span>
+        <span className="truncate flex-1 font-medium">
+          {req.isStarred && <span className="mr-1.5 text-yellow-500" title="Favori">⭐</span>}
+          {req.name}
+        </span>
         <span className="ml-2 flex items-center shrink-0">
           <span 
             className={cn(
@@ -93,6 +96,8 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
   };
 
   const rootRequests = requests.filter(r => r.folderId === 'root');
+  const starredRequests = requests.filter(r => r.isStarred);
+  const isStarredExpanded = expandedFolders.has('__starred__');
 
   return (
     <div className="h-full bg-neutral-950 border-r border-neutral-800 flex flex-col">
@@ -114,6 +119,27 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+        {starredRequests.length > 0 && (
+          <div className="flex flex-col mb-2">
+            <div 
+              onClick={(e) => toggleFolder('__starred__', e)}
+              className="flex items-center py-1.5 pr-2 hover:bg-neutral-800 rounded-md cursor-pointer text-sm text-neutral-200 transition-colors font-medium select-none"
+              style={{ paddingLeft: `0.5rem` }}
+            >
+              <span className="mr-2 text-[10px] opacity-70 w-3 text-center transition-transform duration-200" style={{ transform: isStarredExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                ▶
+              </span>
+              <span className="mr-2 opacity-100 text-yellow-400">⭐</span>
+              <span className="truncate">Favoris</span>
+            </div>
+            {isStarredExpanded && (
+              <div className="flex flex-col">
+                {starredRequests.map(req => renderRequest(req, 1))}
+              </div>
+            )}
+          </div>
+        )}
+        
         {folders.map(f => renderFolder(f))}
         {rootRequests.map(req => renderRequest(req, 0))}
       </div>

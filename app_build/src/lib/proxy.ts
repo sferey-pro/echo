@@ -3,6 +3,7 @@ import type { ApiRequest } from './parser';
 export interface MockState {
   isMocked: boolean;
   payload: string;
+  isStarred: boolean;
 }
 
 export const mockStates = new Map<string, MockState>();
@@ -22,6 +23,7 @@ export async function initProxy(requests: ApiRequest[]) {
     mockStates.set(req.id, {
       isMocked: pState ? pState.isMocked : false,
       payload: pState ? pState.payload : (req.examples?.[0]?.response?.body?.data || '{}'),
+      isStarred: pState ? pState.isStarred : false,
     });
   }
 

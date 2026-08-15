@@ -39,6 +39,13 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
     setIsSaving(false);
   };
 
+  const handleToggleStar = async () => {
+    setIsSaving(true);
+    await updateMock(request.id, { isStarred: !request.isStarred });
+    onUpdate?.();
+    setIsSaving(false);
+  };
+
   return (
     <div className="h-full bg-neutral-900 flex flex-col relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-purple-900/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
@@ -46,6 +53,14 @@ export function RequestDetails({ request, onUpdate }: RequestDetailsProps) {
       <div className="p-4 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-md z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            <button 
+              onClick={handleToggleStar}
+              disabled={isSaving}
+              className={`text-xl hover:scale-110 transition-transform ${request.isStarred ? 'text-yellow-400' : 'text-neutral-600 hover:text-yellow-400/50'}`}
+              title={request.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
+            >
+              {request.isStarred ? '⭐' : '☆'}
+            </button>
             {request.name}
             {request.isMocked && (
               <span className="text-[10px] uppercase font-bold bg-green-500/10 text-green-400 px-2 py-0.5 rounded border border-green-500/20">
