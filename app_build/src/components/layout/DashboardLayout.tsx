@@ -7,7 +7,7 @@ import type { BrunoFolder, ApiRequest, BrunoEnvironment } from '../../lib/parser
 import { SettingsModal } from '../dashboard/SettingsModal';
 import { CollectionManagerModal } from '../dashboard/CollectionManagerModal';
 import { CommandPalette } from '../dashboard/CommandPalette';
-import { Separator, Panel, Group } from 'react-resizable-panels';
+
 
 export function DashboardLayout() {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -64,41 +64,34 @@ export function DashboardLayout() {
       <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vh] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[40vw] h-[40vh] bg-indigo-900/20 blur-[120px] rounded-full pointer-events-none"></div>
       
-      <div className="w-full h-full z-10 flex">
-        <Group orientation="horizontal">
-          <Panel defaultSize={25} minSize={15} maxSize={40} className="flex flex-col h-full overflow-hidden relative border-r border-white/5 bg-black/20">
-            <div className="px-4 py-2 bg-transparent border-b border-white/5 flex items-center justify-between">
-              <span className="text-xs font-semibold text-neutral-400">Environnement :</span>
-              <select 
-                value={activeEnvironment} 
-                onChange={handleEnvChange}
-                className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-purple-500"
-              >
-                <option value="">Aucun</option>
-                {environments.map(env => (
-                  <option key={env.name} value={env.name}>{env.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <RequestList 
-                folders={folders}
-                requests={requests} 
-                selectedRequestId={selectedRequestId} 
-                onSelectRequest={setSelectedRequestId}
-                onOpenSettings={() => setIsSettingsOpen(true)}
-                onOpenCollections={() => setIsCollectionsOpen(true)}
-                onRefresh={fetchAndSetCollection}
-              />
-            </div>
-          </Panel>
-          
-          <Separator className="w-1 bg-white/5 hover:bg-purple-500/50 transition-colors" />
-          
-          <Panel defaultSize={75} className="flex flex-col h-full overflow-hidden">
-            <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
-          </Panel>
-        </Group>
+      <div className="w-full h-full z-10 grid grid-cols-1 md:grid-cols-[320px_1fr] divide-x divide-white/5">
+        <div className="flex flex-col h-full overflow-hidden relative bg-black/20">
+          <div className="px-4 py-2 bg-transparent border-b border-white/5 flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-400">Environnement :</span>
+            <select 
+              value={activeEnvironment} 
+              onChange={handleEnvChange}
+              className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:ring-1 focus:ring-purple-500"
+            >
+              <option value="">Aucun</option>
+              {environments.map(env => (
+                <option key={env.name} value={env.name}>{env.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <RequestList 
+              folders={folders}
+              requests={requests} 
+              selectedRequestId={selectedRequestId} 
+              onSelectRequest={setSelectedRequestId}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenCollections={() => setIsCollectionsOpen(true)}
+              onRefresh={fetchAndSetCollection}
+            />
+          </div>
+        </div>
+        <RequestDetails key={selectedRequest?.id} request={selectedRequest} onUpdate={fetchAndSetCollection} />
       </div>
       
       <CommandPalette 
