@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting, cloneCollection } from '../../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CollectionManagerModalProps {
   isOpen: boolean;
@@ -15,6 +25,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
   const [collections, setCollections] = useState<string[]>([]);
   const [activeCollection, setActiveCollection] = useState<string>('');
   const [loading, setLoading] = useState(isOpen);
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean, title: string, description: string, onConfirm: () => void } | null>(null);
 
   const fetchCollections = async () => {
     try {
@@ -50,11 +61,12 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
     } catch (e: unknown) {
       const err = e as Error;
       if (err.message === 'EXISTS') {
-         const confirmOverwrite = window.confirm("Ce dépôt existe déjà. Voulez-vous le supprimer et le cloner à nouveau ?");
-         if (confirmOverwrite) {
-            setCloning(false);
-            return handleClone(true);
-         }
+         setConfirmDialog({
+           isOpen: true,
+           title: 'Dépôt existant',
+           description: "Ce dépôt existe déjà. Voulez-vous le supprimer et le cloner à nouveau ?",
+           onConfirm: () => handleClone(true)
+         });
       } else {
          console.error(err);
          alert(err.message || "Erreur lors du clonage du dépôt");
@@ -79,17 +91,20 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
   };
 
   const handleDelete = async (name: string) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer la collection ${name} ?`)) return;
-    try {
-      await fetch(`/api/repositories/${name}`, { method: 'DELETE' });
-      if (activeCollection === name) {
-         // Maybe set active to something else? or leave it
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Supprimer la collection ?',
+      description: `Êtes-vous sûr de vouloir supprimer la collection ${name} ?`,
+      onConfirm: async () => {
+        try {
+          await fetch(`/api/repositories/${name}`, { method: 'DELETE' });
+          await fetchCollections();
+        } catch (e) {
+          console.error(e);
+          alert("Erreur lors de la suppression");
+        }
       }
-      await fetchCollections();
-    } catch (e) {
-      console.error(e);
-      alert("Erreur lors de la suppression");
-    }
+    });
   };
 
   if (!isOpen) return null;
@@ -176,6 +191,29 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
           </div>
         </div>
       </div>
+
+      <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+        <AlertDialogContent className="bg-black/90 border-white/10 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmDialog?.title}</AlertDialogTitle>
+            <AlertDialogDescription className="text-neutral-400">
+              {confirmDialog?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-transparent hover:bg-white/10 text-white">Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                confirmDialog?.onConfirm();
+                setConfirmDialog(null);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

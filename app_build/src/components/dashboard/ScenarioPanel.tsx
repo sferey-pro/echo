@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { fetchScenarios, createScenario, applyScenario, deleteScenario } from '../../lib/api';
 import type { Scenario } from '../../lib/api';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ScenarioPanelProps {
   onScenarioApplied: () => void;
@@ -56,7 +67,6 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce scénario ?')) return;
     try {
       await deleteScenario(id);
       await loadScenarios();
@@ -129,15 +139,37 @@ export function ScenarioPanel({ onScenarioApplied, selectedScenarioId, onSelectS
                 >
                   ▶ Appliquer
                 </Button>
-                <Button 
-                  onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
-                  size="sm" 
-                  variant="ghost"
-                  className="h-7 w-7 p-0 text-neutral-500 hover:text-red-400 hover:bg-red-400/10"
-                  title="Supprimer"
-                >
-                  ×
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      onClick={(e) => { e.stopPropagation(); }}
+                      size="sm" 
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-neutral-500 hover:text-red-400 hover:bg-red-400/10"
+                      title="Supprimer"
+                    >
+                      ×
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-black/90 border-white/10 text-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer ce scénario ?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-neutral-400">
+                        Cette action supprimera définitivement le scénario "{scenario.name}". 
+                        Cela n'affectera pas les requêtes de votre collection.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-white/5 border-transparent hover:bg-white/10 text-white">Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))
