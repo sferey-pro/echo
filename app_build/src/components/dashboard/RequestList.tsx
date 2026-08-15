@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
 
 interface RequestListProps {
   folders: BrunoFolder[];
@@ -15,10 +16,10 @@ interface RequestListProps {
 
 const methodColors: Record<string, string> = {
   GET: 'text-blue-400',
-  POST: 'text-green-400',
-  PUT: 'text-yellow-400',
+  POST: 'text-green-500',
+  PUT: 'text-yellow-500',
   PATCH: 'text-orange-400',
-  DELETE: 'text-red-400',
+  DELETE: 'text-red-500',
 };
 
 type ListItem = 
@@ -59,29 +60,24 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
       }
     }
 
-    // 2. Dossiers récursifs
-    const traverse = (folderList: BrunoFolder[], depth: number) => {
+    // 2. Traitement récursif pour folders et requêtes au même niveau
+    const processLevel = (folderList: BrunoFolder[], reqList: ApiRequest[], depth: number) => {
       for (const folder of folderList) {
         const isExpanded = expandedFolders.has(folder.id);
         items.push({ type: 'folder', folder, depth, isExpanded });
         if (isExpanded) {
-          if (folder.children) {
-            traverse(folder.children, depth + 1);
-          }
-          const folderReqs = requests.filter(r => r.folderId === folder.id);
-          for (const req of folderReqs) {
-            items.push({ type: 'request', request: req, depth: depth + 1 });
-          }
+          const childFolders = folder.children || [];
+          const childReqs = requests.filter(r => r.folderId === folder.id);
+          processLevel(childFolders, childReqs, depth + 1);
         }
       }
+      for (const req of reqList) {
+        items.push({ type: 'request', request: req, depth });
+      }
     };
-    traverse(folders, 0);
 
-    // 3. Root requests
     const rootRequests = requests.filter(r => r.folderId === 'root');
-    for (const req of rootRequests) {
-      items.push({ type: 'request', request: req, depth: 0 });
-    }
+    processLevel(folders, rootRequests, 0);
 
     return items;
   }, [folders, requests, expandedFolders]);
@@ -89,7 +85,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
   const rowVirtualizer = useVirtualizer({
     count: flattenedItems.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 32, // Hauteur moyenne d'une ligne (ex: py-1.5 = 28px + gap)
+    estimateSize: () => 28, // Plus compact comme Bruno
     overscan: 10,
   });
 
@@ -100,7 +96,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
       top: 0,
       left: 0,
       width: '100%',
-      height: `${virtualItem.size - 4}px`, // subtract 4px to act as vertical spacing (gap equivalent)
+      height: `${virtualItem.size}px`,
       transform: `translateY(${virtualItem.start}px)`,
     };
 
@@ -110,33 +106,42 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder('__starred__', e)}
-          className="flex items-center py-1.5 pr-2 hover:bg-white/5 active:scale-[0.99] rounded-md cursor-pointer text-sm text-neutral-200 transition-all duration-200 font-medium select-none"
+          className="flex items-center px-2 hover:bg-white/5 active:scale-[0.99] cursor-pointer text-xs text-neutral-200 transition-colors font-semibold select-none group"
         >
-          <div style={{ paddingLeft: `0.5rem` }} className="flex items-center w-full">
-            <span className="mr-2 text-[10px] opacity-70 w-3 text-center transition-transform duration-200" style={{ transform: item.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-              ▶
-            </span>
-            <span className="mr-2 opacity-100 text-yellow-400">⭐</span>
-            <span className="truncate">Favoris</span>
-          </div>
+          <ChevronRight 
+            className={cn("w-3.5 h-3.5 mr-1 text-neutral-500 transition-transform duration-200", item.isExpanded && "rotate-90")} 
+          />
+          <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-500" fill="currentColor" />
+          <span className="truncate">Favoris</span>
         </div>
       );
     }
 
     if (item.type === 'folder') {
+      // Guide d'indentation visuelle
+      const paddingLeft = `${item.depth * 1.1 + 0.5}rem`;
+      
       return (
         <div 
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
-          className="flex items-center py-1.5 pr-2 hover:bg-white/5 active:scale-[0.99] rounded-md cursor-pointer text-sm text-neutral-200 transition-all duration-200 font-medium select-none"
+          className="flex items-center pr-2 hover:bg-white/5 active:scale-[0.99] cursor-pointer text-xs text-neutral-300 transition-colors font-medium select-none group relative"
         >
-          <div style={{ paddingLeft: `${item.depth * 1 + 0.5}rem` }} className="flex items-center w-full">
-            <span className="mr-2 text-[10px] opacity-70 w-3 text-center transition-transform duration-200" style={{ transform: item.isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-              ▶
-            </span>
-            <span className="mr-2 opacity-80 text-yellow-500/80">📁</span>
-            <span className="truncate">{item.folder.name}</span>
+          <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
+            {/* Indentation guide lines */}
+            {Array.from({ length: item.depth }).map((_, i) => (
+              <div key={i} className="absolute top-0 bottom-0 w-px bg-white/5 group-hover:bg-white/10 transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
+            ))}
+            <ChevronRight 
+              className={cn("w-3.5 h-3.5 mr-1 text-neutral-500 transition-transform duration-200 z-10", item.isExpanded && "rotate-90")} 
+            />
+            {item.isExpanded ? (
+              <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" />
+            ) : (
+              <Folder className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" fill="currentColor" />
+            )}
+            <span className="truncate z-10">{item.folder.name}</span>
           </div>
         </div>
       );
@@ -145,6 +150,7 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
     if (item.type === 'request' || item.type === 'starred-request') {
       const req = item.request;
       const depth = item.type === 'starred-request' ? 1 : (item as Extract<ListItem, { depth: number }>).depth;
+      const paddingLeft = `${depth * 1.1 + 1.25}rem`;
       
       return (
         <div
@@ -152,28 +158,27 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
           style={style}
           onClick={() => onSelectRequest(req.id)}
           className={cn(
-            "flex items-center py-1.5 pr-2 rounded-md cursor-pointer text-sm transition-all duration-200 border-l-2 active:scale-[0.98]",
+            "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
             selectedRequestId === req.id 
-              ? "bg-gradient-to-r from-purple-500/20 to-transparent border-purple-500 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]" 
-              : "hover:bg-white/5 text-neutral-300 border-transparent"
+              ? "bg-indigo-500/10 border-indigo-500 text-white" 
+              : "hover:bg-white/5 text-neutral-400 border-transparent"
           )}
         >
-          <div style={{ paddingLeft: `${depth * 1 + 0.75}rem` }} className="flex items-center w-full">
-            <span className={cn("font-mono text-[10px] font-bold w-12 tracking-wider shrink-0", methodColors[req.method] || 'text-neutral-400')}>
+          <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
+             {/* Indentation guide lines */}
+            {Array.from({ length: depth }).map((_, i) => (
+              <div key={i} className="absolute top-0 bottom-0 w-px bg-white/5 group-hover:bg-white/10 transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
+            ))}
+            
+            <span className={cn("font-mono text-[9px] font-bold w-10 shrink-0 z-10", methodColors[req.method] || 'text-neutral-500')}>
               {req.method}
             </span>
-            <span className="truncate flex-1 font-medium">
-              {req.isStarred && <span className="mr-1.5 text-yellow-500" title="Favori">⭐</span>}
+            <span className="truncate flex-1 z-10 font-medium">
+              {req.isStarred && <Star className="w-3 h-3 inline mr-1 text-yellow-500" fill="currentColor" />}
               {req.name}
             </span>
-            <span className="ml-2 flex items-center shrink-0">
-              <span 
-                className={cn(
-                  "w-2 h-2 rounded-full shadow-sm",
-                  req.isMocked ? "bg-green-500 shadow-green-500/50" : (req.examples?.length > 0 ? "bg-purple-500 shadow-purple-500/50" : "bg-transparent")
-                )}
-                title={req.isMocked ? 'Mock Actif' : (req.examples?.length > 0 ? `${req.examples.length} exemple(s)` : '')}
-              />
+            <span className="ml-2 flex items-center shrink-0 z-10">
+              {req.isMocked && <Zap className="w-3 h-3 text-green-400 mr-1" />}
             </span>
           </div>
         </div>
@@ -184,41 +189,39 @@ export function RequestList({ folders, requests, selectedRequestId, onSelectRequ
   };
 
   return (
-    <div className="h-full bg-neutral-950/40 backdrop-blur-3xl border-r border-white/5 flex flex-col">
-      <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-transparent">
-        <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-[10px] shadow-lg shadow-purple-500/20">
-          E
-        </div>
-        <h2 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400 tracking-tight">Echo Explorer</h2>
-        <div className="flex-1"></div>
-        <span className="text-xs font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-          {requests.length} req
+    <div className="h-full bg-neutral-900/50 flex flex-col font-sans">
+      <div className="p-3 border-b border-white/5 flex items-center gap-2 bg-transparent">
+        <h2 className="text-xs font-semibold text-neutral-200 tracking-wide uppercase flex-1">Collection</h2>
+        <span className="text-[10px] font-mono text-neutral-500 px-1.5 py-0.5 rounded bg-black/40 border border-white/5">
+          {requests.length}
         </span>
-        <button 
-          onClick={onRefresh}
-          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
-          title="Actualiser la collection"
-        >
-          🔄
-        </button>
-        <button 
-          onClick={onOpenCollections}
-          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
-          title="Gérer les Collections"
-        >
-          📚
-        </button>
-        <button 
-          onClick={onOpenSettings}
-          className="p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all ml-1"
-          title="Paramètres"
-        >
-          ⚙️
-        </button>
+        <div className="flex items-center gap-0.5 border-l border-white/10 pl-2 ml-1">
+          <button 
+            onClick={onRefresh}
+            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            title="Actualiser la collection"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+          <button 
+            onClick={onOpenCollections}
+            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            title="Gérer les Collections"
+          >
+            <Library className="w-3.5 h-3.5" />
+          </button>
+          <button 
+            onClick={onOpenSettings}
+            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            title="Paramètres"
+          >
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
       <div 
         ref={parentRef}
-        className="flex-1 overflow-y-auto p-2"
+        className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent hover:scrollbar-thumb-white/20"
       >
         <div
           style={{
