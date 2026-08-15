@@ -6,10 +6,11 @@ Echo est un **outil de Mocking d'API** performant conçu pour les développeurs 
 ## 🚀 Stack Technique
 *   **Runtime & Package Manager** : [Bun](https://bun.sh/)
 *   **Frontend** : [React 19](https://react.dev/)
-*   **Styling** : [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
+*   **Styling** : [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/) (Design **Néo-brutaliste** complet avec Dark/Light mode)
 
 ## 📂 Structure du projet
 *   `app_build/` : Contient le code source de l'application web.
+    *   `styles/neobrutalism.css` : Feuille de style dédiée aux tokens du design néo-brutaliste.
 *   `.agents/` : Contient les règles, compétences (skills) et workflows de l'équipe de développement IA.
 
 ## 🛠️ Démarrage Rapide
