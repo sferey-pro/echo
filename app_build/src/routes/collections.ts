@@ -1,11 +1,13 @@
-import { parseCollection } from "../lib/parser";
+import { getCollectionFromDb } from "../lib/db";
+import { syncGitToDatabase } from "../lib/parser";
 import { initProxy, mockStates } from "../lib/proxy";
 import { getRepoPath } from "../services/git";
 
 export async function handleCollectionsRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/collections') {
  try {
- const data = await parseCollection(getRepoPath());
+ await syncGitToDatabase(getRepoPath());
+ const data = getCollectionFromDb();
  await initProxy(data.requests, data.environments);
  
  const enrichedRequests = data.requests.map(r => {

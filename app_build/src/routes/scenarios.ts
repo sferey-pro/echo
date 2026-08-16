@@ -1,8 +1,6 @@
-import { getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions } from "../lib/db";
-import { parseCollection } from "../lib/parser";
+import { getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions, getCollectionFromDb } from "../lib/db";
 import { initProxy, mockStates } from "../lib/proxy";
 import type { ScenarioAction } from "../lib/api";
-import { getRepoPath } from "../services/git";
 
 export async function handleScenariosRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/scenarios' && req.method === 'GET') {
@@ -57,7 +55,7 @@ export async function handleScenariosRoute(req: Request, url: URL): Promise<Resp
  
  applyScenarioActions(scenario.actions as ScenarioAction[]);
  
- const data = await parseCollection(getRepoPath());
+ const data = getCollectionFromDb();
  await initProxy(data.requests, data.environments);
  
  return new Response(JSON.stringify({ success: true }), {

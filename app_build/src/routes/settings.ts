@@ -14,7 +14,7 @@ export async function handleSettingsRoute(req: Request, url: URL): Promise<Respo
  if (body.key && typeof body.value === 'string') {
  setSetting(body.key, body.value);
  
- if (body.key === 'REPO_PATH') {
+ if (body.key === 'REPO_PATH' || body.key === 'ACTIVE_COLLECTION_NAME') {
  updateBackgroundTasks();
  }
  

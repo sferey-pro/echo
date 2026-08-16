@@ -141,7 +141,8 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  ) : (
  <Folder className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" weight="fill" />
  )}
- <span className="truncate z-10">{item.folder.name}</span>
+ <span className={cn("truncate z-10", item.folder.isObsolete && "line-through text-muted-foreground")}>{item.folder.name}</span>
+ {item.folder.isObsolete && <span className="ml-2 z-10 text-[9px] uppercase font-bold tracking-wider text-red-500 border border-red-500/30 bg-red-500/10 px-1 py-0.5 rounded">Obsolète</span>}
  </div>
  </div>
  );
@@ -171,8 +172,9 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  ))}
  
  <MethodBadge method={req.method} className="z-10 mr-2" />
- <span className="truncate flex-1 z-10 font-medium">
+ <span className={cn("truncate flex-1 z-10 font-medium", req.isObsolete && "line-through text-muted-foreground")}>
  {req.isStarred && <Star className="w-3 h-3 inline mr-1 text-yellow-500" weight="fill" />}
+ {req.isObsolete && <span className="text-[9px] uppercase font-bold tracking-wider text-red-500 border border-red-500/30 bg-red-500/10 px-1 py-0.5 rounded mr-1">Obsolète</span>}
  {req.name}
  </span>
  <span className="ml-2 flex items-center shrink-0 z-10">

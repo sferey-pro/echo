@@ -54,6 +54,16 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  }
  }, [isOpen]);
 
+ useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen) {
+  onClose();
+  }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [isOpen, onClose]);
+
  const handleClone = async (force: boolean = false) => {
  if (!repoUrl) return;
  setCloning(true);
@@ -176,7 +186,17 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  Supprimer
  </Button>
  
- {activeCollection !== name && (
+ {activeCollection === name ? (
+ <Button 
+ size="sm"
+ variant="secondary"
+ className="ml-auto"
+ onClick={() => handleActivate('')}
+ disabled={loading}
+ >
+ Désactiver
+ </Button>
+ ) : (
  <Button 
  size="sm"
  className="ml-auto"

@@ -2,11 +2,13 @@ import { readdir, readFile } from "fs/promises";
 import { join, basename } from "path";
 import { parse as parseYaml } from "yaml";
 import { existsSync } from "fs";
+import { syncBrunoItemsToDb } from "./db";
 
 export interface BrunoFolder {
  id: string;
  name: string;
  children?: BrunoFolder[];
+ isObsolete?: boolean;
 }
 
 export interface BrunoExample {
@@ -33,6 +35,7 @@ export interface ApiRequest {
  statusCode?: number;
  latencyMs?: number;
  pathParamsOverrides?: Record<string, string>;
+ isObsolete?: boolean;
 }
 
 export interface BrunoVariable {
@@ -55,19 +58,8 @@ import { BruParser } from "./parsers/BruParser";
 import { YamlParser } from "./parsers/YamlParser";
 import type { IParserStrategy } from "./parsers/types";
 
-// In-memory cache for incremental parsing
-const cachedFolders: Map<string, BrunoFolder> = new Map();
-let cachedRootFolders: BrunoFolder[] = [];
-const cachedRequests: Map<string, ApiRequest> = new Map();
-let cachedEnvironments: BrunoEnvironment[] = [];
-let isFullParseDone = false;
-
 export function clearParserCache() {
- cachedFolders.clear();
- cachedRootFolders = [];
- cachedRequests.clear();
- cachedEnvironments = [];
- isFullParseDone = false;
+ // Plus besoin de cache, tout est dans SQLite !
 }
 
 const bruParser = new BruParser();
@@ -104,7 +96,7 @@ export async function parseFile(basePath: string, fullPath: string): Promise<Api
  examples: parsed.examples || []
  };
  
- cachedRequests.set(req.id, req);
+ req.examples = parsed.examples || [];
  return req;
  }
  } catch (e) {
@@ -114,24 +106,14 @@ export async function parseFile(basePath: string, fullPath: string): Promise<Api
 }
 
 export function removeFileFromCache(basePath: string, fullPath: string) {
- const relativeFilePath = fullPath.replace(basePath, '');
- const id = `r-${Buffer.from(relativeFilePath).toString('base64url')}`;
- cachedRequests.delete(id);
+ // Plus besoin
 }
 
 export async function parseCollection(basePath: string, forceFull: boolean = false): Promise<ParserResult> {
- if (isFullParseDone && !forceFull) {
- return {
- folders: cachedRootFolders,
- requests: Array.from(cachedRequests.values()),
- environments: cachedEnvironments
- };
- }
-
- cachedFolders.clear();
- cachedRootFolders = [];
- cachedRequests.clear();
- cachedEnvironments = [];
+ const localFolders = new Map<string, BrunoFolder>();
+ const localRootFolders: BrunoFolder[] = [];
+ const localRequests: ApiRequest[] = [];
+ const localEnvironments: BrunoEnvironment[] = [];
 
  async function traverse(currentPath: string): Promise<BrunoFolder | null> {
  if (!existsSync(currentPath)) return null;
@@ -154,7 +136,7 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  name: folderName,
  children: []
  };
- cachedFolders.set(currentFolderId, newFolder);
+ localFolders.set(currentFolderId, newFolder);
 
  for (const entry of entries) {
  if (entry.name === 'folder.yml' || entry.name === 'opencollection.yml' || entry.name.startsWith('.')) continue;
@@ -162,13 +144,15 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  const fullPath = join(currentPath, entry.name);
  
  if (entry.isDirectory()) {
+ if (entry.name.toLowerCase() === 'environments') continue;
  const subFolder = await traverse(fullPath);
  if (subFolder) {
  if (!newFolder.children) newFolder.children = [];
  newFolder.children.push(subFolder);
  }
  } else if (entry.isFile() && (entry.name.endsWith('.yml') || entry.name.endsWith('.bru'))) {
- await parseFile(basePath, fullPath);
+ const req = await parseFile(basePath, fullPath);
+ if (req) localRequests.push(req);
  }
  }
  
@@ -179,20 +163,21 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  const rootEntries = await readdir(basePath, { withFileTypes: true });
  rootEntries.sort((a, b) => a.name.localeCompare(b.name));
  for (const entry of rootEntries) {
- if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'environments') {
+ if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name.toLowerCase() !== 'environments') {
  const rootFolder = await traverse(join(basePath, entry.name));
- if (rootFolder) cachedRootFolders.push(rootFolder);
+ if (rootFolder) localRootFolders.push(rootFolder);
  } else if (entry.isFile() && (entry.name.endsWith('.yml') || entry.name.endsWith('.bru')) && entry.name !== 'opencollection.yml') {
- await parseFile(basePath, join(basePath, entry.name));
+ const req = await parseFile(basePath, join(basePath, entry.name));
+ if (req) localRequests.push(req);
  }
  }
  } catch(e) {
  console.error("Error reading basePath: " + basePath, e);
  }
 
+ async function loadEnvironmentsFromDir(envPath: string) {
+ if (!existsSync(envPath)) return;
  try {
- const envPath = join(basePath, 'environments');
- if (existsSync(envPath)) {
  const envEntries = await readdir(envPath, { withFileTypes: true });
  for (const entry of envEntries) {
  if (entry.isFile()) {
@@ -201,7 +186,7 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  if (entry.name.endsWith('.yml') || entry.name.endsWith('.json')) {
  const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : (JSON.parse(content) as Record<string, unknown>);
  const name = (parsed?.name as string) || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
- cachedEnvironments.push({
+ localEnvironments.push({
  name: name,
  variables: (parsed?.variables as BrunoVariable[]) || []
  });
@@ -209,7 +194,6 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  const name = basename(entry.name, '.bru');
  const variables: BrunoVariable[] = [];
  
- // Regex to capture content inside vars { ... }
  const varsMatch = content.match(/vars\s*\{([\s\S]*?)\}/);
  if (varsMatch) {
  const lines = varsMatch?.[1]?.split('\n') || [];
@@ -219,24 +203,18 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  
  const firstColon = trimmed.indexOf(':');
  if (firstColon > -1) {
- // Wait, bru files usually have format `key: value`, but they can also be `key [ value ]` in older bru specs?
- // Actually modern bru format for environments is `key: value`
  const key = trimmed.substring(0, firstColon).trim();
- // value can be wrapped in quotes or just raw text
  let val = trimmed.substring(firstColon + 1).trim();
- // Remove surrounding quotes if present (some versions of bru use them)
  if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
  val = val.substring(1, val.length - 1);
  }
- 
  if (key) {
  variables.push({ name: key, value: val });
  }
  }
  }
  }
- 
- cachedEnvironments.push({
+ localEnvironments.push({
  name: name,
  variables: variables
  });
@@ -246,16 +224,39 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  }
  }
  }
- }
  } catch(e) {
- console.error("Error reading environments dir", e);
+ console.error(`Error reading environments dir ${envPath}`, e);
+ }
  }
 
- isFullParseDone = true;
- 
+ async function searchAndLoadEnvironments(currentPath: string) {
+ if (!existsSync(currentPath)) return;
+ try {
+ const entries = await readdir(currentPath, { withFileTypes: true });
+ for (const entry of entries) {
+ if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
+ if (entry.name.toLowerCase() === 'environments') {
+ await loadEnvironmentsFromDir(join(currentPath, entry.name));
+ } else {
+ await searchAndLoadEnvironments(join(currentPath, entry.name));
+ }
+ }
+ }
+ } catch (e) {
+ console.error(`Error searching environments in ${currentPath}`, e);
+ }
+ }
+
+ await searchAndLoadEnvironments(basePath);
+
  return {
- folders: cachedRootFolders,
- requests: Array.from(cachedRequests.values()),
- environments: cachedEnvironments
+ folders: localRootFolders,
+ requests: localRequests,
+ environments: localEnvironments
  };
+}
+
+export async function syncGitToDatabase(basePath: string) {
+ const data = await parseCollection(basePath, true);
+ syncBrunoItemsToDb(data.requests, data.folders, data.environments);
 }

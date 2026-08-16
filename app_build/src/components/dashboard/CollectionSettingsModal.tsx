@@ -10,24 +10,31 @@ interface CollectionSettingsModalProps {
 }
 
 export function CollectionSettingsModal({ isOpen, onClose, onSaved }: CollectionSettingsModalProps) {
- const [repoPath, setRepoPath] = useState('');
  const [gitSyncInterval, setGitSyncInterval] = useState('');
  const [loading, setLoading] = useState(isOpen);
 
  useEffect(() => {
  if (isOpen) {
  getSettings().then(settings => {
- setRepoPath(settings.REPO_PATH || '');
  setGitSyncInterval(settings.GIT_SYNC_INTERVAL || '300000');
  }).finally(() => setLoading(false));
  }
  }, [isOpen]);
 
+ useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen) {
+  onClose();
+  }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [isOpen, onClose]);
+
  const handleSave = async (e: React.FormEvent) => {
  e.preventDefault();
  setLoading(true);
  try {
- if (repoPath !== undefined) await updateSetting('REPO_PATH', repoPath);
  if (gitSyncInterval !== undefined) await updateSetting('GIT_SYNC_INTERVAL', gitSyncInterval);
  onSaved();
  onClose();
@@ -36,6 +43,25 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  toast.error("Failed to save collection settings");
  } finally {
  setLoading(false);
+ }
+ };
+
+ const handleCleanup = async () => {
+ if (confirm("Voulez-vous vraiment supprimer définitivement toutes les requêtes, dossiers et environnements obsolètes (qui n'existent plus dans Git) ainsi que leurs configurations ? Cette action est irréversible.")) {
+ setLoading(true);
+ try {
+ const res = await fetch('/api/sync/cleanup', { method: 'DELETE' });
+ if (res.ok) {
+ toast.success("Données obsolètes nettoyées !");
+ onSaved(); // Reload collection
+ } else {
+ toast.error("Erreur lors du nettoyage.");
+ }
+ } catch (e) {
+ toast.error("Erreur réseau lors du nettoyage.");
+ } finally {
+ setLoading(false);
+ }
  }
  };
 
@@ -54,19 +80,6 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <div className="space-y-4">
  <div>
  <label className="block text-sm font-medium text-foreground/80 mb-1">
- Chemin du dépôt Git (REPO_PATH)
- </label>
- <Input 
- type="text" 
- value={repoPath}
- onChange={e => setRepoPath(e.target.value)}
- placeholder="Ex: ../collection"
- />
- <p className="text-xs font-medium text-muted-foreground mt-1">Le dossier local surveillé pour l'ingestion (collection actuelle).</p>
- </div>
-
- <div>
- <label className="block text-sm font-medium text-foreground/80 mb-1">
  Intervalle de Synchronisation Git (ms)
  </label>
  <Input 
@@ -77,6 +90,21 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  />
  <p className="text-xs font-medium text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
  </div>
+ </div>
+
+ <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+ <h3 className="text-sm font-semibold text-red-600 mb-2">Zone Dangereuse</h3>
+ <p className="text-xs text-muted-foreground mb-3">
+ Supprime définitivement de la base de données toutes les requêtes et dossiers marqués comme <strong>Obsolètes</strong> (fichiers supprimés ou renommés dans Git), ainsi que leurs configurations (mocks, favoris, payloads modifiés).
+ </p>
+ <button
+ type="button"
+ onClick={handleCleanup}
+ disabled={loading}
+ className="bg-red-600 text-white px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-red-700 disabled:opacity-50"
+ >
+ Nettoyer les données obsolètes
+ </button>
  </div>
  </div>
 

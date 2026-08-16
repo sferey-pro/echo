@@ -1,6 +1,8 @@
 import { runSync, gitSyncStatus, getRepoPath } from "../services/git";
-import { parseCollection } from "../lib/parser";
+import { syncGitToDatabase } from "../lib/parser";
+import { getCollectionFromDb } from "../lib/db";
 import { initProxy } from "../lib/proxy";
+import { cleanupObsoleteItems } from "../lib/db";
 
 export async function handleSyncRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/sync/status' && req.method === 'GET') {
@@ -8,6 +10,13 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  await runSync();
  }
  return new Response(JSON.stringify(gitSyncStatus), {
+ headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ });
+ }
+
+ if (url.pathname === '/api/sync/cleanup' && req.method === 'DELETE') {
+ cleanupObsoleteItems();
+ return new Response(JSON.stringify({ success: true }), {
  headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
  });
  }
@@ -24,7 +33,8 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  return new Response(JSON.stringify({ error: "Git pull failed:\n" + fullError }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
  }
  
- const data = await parseCollection(repo);
+ await syncGitToDatabase(repo);
+ const data = getCollectionFromDb();
  await initProxy(data.requests, data.environments);
 
  return new Response(JSON.stringify({ success: true }), {

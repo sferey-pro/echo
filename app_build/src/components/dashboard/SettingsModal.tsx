@@ -33,6 +33,16 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  }
  }, [isOpen]);
 
+ useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen) {
+  onClose();
+  }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [isOpen, onClose]);
+
  const handleSave = async (e: React.FormEvent) => {
  e.preventDefault();
  setLoading(true);

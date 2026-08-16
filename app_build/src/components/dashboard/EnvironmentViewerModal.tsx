@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { BrunoEnvironment } from '../../lib/parser';
 import { GlobeHemisphereWest, Question, Tray } from '@phosphor-icons/react';
 
@@ -10,6 +10,18 @@ interface EnvironmentViewerModalProps {
 }
 
 export function EnvironmentViewerModal({ isOpen, onClose, environments, activeEnvironmentName }: EnvironmentViewerModalProps) {
+ const [searchTerm, setSearchTerm] = useState('');
+
+ useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen) {
+  onClose();
+  }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [isOpen, onClose]);
+
  if (!isOpen) return null;
 
  const activeEnv = environments.find(e => e.name === activeEnvironmentName);

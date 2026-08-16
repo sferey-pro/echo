@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { join } from "path";
 import type { ScenarioAction } from "./api";
+import type { ApiRequest, BrunoFolder, BrunoEnvironment } from "./parser";
 
 // Initialize the SQLite database
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -51,6 +52,30 @@ db.exec(`
  id TEXT PRIMARY KEY,
  name TEXT,
  actions TEXT
+ );
+`);
+
+db.exec(`
+ CREATE TABLE IF NOT EXISTS bruno_requests (
+ id TEXT PRIMARY KEY,
+ data TEXT,
+ is_obsolete BOOLEAN DEFAULT 0
+ );
+`);
+
+db.exec(`
+ CREATE TABLE IF NOT EXISTS bruno_folders (
+ id TEXT PRIMARY KEY,
+ data TEXT,
+ is_obsolete BOOLEAN DEFAULT 0
+ );
+`);
+
+db.exec(`
+ CREATE TABLE IF NOT EXISTS bruno_environments (
+ name TEXT PRIMARY KEY,
+ data TEXT,
+ is_obsolete BOOLEAN DEFAULT 0
  );
 `);
 
@@ -257,5 +282,65 @@ export const resetDatabase = () => {
  db.exec("DELETE FROM mock_states");
  db.exec("DELETE FROM scenarios");
  db.exec("DELETE FROM settings");
+ db.exec("DELETE FROM bruno_requests");
+ db.exec("DELETE FROM bruno_folders");
+ db.exec("DELETE FROM bruno_environments");
 };
+
+export const syncBrunoItemsToDb = (
+ requests: ApiRequest[], 
+ folders: BrunoFolder[], 
+ environments: BrunoEnvironment[]
+) => {
+ const transaction = db.transaction(() => {
+ db.exec("UPDATE bruno_requests SET is_obsolete = 1");
+ db.exec("UPDATE bruno_folders SET is_obsolete = 1");
+ db.exec("UPDATE bruno_environments SET is_obsolete = 1");
+
+ const insertReq = db.query(`INSERT INTO bruno_requests (id, data, is_obsolete) VALUES ($id, $data, 0) ON CONFLICT(id) DO UPDATE SET data = excluded.data, is_obsolete = 0`);
+ for (const r of requests) insertReq.run({ $id: r.id, $data: JSON.stringify(r) });
+
+ const insertFolder = db.query(`INSERT INTO bruno_folders (id, data, is_obsolete) VALUES ($id, $data, 0) ON CONFLICT(id) DO UPDATE SET data = excluded.data, is_obsolete = 0`);
+ for (const f of folders) insertFolder.run({ $id: f.id, $data: JSON.stringify(f) });
+
+ const insertEnv = db.query(`INSERT INTO bruno_environments (name, data, is_obsolete) VALUES ($name, $data, 0) ON CONFLICT(name) DO UPDATE SET data = excluded.data, is_obsolete = 0`);
+ for (const e of environments) insertEnv.run({ $name: e.name, $data: JSON.stringify(e) });
+ });
+ transaction();
+};
+
+export const getCollectionFromDb = () => {
+ const reqRows = db.query("SELECT * FROM bruno_requests").all() as {id: string, data: string, is_obsolete: number}[];
+ const folderRows = db.query("SELECT * FROM bruno_folders").all() as {id: string, data: string, is_obsolete: number}[];
+ const envRows = db.query("SELECT * FROM bruno_environments").all() as {name: string, data: string, is_obsolete: number}[];
+
+ const requests = reqRows.map(r => {
+ const parsed = JSON.parse(r.data);
+ parsed.isObsolete = r.is_obsolete === 1;
+ return parsed as ApiRequest;
+ });
+
+ const folders = folderRows.map(f => {
+ const parsed = JSON.parse(f.data);
+ parsed.isObsolete = f.is_obsolete === 1;
+ return parsed as BrunoFolder;
+ });
+
+ const environments = envRows.map(e => {
+ const parsed = JSON.parse(e.data);
+ parsed.isObsolete = e.is_obsolete === 1;
+ return parsed as BrunoEnvironment;
+ });
+
+ return { requests, folders, environments };
+};
+
+export const cleanupObsoleteItems = () => {
+ db.exec("DELETE FROM bruno_requests WHERE is_obsolete = 1");
+ db.exec("DELETE FROM bruno_folders WHERE is_obsolete = 1");
+ db.exec("DELETE FROM bruno_environments WHERE is_obsolete = 1");
+ // Nettoyer aussi les mock_states devenus orphelins (ceux qui ne sont plus dans bruno_requests)
+ db.exec("DELETE FROM mock_states WHERE request_id NOT IN (SELECT id FROM bruno_requests)");
+};
+
 

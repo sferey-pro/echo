@@ -1,8 +1,9 @@
 import { existsSync, watch } from "node:fs";
 import { resolve } from "path";
 import { getSetting } from "../lib/db";
-import { parseCollection, parseFile, removeFileFromCache } from "../lib/parser";
+import { syncGitToDatabase, parseFile, removeFileFromCache, clearParserCache } from "../lib/parser";
 import { initProxy } from "../lib/proxy";
+import { getCollectionFromDb } from "../lib/db";
 
 export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "", hasGit: false };
 
@@ -71,6 +72,7 @@ export function updateBackgroundTasks() {
  currentWatcher = null;
  }
  currentWatchPath = repo;
+ clearParserCache();
  
  if (existsSync(repo)) {
  console.log(`📂 Using Repo Path: ${repo}`);
@@ -83,7 +85,8 @@ export function updateBackgroundTasks() {
  } else {
  removeFileFromCache(repo, fullPath);
  }
- const data = await parseCollection(repo);
+ await syncGitToDatabase(repo);
+ const data = getCollectionFromDb();
  await initProxy(data.requests, data.environments);
  }
  });
