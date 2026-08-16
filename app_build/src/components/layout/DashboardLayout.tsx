@@ -263,10 +263,11 @@ export function DashboardLayout() {
                  className={`neo-button flex items-center p-3 cursor-pointer ${selectedRequestId === req.id ? 'bg-neo-blue dark:bg-blue-900' : 'bg-white dark:bg-slate-800'}`}
                >
                  <span className="font-bold mr-3 text-lg">{index + 1}</span>
-                 <span className={`neo-badge mr-3 bg-white dark:bg-slate-900 ${
-                   req.method === 'GET' ? 'text-green-600' : 
-                   req.method === 'POST' ? 'text-blue-600' : 
-                   req.method === 'DELETE' ? 'text-red-600' : 'text-orange-600'
+                 <span className={`neo-badge mr-3 text-black ${
+                   req.method === 'GET' ? 'neo:bg-neo-green bg-green-400' : 
+                   req.method === 'POST' ? 'neo:bg-neo-blue bg-blue-400' : 
+                   req.method === 'DELETE' ? 'neo:bg-neo-pink bg-pink-400' : 
+                   req.method === 'PUT' ? 'neo:bg-neo-yellow bg-yellow-400' : 'neo:bg-neo-orange bg-orange-400'
                  }`}>{req.method}</span>
                  <span className="font-bold flex-1 truncate">{req.name}</span>
                  {isPayloadModified(req) && <span className="neo-badge neo:bg-neo-yellow neo:text-black">Payload Surchargé</span>}

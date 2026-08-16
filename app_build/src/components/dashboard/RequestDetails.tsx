@@ -178,10 +178,11 @@ export function RequestDetails() {
           </h2>
           <div className="flex flex-col gap-2 mt-2">
             <div className="flex items-center gap-2">
-              <span className={`neo-badge bg-white dark:bg-slate-900 ${
-                 request.method === 'GET' ? 'text-green-600' : 
-                 request.method === 'POST' ? 'text-blue-600' : 
-                 request.method === 'DELETE' ? 'text-red-600' : 'text-orange-600'
+              <span className={`neo-badge text-black ${
+                 request.method === 'GET' ? 'neo:bg-neo-green bg-green-400' : 
+                 request.method === 'POST' ? 'neo:bg-neo-blue bg-blue-400' : 
+                 request.method === 'DELETE' ? 'neo:bg-neo-pink bg-pink-400' : 
+                 request.method === 'PUT' ? 'neo:bg-neo-yellow bg-yellow-400' : 'neo:bg-neo-orange bg-orange-400'
                }`}>
                 {request.method}
               </span>

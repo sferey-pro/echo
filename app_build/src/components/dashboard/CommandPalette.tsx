@@ -61,11 +61,11 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
                   }}
                   className="flex items-center gap-3 px-3 py-2.5 mt-1 rounded-md text-sm text-foreground cursor-pointer aria-selected:bg-primary aria-selected:text-primary-foreground transition-colors"
                 >
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded text-white ${
-                    req.method === 'GET' ? 'bg-blue-500' :
-                    req.method === 'POST' ? 'bg-green-500' :
-                    req.method === 'PUT' ? 'bg-orange-500' :
-                    req.method === 'DELETE' ? 'bg-red-500' : 'bg-neutral-500'
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    req.method === 'GET' ? 'neo:bg-neo-green bg-green-400 text-black' :
+                    req.method === 'POST' ? 'neo:bg-neo-blue bg-blue-400 text-black' :
+                    req.method === 'PUT' ? 'neo:bg-neo-yellow bg-yellow-400 text-black' :
+                    req.method === 'DELETE' ? 'neo:bg-neo-pink bg-pink-400 text-black' : 'neo:bg-neo-orange bg-orange-400 text-black'
                   }`}>
                     {req.method}
                   </span>

@@ -12,11 +12,11 @@ interface RequestListProps {
 }
 
 const methodStyles: Record<string, string> = {
-  GET: 'bg-white dark:bg-slate-900 text-green-600',
-  POST: 'bg-white dark:bg-slate-900 text-blue-600',
-  PUT: 'bg-white dark:bg-slate-900 text-yellow-600',
-  PATCH: 'bg-white dark:bg-slate-900 text-orange-600',
-  DELETE: 'bg-white dark:bg-slate-900 text-red-600',
+  GET: 'neo:bg-neo-green bg-green-400 text-black',
+  POST: 'neo:bg-neo-blue bg-blue-400 text-black',
+  PUT: 'neo:bg-neo-yellow bg-yellow-400 text-black',
+  PATCH: 'neo:bg-neo-orange bg-orange-400 text-black',
+  DELETE: 'neo:bg-neo-pink bg-pink-400 text-black',
 };
 
 type ListItem = 
