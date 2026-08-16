@@ -389,23 +389,23 @@ export function RequestDetails() {
             <Button 
             onClick={handleToggleMock} 
             disabled={isSaving}
-            variant={activeVariant.isMocked ? "default" : "secondary"}
-            className={activeVariant.isMocked ? "bg-green-500 hover:bg-green-600 text-white font-bold" : "font-bold"}
+            variant={activeVariant.isMocked ? "default" : "outline"}
+            className={activeVariant.isMocked ? "bg-emerald-500 hover:bg-emerald-600 text-white font-bold" : "font-bold border-2"}
             >
-            {activeVariant.isMocked ? 'Mock Actif pour cette Variante' : 'Pass-through'}
+            {activeVariant.isMocked ? 'Mock Actif pour cette Variante' : 'Activer le Mock (Pass-through)'}
             </Button>
             <Button 
             onClick={handleSavePayload} 
             disabled={isSaving}
-            variant="outline"
-            className="font-bold border-2"
+            variant="default"
+            className="font-bold shadow-md"
             >
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
             </Button>
         </div>
         <div className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">
             Status global : 
-            <span className={`px-2 py-1 rounded-md text-white ${activeVariant.isMocked ? 'bg-green-500' : 'bg-slate-400'}`}>
+            <span className={`px-3 py-1 rounded-full text-white shadow-sm ${activeVariant.isMocked ? 'bg-emerald-500' : 'bg-slate-400'}`}>
                 {activeVariant.isMocked ? 'MOCK' : 'PROXY'}
             </span>
         </div>
@@ -485,7 +485,7 @@ export function RequestDetails() {
           
           <h3 className="text-sm font-black uppercase mb-2 mt-4">Payload de Réponse (JSON) :</h3>
           
-          <div className={`flex-1 flex flex-col rounded-xl overflow-hidden relative ${isPayloadModified ? '' : 'border border-border'}`}>
+          <div className={`flex-1 flex flex-col rounded-xl overflow-hidden relative shadow-inner bg-[#1e1e1e] border-4 ${isPayloadModified ? 'border-primary/20' : 'border-[#2d2d2d]'}`}>
             {isPayloadModified && (
               <div className="absolute top-2 right-6 z-20 font-black text-sm text-primary pointer-events-none drop-shadow-md">
                 Payload Modifié (Surcharge Locale)
@@ -494,7 +494,7 @@ export function RequestDetails() {
             <Editor
               height="100%"
               defaultLanguage="json"
-              theme="light"
+              theme="vs-dark"
               value={payload}
               onChange={handlePayloadChange}
               options={{

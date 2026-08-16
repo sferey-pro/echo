@@ -96,6 +96,7 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  value={gitSyncInterval}
  onChange={e => setGitSyncInterval(e.target.value)}
  placeholder="Ex: 300000"
+ className="focus-visible:ring-primary"
  />
  <p className="text-xs font-medium text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
  </div>
@@ -107,15 +108,17 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  Supprime définitivement de la base de données toutes les requêtes et dossiers marqués comme <strong>Obsolètes</strong> (fichiers supprimés ou renommés dans Git), ainsi que leurs configurations (mocks, favoris, payloads modifiés).
  </p>
  <AlertDialog>
+ <div className="flex justify-end mt-4">
  <AlertDialogTrigger asChild>
  <button
  type="button"
  disabled={loading}
- className="bg-red-600 text-white px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-red-700 disabled:opacity-50"
+ className="bg-destructive text-white px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
  >
  Nettoyer les données obsolètes
  </button>
  </AlertDialogTrigger>
+ </div>
  <AlertDialogContent className="shadow-lg rounded-xl">
  <AlertDialogHeader>
  <AlertDialogTitle className="font-bold text-xl text-red-600">Confirmer le nettoyage</AlertDialogTitle>

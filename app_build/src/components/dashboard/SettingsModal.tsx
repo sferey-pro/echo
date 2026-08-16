@@ -93,6 +93,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  value={targetApiUrl}
  onChange={e => setTargetApiUrl(e.target.value)}
  placeholder="Ex: http://localhost:8080"
+ className="focus-visible:ring-primary"
  />
  <p className="text-xs text-muted-foreground mt-1 font-medium">L'URL vers laquelle le proxy redirige les requêtes non-mockées.</p>
  </div>
@@ -103,15 +104,17 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  <p className="text-xs font-medium text-muted-foreground mb-4">Attention, cette action supprimera tous vos mocks actifs, configurations et scénarios. La collection redeviendra vierge.</p>
  
  <AlertDialog>
+ <div className="flex justify-end">
  <AlertDialogTrigger asChild>
  <Button 
  type="button" 
  variant="destructive"
- className="w-full font-medium"
+ className="font-medium"
  >
  Réinitialiser complètement l'application
  </Button>
  </AlertDialogTrigger>
+ </div>
  <AlertDialogContent className="shadow-lg rounded-xl border border-border">
  <AlertDialogHeader>
  <AlertDialogTitle className="font-semibold text-xl text-red-600">Réinitialisation complète</AlertDialogTitle>

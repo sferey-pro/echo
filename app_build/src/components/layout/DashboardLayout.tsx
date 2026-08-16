@@ -160,7 +160,7 @@ export function DashboardLayout() {
  }
 
  return (
- <div className="h-screen w-full bg-slate-50 text-foreground overflow-hidden flex flex-col font-sans selection:bg- selection:text-black">
+    <div className="h-screen w-full bg-slate-50 text-foreground overflow-hidden flex flex-col font-sans selection:bg-primary/20 selection:text-primary">
  
  {/* Header Néo-brutaliste */}
  <div className="flex-none px-4 py-3 bg-card border-b border-border flex items-center justify-between z-20">
@@ -258,27 +258,27 @@ export function DashboardLayout() {
  </div>
  </div>
 
- {/* Colonne 2 : Liste des requêtes du dossier */}
- <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
- <div className="bg-muted/50 p-3 border-b border-border flex justify-between items-center">
- <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Requêtes : {selectedFolderName}</h2>
- </div>
- <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-card">
- {requestsInSelectedFolder.map((req, index) => (
- <div 
- key={req.id} 
- onClick={() => setSelectedRequestId(req.id)}
- className={`flex items-center p-3 cursor-pointer rounded-lg border transition-colors ${selectedRequestId === req.id ? 'bg-primary/10 border-primary/20' : 'bg-background border-border hover:bg-muted/50'}`}
- >
- <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{index + 1}</span>
- <MethodBadge method={req.method} className="mr-3" />
- <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
- {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2">Modifié</span>}
- {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Mock Actif</span>}
- </div>
- ))}
- </div>
- </div>
+      {/* Colonne 2 : Liste des requêtes du dossier */}
+      <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+        <div className="bg-muted/50 p-3 border-b border-border flex justify-between items-center">
+          <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Requêtes : {selectedFolderName}</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto p-0 flex flex-col bg-card">
+          {requestsInSelectedFolder.map((req, index) => (
+            <div 
+              key={req.id} 
+              onClick={() => setSelectedRequestId(req.id)}
+              className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
+            >
+              <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{index + 1}</span>
+              <MethodBadge method={req.method} className="mr-3" />
+              <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
+              {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Modifié</span>}
+              {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Mock Actif</span>}
+            </div>
+          ))}
+        </div>
+      </div>
 
  {/* Colonne 3 : Édition */}
  <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
