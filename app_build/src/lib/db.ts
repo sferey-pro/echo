@@ -8,13 +8,14 @@ const isTestEnv = process.env.NODE_ENV === 'test';
 const dbPath = isTestEnv ? ':memory:' : join(process.cwd(), '.echo-state.sqlite');
 const db = new Database(dbPath);
 
-// Create the table if it doesn't exist
+// Database migration: drop old mock_states and create mock_variants
 db.exec(`
- CREATE TABLE IF NOT EXISTS mock_states (
- request_id TEXT PRIMARY KEY,
+ CREATE TABLE IF NOT EXISTS mock_variants (
+ id TEXT PRIMARY KEY,
+ request_id TEXT,
+ name TEXT,
  is_mocked BOOLEAN DEFAULT 0,
  payload TEXT,
- is_starred BOOLEAN DEFAULT 0,
  selected_example TEXT DEFAULT NULL,
  status_code INTEGER DEFAULT 200,
  latency_ms INTEGER DEFAULT 0,
@@ -22,28 +23,16 @@ db.exec(`
  );
 `);
 
-try {
- db.exec(`ALTER TABLE mock_states ADD COLUMN is_starred BOOLEAN DEFAULT 0;`);
-} catch {
- // Column might already exist
-}
+db.exec(`
+ CREATE TABLE IF NOT EXISTS request_meta (
+ request_id TEXT PRIMARY KEY,
+ is_starred BOOLEAN DEFAULT 0
+ );
+`);
 
+// Optional: Drop old mock_states table to avoid confusion
 try {
- db.exec(`ALTER TABLE mock_states ADD COLUMN selected_example TEXT DEFAULT NULL;`);
-} catch {
- // Column might already exist
-}
-
-try {
- db.exec(`ALTER TABLE mock_states ADD COLUMN status_code INTEGER DEFAULT 200;`);
-} catch { /* ignore */ }
-
-try {
- db.exec(`ALTER TABLE mock_states ADD COLUMN latency_ms INTEGER DEFAULT 0;`);
-} catch { /* ignore */ }
-
-try {
- db.exec(`ALTER TABLE mock_states ADD COLUMN path_params_overrides TEXT DEFAULT NULL;`);
+ db.exec("DROP TABLE mock_states");
 } catch { /* ignore */ }
 
 // Create scenarios table
@@ -79,84 +68,120 @@ db.exec(`
  );
 `);
 
-export interface DBMockState {
+export interface DBMockVariant {
+ id: string;
  request_id: string;
+ name: string;
  is_mocked: number;
  payload: string;
- is_starred: number;
  selected_example: string | null;
  status_code: number;
  latency_ms: number;
  path_params_overrides: string | null;
 }
 
-export const getMockStates = (): Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number, pathParamsOverrides: Record<string, string> }> => {
- const query = db.query("SELECT * FROM mock_states");
- const results = query.all() as DBMockState[];
+export interface MockVariantDef {
+ id: string;
+ name: string;
+ isMocked: boolean;
+ payload: string;
+ selectedExample: string | null;
+ statusCode: number;
+ latencyMs: number;
+ pathParamsOverrides: Record<string, string>;
+}
+
+export const getMockVariants = (): Record<string, MockVariantDef[]> => {
+ const query = db.query("SELECT * FROM mock_variants");
+ const results = query.all() as DBMockVariant[];
  
- const states: Record<string, { isMocked: boolean, payload: string, isStarred: boolean, selectedExample: string | null, statusCode: number, latencyMs: number, pathParamsOverrides: Record<string, string> }> = {};
+ const variants: Record<string, MockVariantDef[]> = {};
  for (const row of results) {
- states[row.request_id] = {
+ if (!variants[row.request_id]) variants[row.request_id] = [];
+ variants[row.request_id]!.push({
+ id: row.id,
+ name: row.name,
  isMocked: row.is_mocked === 1,
  payload: row.payload,
- isStarred: row.is_starred === 1,
  selectedExample: row.selected_example,
  statusCode: row.status_code ?? 200,
  latencyMs: row.latency_ms ?? 0,
  pathParamsOverrides: row.path_params_overrides ? JSON.parse(row.path_params_overrides) : {}
- };
+ });
  }
- return states;
+ return variants;
 };
 
-export const updateMockState = (requestId: string, isMocked: boolean, payload: string, isStarred?: boolean, selectedExample?: string | null, statusCode?: number, latencyMs?: number, pathParamsOverrides?: Record<string, string>) => {
- if (isStarred !== undefined) {
- const query = db.query(`
- INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
- VALUES ($id, $isMocked, $payload, $isStarred, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides) 
- ON CONFLICT(request_id) DO UPDATE SET 
- is_mocked = excluded.is_mocked,
- payload = excluded.payload,
- is_starred = excluded.is_starred,
- selected_example = excluded.selected_example,
- status_code = excluded.status_code,
- latency_ms = excluded.latency_ms,
- path_params_overrides = excluded.path_params_overrides;
- `);
- 
- query.run({
- $id: requestId,
- $isMocked: isMocked ? 1 : 0,
- $payload: payload,
- $isStarred: isStarred ? 1 : 0,
- $selectedExample: selectedExample !== undefined ? selectedExample : null,
- $statusCode: statusCode !== undefined ? statusCode : 200,
- $latencyMs: latencyMs !== undefined ? latencyMs : 0,
- $pathParamsOverrides: pathParamsOverrides ? JSON.stringify(pathParamsOverrides) : null
- });
- } else {
- const query = db.query(`
- INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
- VALUES ($id, $isMocked, $payload, 0, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides) 
- ON CONFLICT(request_id) DO UPDATE SET 
- is_mocked = excluded.is_mocked,
- payload = excluded.payload,
- selected_example = excluded.selected_example,
- status_code = excluded.status_code,
- latency_ms = excluded.latency_ms,
- path_params_overrides = excluded.path_params_overrides;
- `);
- 
- query.run({
- $id: requestId,
- $isMocked: isMocked ? 1 : 0,
- $payload: payload,
- $selectedExample: selectedExample !== undefined ? selectedExample : null,
- $statusCode: statusCode !== undefined ? statusCode : 200,
- $latencyMs: latencyMs !== undefined ? latencyMs : 0,
- $pathParamsOverrides: pathParamsOverrides ? JSON.stringify(pathParamsOverrides) : null
- });
+export const getRequestMeta = (): Record<string, { isStarred: boolean }> => {
+ const query = db.query("SELECT * FROM request_meta");
+ const results = query.all() as { request_id: string, is_starred: number }[];
+ const meta: Record<string, { isStarred: boolean }> = {};
+ for (const row of results) {
+ meta[row.request_id] = { isStarred: row.is_starred === 1 };
  }
+ return meta;
+};
+
+export const updateRequestMeta = (requestId: string, isStarred: boolean) => {
+ const query = db.query(`
+ INSERT INTO request_meta (request_id, is_starred) 
+ VALUES ($id, $isStarred) 
+ ON CONFLICT(request_id) DO UPDATE SET 
+ is_starred = excluded.is_starred;
+ `);
+ query.run({ $id: requestId, $isStarred: isStarred ? 1 : 0 });
+};
+
+export const createMockVariant = (id: string, requestId: string, name: string, isMocked: boolean, payload: string, selectedExample: string | null, statusCode: number, latencyMs: number, pathParamsOverrides: Record<string, string> | null) => {
+ const query = db.query(`
+ INSERT INTO mock_variants (id, request_id, name, is_mocked, payload, selected_example, status_code, latency_ms, path_params_overrides) 
+ VALUES ($id, $reqId, $name, $isMocked, $payload, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides)
+ `);
+ query.run({
+ $id: id,
+ $reqId: requestId,
+ $name: name,
+ $isMocked: isMocked ? 1 : 0,
+ $payload: payload,
+ $selectedExample: selectedExample,
+ $statusCode: statusCode,
+ $latencyMs: latencyMs,
+ $pathParamsOverrides: pathParamsOverrides ? JSON.stringify(pathParamsOverrides) : null
+ });
+};
+
+export const updateMockVariant = (id: string, updates: Partial<MockVariantDef>) => {
+ const currentQuery = db.query("SELECT * FROM mock_variants WHERE id = $id");
+ const current = currentQuery.get({ $id: id }) as DBMockVariant;
+ if (!current) return;
+
+ const query = db.query(`
+ UPDATE mock_variants SET 
+ name = $name,
+ is_mocked = $isMocked,
+ payload = $payload,
+ selected_example = $selectedExample,
+ status_code = $statusCode,
+ latency_ms = $latencyMs,
+ path_params_overrides = $pathParamsOverrides
+ WHERE id = $id
+ `);
+ 
+ query.run({
+ $id: id,
+ $name: updates.name !== undefined ? updates.name : current.name,
+ $isMocked: updates.isMocked !== undefined ? (updates.isMocked ? 1 : 0) : current.is_mocked,
+ $payload: updates.payload !== undefined ? updates.payload : current.payload,
+ $selectedExample: updates.selectedExample !== undefined ? updates.selectedExample : current.selected_example,
+ $statusCode: updates.statusCode !== undefined ? updates.statusCode : current.status_code,
+ $latencyMs: updates.latencyMs !== undefined ? updates.latencyMs : current.latency_ms,
+ $pathParamsOverrides: updates.pathParamsOverrides !== undefined ? (updates.pathParamsOverrides ? JSON.stringify(updates.pathParamsOverrides) : null) : current.path_params_overrides
+ });
+};
+
+export const deleteMockVariant = (id: string) => {
+ const query = db.query("DELETE FROM mock_variants WHERE id = $id");
+ query.run({ $id: id });
 };
 
 db.exec(`
@@ -232,29 +257,30 @@ export const deleteScenario = (id: string) => {
 
 export const applyScenarioActions = (actions: ScenarioAction[]) => {
  // Reset all to is_mocked = 0 first
- db.exec("UPDATE mock_states SET is_mocked = 0");
+ db.exec("UPDATE mock_variants SET is_mocked = 0");
  
- // Then apply the specific ones
+ // Then apply the specific ones. 
+ // Since ScenarioActions were originally tied to requestId, we need to find the "Default" variant or the first variant of that request and update it.
+ // For robustness, we will find the first variant for each request_id and update it.
  for (const action of actions) {
  if (!action.requestId) continue;
  
- // Check if it exists
- const checkQuery = db.query("SELECT request_id FROM mock_states WHERE request_id = $id");
- const exists = checkQuery.get({ $id: action.requestId });
+ const checkQuery = db.query("SELECT id FROM mock_variants WHERE request_id = $id LIMIT 1");
+ const exists = checkQuery.get({ $id: action.requestId }) as { id: string } | null;
  
  if (exists) {
  const updateQuery = db.query(`
- UPDATE mock_states SET 
+ UPDATE mock_variants SET 
  is_mocked = 1,
  payload = $payload,
  status_code = $statusCode,
  latency_ms = $latencyMs,
  selected_example = $selectedExample,
  path_params_overrides = $pathParamsOverrides
- WHERE request_id = $id
+ WHERE id = $variantId
  `);
  updateQuery.run({
- $id: action.requestId,
+ $variantId: exists.id,
  $payload: action.payload !== undefined ? action.payload : '{}',
  $statusCode: action.statusCode !== undefined ? action.statusCode : 200,
  $latencyMs: action.latencyMs !== undefined ? action.latencyMs : 0,
@@ -262,26 +288,24 @@ export const applyScenarioActions = (actions: ScenarioAction[]) => {
  $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
  });
  } else {
- const insertQuery = db.query(`
- INSERT INTO mock_states (request_id, is_mocked, payload, is_starred, selected_example, status_code, latency_ms, path_params_overrides) 
- VALUES ($id, 1, $payload, 0, $selectedExample, $statusCode, $latencyMs, $pathParamsOverrides)
- `);
- insertQuery.run({
- $id: action.requestId,
- $payload: action.payload !== undefined ? action.payload : '{}',
- $statusCode: action.statusCode !== undefined ? action.statusCode : 200,
- $latencyMs: action.latencyMs !== undefined ? action.latencyMs : 0,
- $selectedExample: action.selectedExample !== undefined ? action.selectedExample : null,
- $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
- });
+ // Create a default variant if none exists
+ const variantId = `${action.requestId}-default`;
+ createMockVariant(variantId, action.requestId, "Générique", true, action.payload || '{}', action.selectedExample || null, action.statusCode || 200, action.latencyMs || 0, action.pathParamsOverrides || null);
  }
  }
 };
 
 export const resetDatabase = () => {
- db.exec("DELETE FROM mock_states");
+ db.exec("DELETE FROM mock_variants");
+ db.exec("DELETE FROM request_meta");
  db.exec("DELETE FROM scenarios");
  db.exec("DELETE FROM settings");
+ db.exec("DELETE FROM bruno_requests");
+ db.exec("DELETE FROM bruno_folders");
+ db.exec("DELETE FROM bruno_environments");
+};
+
+export const clearBrunoTables = () => {
  db.exec("DELETE FROM bruno_requests");
  db.exec("DELETE FROM bruno_folders");
  db.exec("DELETE FROM bruno_environments");
@@ -339,8 +363,9 @@ export const cleanupObsoleteItems = () => {
  db.exec("DELETE FROM bruno_requests WHERE is_obsolete = 1");
  db.exec("DELETE FROM bruno_folders WHERE is_obsolete = 1");
  db.exec("DELETE FROM bruno_environments WHERE is_obsolete = 1");
- // Nettoyer aussi les mock_states devenus orphelins (ceux qui ne sont plus dans bruno_requests)
- db.exec("DELETE FROM mock_states WHERE request_id NOT IN (SELECT id FROM bruno_requests)");
+ // Nettoyer aussi les mock_variants et request_meta devenus orphelins
+ db.exec("DELETE FROM mock_variants WHERE request_id NOT IN (SELECT id FROM bruno_requests)");
+ db.exec("DELETE FROM request_meta WHERE request_id NOT IN (SELECT id FROM bruno_requests)");
 };
 
 

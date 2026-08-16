@@ -1,6 +1,6 @@
 import { getCollectionFromDb } from "../lib/db";
 import { syncGitToDatabase } from "../lib/parser";
-import { initProxy, mockStates } from "../lib/proxy";
+import { initProxy, mockVariants, requestMeta } from "../lib/proxy";
 import { getRepoPath } from "../services/git";
 
 export async function handleCollectionsRoute(req: Request, url: URL): Promise<Response | null> {
@@ -11,16 +11,13 @@ export async function handleCollectionsRoute(req: Request, url: URL): Promise<Re
  await initProxy(data.requests, data.environments);
  
  const enrichedRequests = data.requests.map(r => {
- const state = mockStates.get(r.id);
+ const states = mockVariants.get(r.id) || [];
+ const meta = requestMeta.get(r.id);
+ 
  return {
  ...r,
- isMocked: state?.isMocked || false,
- currentPayload: state?.payload || (typeof r.examples?.[0]?.response?.body?.data === 'string' ? r.examples[0].response.body.data : (r.examples?.[0]?.response?.body?.data ? JSON.stringify(r.examples[0].response.body.data, null, 2) : '')),
- isStarred: state?.isStarred || false,
- selectedExample: state?.selectedExample || null,
- statusCode: state?.statusCode ?? 200,
- latencyMs: state?.latencyMs ?? 0,
- pathParamsOverrides: state?.pathParamsOverrides ?? {}
+ variants: states,
+ isStarred: meta?.isStarred || false
  };
  });
 

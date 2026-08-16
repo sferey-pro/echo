@@ -1,5 +1,5 @@
 import { resetDatabase, getCollectionFromDb } from "../lib/db";
-import { mockStates, initProxy } from "../lib/proxy";
+import { mockVariants, initProxy } from "../lib/proxy";
 import { updateBackgroundTasks, getRepoPath } from "../services/git";
 import { syncGitToDatabase } from "../lib/parser";
 import { readdirSync, rmSync } from "fs";
@@ -9,7 +9,7 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  if (url.pathname === '/api/reset' && req.method === 'POST') {
  try {
  resetDatabase();
- mockStates.clear();
+ mockVariants.clear();
  
  // Empty the collection folder
  const base = resolve(process.cwd(), '../collection');

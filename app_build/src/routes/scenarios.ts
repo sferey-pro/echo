@@ -1,5 +1,5 @@
 import { getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions, getCollectionFromDb } from "../lib/db";
-import { initProxy, mockStates } from "../lib/proxy";
+import { initProxy, mockVariants } from "../lib/proxy";
 import type { ScenarioAction } from "../lib/api";
 
 export async function handleScenariosRoute(req: Request, url: URL): Promise<Response | null> {
@@ -21,16 +21,22 @@ export async function handleScenariosRoute(req: Request, url: URL): Promise<Resp
  
  let actionsToSave = body.actions;
  if (!actionsToSave) {
- actionsToSave = Array.from(mockStates.entries())
- .filter(([, state]) => state.isMocked)
- .map(([reqId, state]) => ({
+ actionsToSave = [];
+ for (const [reqId, variants] of mockVariants.entries()) {
+ for (const state of variants) {
+ if (state.isMocked) {
+ actionsToSave.push({
  requestId: reqId,
+ variantId: state.id,
  payload: state.payload,
  statusCode: state.statusCode,
  latencyMs: state.latencyMs,
  selectedExample: state.selectedExample,
  pathParamsOverrides: state.pathParamsOverrides
- }));
+ });
+ }
+ }
+ }
  }
  
  const id = `scenario-${Date.now()}`;

@@ -1,19 +1,12 @@
 import { http, HttpResponse } from 'msw';
 import type { ApiRequest } from './parser';
-export interface MockState {
- isMocked: boolean;
- payload: string;
- isStarred: boolean;
- selectedExample: string | null;
- statusCode: number;
- latencyMs: number;
- pathParamsOverrides: Record<string, string>;
-}
+import type { MockVariantDef } from './db';
 
-export const mockStates = new Map<string, MockState>();
+export const mockVariants = new Map<string, MockVariantDef[]>();
+export const requestMeta = new Map<string, { isStarred: boolean }>();
 let isInitialized = false;
 
-import { getMockStates, getSetting } from './db';
+import { getMockVariants, getRequestMeta, getSetting } from './db';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mswServer: any = null;
@@ -22,39 +15,53 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
  const activeEnvironmentName = getSetting('ACTIVE_ENVIRONMENT');
  const activeEnv = environments.find(e => e.name === activeEnvironmentName) || null;
- const persistedStates = getMockStates();
-
- for (const req of requests) {
- const pState = persistedStates[req.id];
- mockStates.set(req.id, {
- isMocked: pState ? pState.isMocked : false,
- payload: pState ? pState.payload : (typeof req.examples?.[0]?.response?.body?.data === 'string' ? req.examples[0].response.body.data : (req.examples?.[0]?.response?.body?.data ? JSON.stringify(req.examples[0].response.body.data) : '{}')),
- isStarred: pState ? pState.isStarred : false,
- selectedExample: pState ? pState.selectedExample : null,
- statusCode: pState ? pState.statusCode : 200,
- latencyMs: pState ? pState.latencyMs : 0,
- pathParamsOverrides: pState ? pState.pathParamsOverrides : {},
- });
+ 
+ const dbVariants = getMockVariants();
+ mockVariants.clear();
+ for (const [k, v] of Object.entries(dbVariants)) {
+ mockVariants.set(k, v);
+ }
+ 
+ const dbMeta = getRequestMeta();
+ requestMeta.clear();
+ for (const [k, v] of Object.entries(dbMeta)) {
+ requestMeta.set(k, v);
  }
 
- const handlers = requests.map(req => {
- const method = req.method.toLowerCase() as keyof typeof http;
- const state = mockStates.get(req.id);
+ const handlerDefs: Array<{ mswPath: string, mswMethod: any, handler: any }> = [];
+
+ for (const req of requests) {
+ const variants = mockVariants.get(req.id) || [];
  
+ // S'assurer qu'il y a toujours au moins la variante Default
+ if (variants.length === 0) {
+ variants.push({
+ id: `${req.id}-default`,
+ name: 'Default',
+ isMocked: false,
+ payload: typeof req.examples?.[0]?.response?.body?.data === 'string' ? req.examples[0].response.body.data : (req.examples?.[0]?.response?.body?.data ? JSON.stringify(req.examples[0].response.body.data) : '{}'),
+ selectedExample: null,
+ statusCode: 200,
+ latencyMs: 0,
+ pathParamsOverrides: {}
+ });
+ mockVariants.set(req.id, variants);
+ }
+
+ for (const variant of variants) {
+ const method = req.method.toLowerCase() as keyof typeof http;
  let mswPath = req.url;
  
  // 1. Appliquer les overrides locaux (variables {{var}} et params :id)
- if (state && state.pathParamsOverrides) {
- for (const [key, value] of Object.entries(state.pathParamsOverrides)) {
+ if (variant.pathParamsOverrides) {
+ for (const [key, value] of Object.entries(variant.pathParamsOverrides)) {
  if (!value) continue;
- // Si c'est une variable {{var}}
  mswPath = mswPath.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
- // Si c'est un paramètre :param
  mswPath = mswPath.replace(new RegExp(`:${key}\\b`, 'g'), value);
  }
  }
 
- // 2. Remplacer les variables d'environnement actives (si pas déjà overridées)
+ // 2. Remplacer les variables d'environnement actives
  if (activeEnv) {
  for (const v of activeEnv.variables) {
  mswPath = mswPath.replace(new RegExp(`\\{\\{${v.name}\\}\\}`, 'g'), v.value);
@@ -63,20 +70,21 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  // Fallback baseUrl si non défini
  mswPath = mswPath.replace(/\{\{baseUrl\}\}/g, targetApiUrl);
  
- // Éviter les doubles slashes accidentels (sauf pour http://)
+ // Éviter les doubles slashes accidentels
  mswPath = mswPath.replace(/([^:])\/\//g, '$1/');
 
- // Si la méthode n'existe pas dans MSW (ex: HEAD), on utilise 'all'
  const mswMethod = http[method] || http.all;
 
- return mswMethod(mswPath, async () => {
- const state = mockStates.get(req.id);
- if (state && state.isMocked) {
- if (state.latencyMs && state.latencyMs > 0) {
- await new Promise(r => setTimeout(r, state.latencyMs));
+ handlerDefs.push({
+ mswPath,
+ mswMethod,
+ handler: async () => {
+ if (variant.isMocked) {
+ if (variant.latencyMs && variant.latencyMs > 0) {
+ await new Promise(r => setTimeout(r, variant.latencyMs));
  }
  
- console.log(`[MSW] Intercepted & Mocked: ${mswPath} (Status: ${state.statusCode}, Latency: ${state.latencyMs}ms)`);
+ console.log(`[MSW] Intercepted & Mocked: ${mswPath} (Status: ${variant.statusCode}, Latency: ${variant.latencyMs}ms)`);
  
  const corsHeaders = {
  "Access-Control-Allow-Origin": "*",
@@ -86,14 +94,25 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  };
 
  try {
- return HttpResponse.json(JSON.parse(state.payload), { headers: corsHeaders, status: state.statusCode });
+ return HttpResponse.json(JSON.parse(variant.payload), { headers: corsHeaders, status: variant.statusCode });
  } catch {
- return new HttpResponse(state.payload, { headers: corsHeaders, status: state.statusCode });
+ return new HttpResponse(variant.payload, { headers: corsHeaders, status: variant.statusCode });
  }
  }
- return; // Pass-through : on laisse la requête filer vers l'API cible
+ return; // Pass-through
+ }
  });
+ }
+ }
+
+ // Trier les handlers : les chemins les plus spécifiques (sans ':') en premier
+ handlerDefs.sort((a, b) => {
+ const aWildcards = (a.mswPath.match(/:[a-zA-Z0-9_]+/g) || []).length;
+ const bWildcards = (b.mswPath.match(/:[a-zA-Z0-9_]+/g) || []).length;
+ return aWildcards - bWildcards;
  });
+
+ const handlers = handlerDefs.map(def => def.mswMethod(def.mswPath, def.handler));
 
  if (!isInitialized) {
  isInitialized = true;

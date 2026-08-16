@@ -8,15 +8,40 @@ export async function fetchCollection(): Promise<ParserResult> {
  return response.json();
 }
 
-export async function updateMock(id: string, updates: { isMocked?: boolean, payload?: string, isStarred?: boolean, selectedExample?: string | null, statusCode?: number, latencyMs?: number, pathParamsOverrides?: Record<string, string> }): Promise<void> {
- const response = await fetch('/api/mocks/update', {
+export async function updateRequestMeta(id: string, isStarred: boolean): Promise<void> {
+ const response = await fetch('/api/mocks/meta', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ id, ...updates })
+ body: JSON.stringify({ id, isStarred })
  });
- if (!response.ok) {
- throw new Error('Erreur lors de la mise à jour du mock');
- }
+ if (!response.ok) throw new Error('Erreur lors de la mise à jour des métadonnées');
+}
+
+export async function createMockVariant(requestId: string, name: string): Promise<string> {
+ const response = await fetch('/api/mocks/variants', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ requestId, name })
+ });
+ if (!response.ok) throw new Error('Erreur lors de la création de la variante');
+ const data = await response.json();
+ return data.id;
+}
+
+export async function updateMockVariant(id: string, updates: any): Promise<void> {
+ const response = await fetch(`/api/mocks/variants/${id}`, {
+ method: 'PUT',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(updates)
+ });
+ if (!response.ok) throw new Error('Erreur lors de la mise à jour de la variante');
+}
+
+export async function deleteMockVariant(id: string): Promise<void> {
+ const response = await fetch(`/api/mocks/variants/${id}`, {
+ method: 'DELETE'
+ });
+ if (!response.ok) throw new Error('Erreur lors de la suppression de la variante');
 }
 
 export async function getSettings(): Promise<Record<string, string>> {
@@ -38,7 +63,7 @@ export async function updateSetting(key: string, value: string): Promise<void> {
  }
 }
 
-export async function cloneCollection(repoUrl: string, force: boolean = false): Promise<void> {
+export async function cloneCollection(repoUrl: string, force: boolean = false): Promise<string> {
  const response = await fetch('/api/repositories/clone', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
@@ -51,6 +76,8 @@ export async function cloneCollection(repoUrl: string, force: boolean = false): 
  const errorData = await response.json().catch(() => ({}));
  throw new Error(errorData.error || 'Erreur lors du clonage du dépôt');
  }
+ const data = await response.json();
+ return data.name;
 }
 
 export interface ScenarioAction {

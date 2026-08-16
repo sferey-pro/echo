@@ -1,4 +1,14 @@
+import { resolve } from "path";
 import { serve } from "bun";
+import { readFileSync, statSync } from "fs";
+
+process.on('unhandledRejection', (reason, promise) => {
+ console.error('[Global] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (err) => {
+ console.error('[Global] Uncaught Exception:', err);
+});
+
 import index from "./index.html";
 import { handleProxyRequest } from "./lib/proxy";
 import { getRepoPath, runSync, updateBackgroundTasks } from "./services/git";

@@ -28,14 +28,11 @@ export interface ApiRequest {
  method: string;
  url: string;
  examples: BrunoExample[];
- isMocked?: boolean;
- currentPayload?: string;
- isStarred?: boolean;
- selectedExample?: string | null;
- statusCode?: number;
- latencyMs?: number;
- pathParamsOverrides?: Record<string, string>;
  isObsolete?: boolean;
+ // UI state (kept for backward compatibility with components)
+ isStarred?: boolean;
+ // Variants
+ variants?: any[]; // Array of MockVariantDef
 }
 
 export interface BrunoVariable {
@@ -110,6 +107,10 @@ export function removeFileFromCache(basePath: string, fullPath: string) {
 }
 
 export async function parseCollection(basePath: string, forceFull: boolean = false): Promise<ParserResult> {
+ if (!existsSync(basePath)) {
+ return { folders: [], requests: [], environments: [] };
+ }
+
  const localFolders = new Map<string, BrunoFolder>();
  const localRootFolders: BrunoFolder[] = [];
  const localRequests: ApiRequest[] = [];

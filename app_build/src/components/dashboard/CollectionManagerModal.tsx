@@ -18,7 +18,7 @@ import {
 interface CollectionManagerModalProps {
  isOpen: boolean;
  onClose: () => void;
- onSaved: () => void;
+ onSaved: () => void | Promise<void>;
 }
 
 export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionManagerModalProps) {
@@ -49,7 +49,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  getSettings(),
  fetchCollections()
  ]).then(([settings]) => {
- setActiveCollection(settings.ACTIVE_COLLECTION_NAME || 'samples-bruno');
+ setActiveCollection(settings.ACTIVE_COLLECTION_NAME || '');
  }).finally(() => setLoading(false));
  }
  }, [isOpen]);
@@ -68,10 +68,13 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  if (!repoUrl) return;
  setCloning(true);
  try {
- await cloneCollection(repoUrl, force);
+ const repoName = await cloneCollection(repoUrl, force);
  await fetchCollections();
  setRepoUrl('');
  toast.success("Dépôt cloné avec succès");
+ if (repoName) {
+ await handleActivate(repoName);
+ }
  } catch (e: unknown) {
  const err = e as Error;
  if (err.message === 'EXISTS') {
@@ -95,7 +98,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  try {
  await updateSetting('ACTIVE_COLLECTION_NAME', name);
  setActiveCollection(name);
- onSaved();
+ await onSaved();
  } catch (e) {
  console.error(e);
  toast.error("Erreur lors de l'activation");
@@ -194,7 +197,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  onClick={() => handleActivate('')}
  disabled={loading}
  >
- Désactiver
+ {loading ? 'En cours...' : 'Désactiver'}
  </Button>
  ) : (
  <Button 
@@ -203,7 +206,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  onClick={() => handleActivate(name)}
  disabled={loading}
  >
- Activer
+ {loading ? 'Activation...' : 'Activer'}
  </Button>
  )}
  </div>

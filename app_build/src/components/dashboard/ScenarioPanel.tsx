@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { fetchScenarios, createScenario, applyScenario, deleteScenario } from '../../lib/api';
+import { toast } from 'sonner';
 import type { Scenario } from '../../lib/api';
 import {
  AlertDialog,
@@ -51,8 +52,10 @@ export function ScenarioPanel() {
  setNewScenarioName('');
  setIsCreating(false);
  await loadScenarios();
+ toast.success("Scénario créé avec succès");
  } catch (err) {
  console.error(err);
+ toast.error("Erreur lors de la création du scénario");
  }
  setIsSaving(false);
  };
@@ -61,8 +64,10 @@ export function ScenarioPanel() {
  try {
  await applyScenario(id);
  loadCollection();
+ toast.success("Scénario appliqué avec succès");
  } catch (err) {
  console.error(err);
+ toast.error("Erreur lors de l'application du scénario");
  }
  };
 
@@ -70,8 +75,10 @@ export function ScenarioPanel() {
  try {
  await deleteScenario(id);
  await loadScenarios();
+ toast.success("Scénario supprimé avec succès");
  } catch (err) {
  console.error(err);
+ toast.error("Erreur lors de la suppression du scénario");
  }
  };
 

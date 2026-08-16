@@ -28,7 +28,7 @@ interface AppState {
  setActiveEnvironment: (env: string) => void;
  
  // Thunks
- loadCollection: () => Promise<void>;
+ loadCollection: (forceLoader?: boolean) => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -56,8 +56,8 @@ export const useStore = create<AppState>((set, get) => ({
  updateSetting('ACTIVE_ENVIRONMENT', env);
  },
 
- loadCollection: async () => {
- if (get().requests.length === 0) {
+ loadCollection: async (forceLoader = false) => {
+ if (get().requests.length === 0 || forceLoader) {
  set({ isLoading: true });
  }
  try {

@@ -3,7 +3,7 @@ import { resolve } from "path";
 import { getSetting } from "../lib/db";
 import { syncGitToDatabase, parseFile, removeFileFromCache, clearParserCache } from "../lib/parser";
 import { initProxy } from "../lib/proxy";
-import { getCollectionFromDb } from "../lib/db";
+import { getCollectionFromDb, clearBrunoTables } from "../lib/db";
 
 export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "", hasGit: false };
 
@@ -13,7 +13,11 @@ export function getRepoPath() {
  if (activeCol) {
  return resolve(base, activeCol);
  }
- return getSetting('REPO_PATH') || process.env.REPO_PATH || base;
+ if (process.env.REPO_PATH) {
+ return process.env.REPO_PATH;
+ }
+ 
+ return resolve(base, '.empty');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,6 +77,7 @@ export function updateBackgroundTasks() {
  }
  currentWatchPath = repo;
  clearParserCache();
+ clearBrunoTables();
  
  if (existsSync(repo)) {
  console.log(`📂 Using Repo Path: ${repo}`);

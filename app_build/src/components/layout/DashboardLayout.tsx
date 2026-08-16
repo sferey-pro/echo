@@ -70,6 +70,7 @@ export function DashboardLayout() {
  if (res.ok) {
  setSyncStatus(prev => ({ ...prev, commitsBehind: 0, isSynced: true }));
  loadCollection(); // Recharger la collection après le sync
+ toast.success("Synchronisation réussie !");
  } else {
  const error = await res.json();
  toast.error(error.error || "Erreur lors de la synchronisation Git");
@@ -311,17 +312,17 @@ export function DashboardLayout() {
  <CollectionManagerModal
  isOpen={isCollectionsOpen}
  onClose={() => setIsCollectionsOpen(false)}
- onSaved={loadCollection}
+ onSaved={() => loadCollection(true)}
  />
  <SettingsModal 
  isOpen={isSettingsOpen} 
  onClose={() => setIsSettingsOpen(false)} 
- onSaved={loadCollection} 
+ onSaved={() => loadCollection(true)} 
  />
  <CollectionSettingsModal
  isOpen={isCollectionSettingsOpen} 
  onClose={() => setIsCollectionSettingsOpen(false)} 
- onSaved={loadCollection} 
+ onSaved={() => loadCollection(true)} 
  />
  <EnvironmentViewerModal 
  isOpen={isEnvViewerOpen}

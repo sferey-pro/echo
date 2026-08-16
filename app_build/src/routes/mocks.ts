@@ -1,47 +1,93 @@
-import { mockStates } from "../lib/proxy";
-import { updateMockState } from "../lib/db";
+import { mockVariants } from "../lib/proxy";
+import { updateRequestMeta, createMockVariant, updateMockVariant, deleteMockVariant } from "../lib/db";
+import { randomUUID } from "crypto";
 
 export async function handleMocksRoute(req: Request, url: URL): Promise<Response | null> {
- if (url.pathname === '/api/mocks/update' && req.method === 'POST') {
+ // Mettre à jour les métadonnées de la requête (ex: favoris)
+ if (url.pathname === '/api/mocks/meta' && req.method === 'POST') {
  try {
  const body = await req.json();
- let state = mockStates.get(body.id);
+ updateRequestMeta(body.id, body.isStarred);
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ } catch (err: unknown) {
+ return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ }
+ }
+
+ // Créer une nouvelle variante
+ if (url.pathname === '/api/mocks/variants' && req.method === 'POST') {
+ try {
+ const body = await req.json();
+ const variantId = randomUUID();
+ createMockVariant(variantId, body.requestId, body.name, false, '{}', null, 200, 0, null);
  
- if (!state) {
- state = {
+ // Update memory cache
+ if (!mockVariants.has(body.requestId)) mockVariants.set(body.requestId, []);
+ mockVariants.get(body.requestId)!.push({
+ id: variantId,
+ name: body.name,
  isMocked: false,
- payload: '',
- isStarred: false,
+ payload: '{}',
  selectedExample: null,
  statusCode: 200,
  latencyMs: 0,
  pathParamsOverrides: {}
- };
- mockStates.set(body.id, state);
- }
- 
- if (body.isMocked !== undefined) state.isMocked = body.isMocked;
- if (body.payload !== undefined) state.payload = body.payload;
- if (body.isStarred !== undefined) state.isStarred = body.isStarred;
- if (body.selectedExample !== undefined) state.selectedExample = body.selectedExample;
- if (body.statusCode !== undefined) state.statusCode = body.statusCode;
- if (body.latencyMs !== undefined) state.latencyMs = body.latencyMs;
- if (body.pathParamsOverrides !== undefined) state.pathParamsOverrides = body.pathParamsOverrides;
- 
- // Persist the new state in SQLite
- updateMockState(body.id, state.isMocked, state.payload, state.isStarred, state.selectedExample, state.statusCode, state.latencyMs, state.pathParamsOverrides);
- 
- return new Response(JSON.stringify({ success: true }), {
- headers: {
- "Content-Type": "application/json",
- "Access-Control-Allow-Origin": "*"
- }
  });
+
+ return new Response(JSON.stringify({ success: true, id: variantId }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
  } catch (err: unknown) {
- const e = err as Error;
- console.error("Erreur dans /api/mocks/update :", e);
- return new Response(e.message || "Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
  }
  }
+
+ // Mettre à jour une variante existante
+ if (url.pathname.startsWith('/api/mocks/variants/') && req.method === 'PUT') {
+ try {
+ const id = url.pathname.split('/').pop()!;
+ const body = await req.json();
+ updateMockVariant(id, body);
+ 
+ // Find in memory cache and update
+ for (const variants of mockVariants.values()) {
+ const variant = variants.find(v => v.id === id);
+ if (variant) {
+ if (body.name !== undefined) variant.name = body.name;
+ if (body.isMocked !== undefined) variant.isMocked = body.isMocked;
+ if (body.payload !== undefined) variant.payload = body.payload;
+ if (body.selectedExample !== undefined) variant.selectedExample = body.selectedExample;
+ if (body.statusCode !== undefined) variant.statusCode = body.statusCode;
+ if (body.latencyMs !== undefined) variant.latencyMs = body.latencyMs;
+ if (body.pathParamsOverrides !== undefined) variant.pathParamsOverrides = body.pathParamsOverrides;
+ break;
+ }
+ }
+
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ } catch (err: unknown) {
+ return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ }
+ }
+
+ // Supprimer une variante
+ if (url.pathname.startsWith('/api/mocks/variants/') && req.method === 'DELETE') {
+ try {
+ const id = url.pathname.split('/').pop()!;
+ deleteMockVariant(id);
+ 
+ // Find in memory cache and delete
+ for (const [reqId, variants] of mockVariants.entries()) {
+ const index = variants.findIndex(v => v.id === id);
+ if (index !== -1) {
+ variants.splice(index, 1);
+ break;
+ }
+ }
+
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ } catch (err: unknown) {
+ return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ }
+ }
+
  return null;
 }
