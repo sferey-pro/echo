@@ -28,6 +28,8 @@ export function RequestDetails() {
   const variants = request?.variants || [];
   
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+ const [isCreateVariantOpen, setIsCreateVariantOpen] = useState(false);
+ const [newVariantName, setNewVariantName] = useState("");
 
   // Sync active variant ID when request changes
   useEffect(() => {
@@ -194,21 +196,22 @@ export function RequestDetails() {
     setIsSaving(false);
   };
 
-  const handleCreateVariant = async () => {
-    const name = prompt("Nom de la nouvelle variante (ex: Erreur 404, Admin User) :");
-    if (!name) return;
-    setIsSaving(true);
-    try {
-      const newId = await createMockVariant(request.id, name);
-      await loadCollection();
-      setActiveVariantId(newId);
-      toast.success("Variante créée");
-    } catch (e) {
-      toast.error("Erreur création variante");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const submitCreateVariant = async () => {
+ if (!newVariantName.trim()) return;
+ setIsSaving(true);
+ try {
+ const newId = await createMockVariant(request.id, newVariantName.trim());
+ await loadCollection();
+ setActiveVariantId(newId);
+ toast.success("Variante créée");
+ setIsCreateVariantOpen(false);
+ setNewVariantName("");
+ } catch (e) {
+ toast.error("Erreur création variante");
+ } finally {
+ setIsSaving(false);
+ }
+ };
 
   const handleDeleteVariant = async () => {
     if (variants.length <= 1) {
@@ -293,9 +296,44 @@ export function RequestDetails() {
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs font-bold uppercase text-muted-foreground">Variante active :</span>
             <div className="flex items-center gap-1">
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleCreateVariant} title="Créer une variante">
-                <Plus weight="bold" />
-              </Button>
+              <AlertDialog open={isCreateVariantOpen} onOpenChange={setIsCreateVariantOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost" className="h-6 w-6" title="Créer une variante">
+                    <Plus weight="bold" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="shadow-lg rounded-xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-bold text-xl text-foreground">Créer une variante</AlertDialogTitle>
+                    <AlertDialogDescription className="text-muted-foreground">
+                      Nom de la nouvelle variante (ex: Erreur 404, Admin User) :
+                    </AlertDialogDescription>
+                    <div className="py-4">
+                      <Input 
+                        autoFocus
+                        placeholder="Nom de la variante" 
+                        value={newVariantName} 
+                        onChange={e => setNewVariantName(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') submitCreateVariant();
+                        }}
+                      />
+                    </div>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setNewVariantName('')}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        submitCreateVariant();
+                      }}
+                      disabled={!newVariantName.trim() || isSaving}
+                    >
+                      Créer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50" title="Supprimer la variante" disabled={variants.length <= 1}>
