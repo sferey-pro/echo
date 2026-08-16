@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting } from '../../lib/api';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 interface CollectionSettingsModalProps {
  isOpen: boolean;
@@ -55,12 +56,11 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <label className="block text-sm font-black text-foreground/80 mb-1">
  Chemin du dépôt Git (REPO_PATH)
  </label>
- <input 
+ <Input 
  type="text" 
  value={repoPath}
  onChange={e => setRepoPath(e.target.value)}
  placeholder="Ex: ../collection"
- className=" w-full bg-white text-sm text-foreground focus:outline-none"
  />
  <p className="text-xs font-bold text-muted-foreground mt-1">Le dossier local surveillé pour l'ingestion (collection actuelle).</p>
  </div>
@@ -69,12 +69,11 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <label className="block text-sm font-black text-foreground/80 mb-1">
  Intervalle de Synchronisation Git (ms)
  </label>
- <input 
+ <Input 
  type="number" 
  value={gitSyncInterval}
  onChange={e => setGitSyncInterval(e.target.value)}
  placeholder="Ex: 300000"
- className=" w-full bg-white text-sm text-foreground focus:outline-none"
  />
  <p className="text-xs font-bold text-muted-foreground mt-1">Fréquence du `git fetch` automatique (par défaut: 300000ms = 5 minutes).</p>
  </div>
@@ -85,14 +84,14 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <button 
  type="button" 
  onClick={onClose}
- className=" bg-slate-200 text-black px-4 py-2 text-sm font-black transition-colors"
+ className="bg-slate-200 text-black px-4 py-2 text-sm font-bold rounded-md transition-colors hover:bg-slate-300"
  >
  Annuler
  </button>
  <button 
  type="submit" 
  disabled={loading}
- className=" bg- text-black px-4 py-2 text-sm font-black transition-colors disabled:opacity-50"
+ className="bg-primary text-primary-foreground px-4 py-2 text-sm font-bold rounded-md transition-colors hover:bg-primary/90 disabled:opacity-50"
  >
  {loading ? 'Sauvegarde...' : 'Enregistrer'}
  </button>

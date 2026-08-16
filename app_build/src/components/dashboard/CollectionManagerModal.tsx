@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting, cloneCollection } from '../../lib/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -129,20 +131,19 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  <div className="mb-8 p-4 bg-white rounded-xl border-2 border-">
  <h3 className="text-sm font-black text-foreground mb-3">Cloner un nouveau dépôt Git</h3>
  <div className="flex gap-2">
- <input 
+ <Input 
  type="text" 
  value={repoUrl}
  onChange={e => setRepoUrl(e.target.value)}
  placeholder="Ex: https://github.com/user/repo.git"
- className=" flex-1 bg-white text-foreground font-bold focus:outline-none"
+ className="flex-1"
  />
- <button 
+ <Button 
  onClick={() => handleClone(false)}
  disabled={cloning || !repoUrl}
- className=" bg- text-black font-black px-4 py-2 disabled:opacity-50"
  >
  {cloning ? 'Clonage...' : 'Cloner'}
- </button>
+ </Button>
  </div>
  </div>
 
@@ -152,7 +153,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  {collections.map(name => (
  <div 
  key={name} 
- className={`p-4 rounded-xl border-2 transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg- border- shadow-[4px_4px_0px_black]' : 'bg-white border- hover:shadow-[4px_4px_0px_black]'}`}
+ className={`p-4 rounded-xl border-2 transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg-primary/5 border-primary shadow-sm' : 'bg-card border-border hover:shadow-md'}`}
  >
  <div className="flex justify-between items-start mb-4">
  <div className="flex flex-col">
@@ -165,21 +166,24 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  </div>
  
  <div className="flex justify-between items-center mt-2">
- <button 
- className="text-red-500 font-bold hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity text-sm"
+ <Button 
+ variant="ghost"
+ size="sm"
+ className="text-destructive font-bold hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
  onClick={() => handleDelete(name)}
  >
  Supprimer
- </button>
+ </Button>
  
  {activeCollection !== name && (
- <button 
- className=" bg- text-black text-sm px-3 py-1 font-black ml-auto"
+ <Button 
+ size="sm"
+ className="ml-auto"
  onClick={() => handleActivate(name)}
  disabled={loading}
  >
  Activer
- </button>
+ </Button>
  )}
  </div>
  </div>
@@ -195,21 +199,21 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  </div>
 
  <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
- <AlertDialogContent className="border-2 border- shadow-[8px_8px_0px_black] rounded-none">
+ <AlertDialogContent className="shadow-lg rounded-xl">
  <AlertDialogHeader>
- <AlertDialogTitle className="font-black text-xl">{confirmDialog?.title}</AlertDialogTitle>
- <AlertDialogDescription className="font-bold text-black ">
+ <AlertDialogTitle className="font-bold text-xl">{confirmDialog?.title}</AlertDialogTitle>
+ <AlertDialogDescription className="text-muted-foreground">
  {confirmDialog?.description}
  </AlertDialogDescription>
  </AlertDialogHeader>
  <AlertDialogFooter>
- <AlertDialogCancel className=" bg-slate-200 text-black font-black">Annuler</AlertDialogCancel>
+ <AlertDialogCancel>Annuler</AlertDialogCancel>
  <AlertDialogAction 
  onClick={() => {
  confirmDialog?.onConfirm();
  setConfirmDialog(null);
  }}
- className=" bg- text-black font-black hover:bg-red-500"
+ className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
  >
  Confirmer
  </AlertDialogAction>

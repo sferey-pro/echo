@@ -5,6 +5,8 @@ import { updateMock } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { MethodBadge } from '../ui/method-badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import { useStore } from '../../store/useStore';
 
@@ -186,17 +188,17 @@ export function RequestDetails() {
  <div className="flex flex-wrap gap-2 mt-1 items-center">
  <span className="text-xs font-black uppercase mr-1">URL Params:</span>
  {[...urlParams.variables, ...urlParams.pathParams].map(param => (
- <div key={param} className="flex items-center p-0 overflow-hidden h-8">
+ <div key={param} className="flex items-center overflow-hidden h-8 border border-border rounded-md bg-background focus-within:ring-1 focus-within:ring-primary/50">
  <span className="text-xs font-bold px-2 py-1 bg-muted border-r border-border h-full flex items-center">
  {urlParams.variables.includes(param) ? `{{${param}}}` : `:${param}`}
  </span>
- <input 
+ <Input 
  type="text" 
  placeholder="Default"
  value={pathParamsOverrides[param] || ''}
  onChange={(e) => setPathParamsOverrides({ ...pathParamsOverrides, [param]: e.target.value })}
  onBlur={(e) => handleParamChange(param, e.target.value)}
- className="bg-transparent text-xs font-bold px-2 py-1 w-24 focus:outline-none"
+ className="h-full border-none shadow-none rounded-none text-xs font-bold px-2 w-24 focus-visible:ring-0 bg-transparent"
  />
  </div>
  ))}
@@ -205,18 +207,20 @@ export function RequestDetails() {
  </div>
  </div>
  <div className="flex items-center gap-3 shrink-0">
- <button 
+ <Button 
  onClick={handleToggleMock} 
  disabled={isSaving}
- className={` px-4 py-2 ${request.isMocked ? ' bg-green-500 text-white' : 'bg-slate-200 '}`}>
+ variant={request.isMocked ? "default" : "secondary"}
+ className={request.isMocked ? "bg-green-500 hover:bg-green-600 text-white" : ""}
+ >
  {request.isMocked ? 'Mock Actif' : 'Pass-through'}
- </button>
- <button 
+ </Button>
+ <Button 
  onClick={handleSavePayload} 
  disabled={isSaving}
- className=" px-4 py-2 bg-primary text-primary-foreground ">
+ >
  {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
- </button>
+ </Button>
  </div>
  </div>
  

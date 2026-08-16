@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { fetchScenarios, createScenario, applyScenario, deleteScenario } from '../../lib/api';
 import type { Scenario } from '../../lib/api';
 import {
@@ -77,25 +78,26 @@ export function ScenarioPanel() {
  <div className="flex flex-col h-full bg-transparent overflow-hidden">
  <div className="p-3 border-b border-border bg-card shrink-0 flex items-center justify-between">
  <h3 className="text-sm font-semibold text-foreground">Mes Scénarios</h3>
- <button 
+ <Button 
  onClick={() => setIsCreating(!isCreating)} 
- className={` text-black font-black text-xs px-2 py-1 ${isCreating ? 'bg-slate-200' : 'bg-'}`}
+ variant={isCreating ? "secondary" : "default"}
+ size="sm"
+ className="text-xs h-7 px-2"
  >
  {isCreating ? 'Annuler' : '+ Nouveau'}
- </button>
+ </Button>
  </div>
 
  {isCreating && (
  <form onSubmit={handleSaveCurrent} className="p-3 border-b border-border bg-muted flex flex-col gap-2">
  <p className="text-xs text-muted-foreground">Créer un nouveau scénario vide.</p>
  <div className="flex gap-2">
- <input 
+ <Input 
  autoFocus
  type="text" 
  placeholder="Nom du scénario (ex: Parcours 500)" 
  value={newScenarioName}
  onChange={e => setNewScenarioName(e.target.value)}
- className="flex-1 bg-card border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary/50"
  />
  <Button type="submit" disabled={isSaving || !newScenarioName.trim()} size="sm" className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground">
  {isSaving ? '...' : 'Save'}
@@ -126,12 +128,13 @@ export function ScenarioPanel() {
  </div>
  
  <div className="flex gap-2 mt-1">
- <button 
+ <Button 
  onClick={(e) => { e.stopPropagation(); handleApply(scenario.id); }}
- className="flex-1 bg- text-black text-xs py-1"
+ className="flex-1 h-7 text-xs"
+ size="sm"
  >
  ▶ Appliquer
- </button>
+ </Button>
  <AlertDialog>
  <AlertDialogTrigger asChild>
  <Button 
@@ -144,19 +147,19 @@ export function ScenarioPanel() {
  ×
  </Button>
  </AlertDialogTrigger>
- <AlertDialogContent className="border-2 border- shadow-[8px_8px_0px_black] rounded-none">
+ <AlertDialogContent className="shadow-lg rounded-xl">
  <AlertDialogHeader>
- <AlertDialogTitle className="font-black text-xl text-red-600">Supprimer ce scénario ?</AlertDialogTitle>
- <AlertDialogDescription className="font-bold text-black ">
+ <AlertDialogTitle className="font-bold text-xl text-red-600">Supprimer ce scénario ?</AlertDialogTitle>
+ <AlertDialogDescription className="text-muted-foreground">
  Cette action supprimera définitivement le scénario "{scenario.name}". 
  Cela n'affectera pas les requêtes de votre collection.
  </AlertDialogDescription>
  </AlertDialogHeader>
  <AlertDialogFooter>
- <AlertDialogCancel className=" bg-slate-200 text-black font-black">Annuler</AlertDialogCancel>
+ <AlertDialogCancel>Annuler</AlertDialogCancel>
  <AlertDialogAction 
  onClick={(e) => { e.stopPropagation(); handleDelete(scenario.id); }}
- className=" bg- text-black font-black hover:bg-red-500"
+ className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
  >
  Supprimer
  </AlertDialogAction>

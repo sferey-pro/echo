@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SplashScreen } from './SplashScreen';
 import { MethodBadge } from '../ui/method-badge';
+import { Button } from '@/components/ui/button';
 import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
@@ -177,32 +178,37 @@ export function DashboardLayout() {
  ))}
  </SelectContent>
  </Select>
- <button
+ <Button
+ variant="secondary"
+ size="icon"
  onClick={() => setIsEnvViewerOpen(true)}
- className="ml-1 p-1.5 bg-green-400 text-black"
+ className="ml-1 h-9 w-9 bg-green-50 text-green-700 hover:bg-green-100"
  title="Voir les variables d'environnement"
  >
- <Eye className="w-5 h-5" />
- </button>
- <button
+ <Eye className="w-4 h-4" />
+ </Button>
+ <Button
+ variant="secondary"
+ size="icon"
  onClick={() => setIsSettingsOpen(true)}
- className="ml-2 p-1.5 bg-blue-400 text-black"
+ className="ml-2 h-9 w-9 bg-blue-50 text-blue-700 hover:bg-blue-100"
  title="Paramètres Echo"
  >
- <Settings className="w-5 h-5" />
- </button>
+ <Settings className="w-4 h-4" />
+ </Button>
  </div>
  </div>
  <div className="flex items-center gap-3">
  <div className="mr-2 flex items-center border-r-2 border- pr-4">
- <button
+ <Button
+ variant="outline"
  onClick={handleGitSync}
  disabled={isSyncing}
- className={`flex items-center gap-2 px-3 py-1.5 ${
+ className={`flex items-center gap-2 ${
  syncStatus.commitsBehind > 0 
- ? ' bg-orange-400' 
- : ' bg-green-400 text-black'
- } ${isSyncing ? 'opacity-50 cursor-wait shadow-none translate-y-[2px]' : ''}`}
+ ? 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100' 
+ : 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+ } ${isSyncing ? 'opacity-50 cursor-wait' : ''}`}
  title="Cliquer pour forcer la synchronisation avec Git"
  >
  {isSyncing ? (
@@ -212,12 +218,12 @@ export function DashboardLayout() {
  ) : (
  <CloudDownload className="w-4 h-4 opacity-50" />
  )}
- <span className="text-xs">
+ <span className="text-xs font-semibold">
  {syncStatus.commitsBehind > 0 
  ? `${syncStatus.commitsBehind} Maj en attente` 
  : 'Synchro OK'}
  </span>
- </button>
+ </Button>
  </div>
  </div>
  </div>

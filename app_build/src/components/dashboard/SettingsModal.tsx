@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting } from '../../lib/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -76,12 +78,11 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  <label className="block text-sm font-black text-foreground/80 mb-1">
  Target API URL
  </label>
- <input 
+ <Input 
  type="text" 
  value={targetApiUrl}
  onChange={e => setTargetApiUrl(e.target.value)}
  placeholder="Ex: http://localhost:8080"
- className=" w-full bg-white text-sm text-foreground focus:outline-none"
  />
  <p className="text-xs text-muted-foreground mt-1 font-bold">L'URL vers laquelle le proxy redirige les requêtes non-mockées.</p>
  </div>
@@ -93,23 +94,24 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  
  <AlertDialog>
  <AlertDialogTrigger asChild>
- <button 
+ <Button 
  type="button" 
- className=" bg- text-black text-sm px-4 py-2 w-full font-black hover:bg-red-500"
+ variant="destructive"
+ className="w-full font-bold"
  >
  Réinitialiser complètement l'application
- </button>
+ </Button>
  </AlertDialogTrigger>
- <AlertDialogContent className="border-2 border- shadow-[8px_8px_0px_black] rounded-none">
+ <AlertDialogContent className="shadow-lg rounded-xl">
  <AlertDialogHeader>
- <AlertDialogTitle className="font-black text-xl text-red-600">Réinitialisation complète</AlertDialogTitle>
- <AlertDialogDescription className="font-bold text-black ">
+ <AlertDialogTitle className="font-bold text-xl text-red-600">Réinitialisation complète</AlertDialogTitle>
+ <AlertDialogDescription className="text-muted-foreground">
  Êtes-vous absolument sûr de vouloir réinitialiser l'application ? Tout votre travail en cours (mocks, scénarios) sera définitivement perdu.
  </AlertDialogDescription>
  </AlertDialogHeader>
  <AlertDialogFooter>
- <AlertDialogCancel className=" bg-slate-200 text-black font-black">Annuler</AlertDialogCancel>
- <AlertDialogAction type="button" onClick={handleReset} className=" bg- text-black font-black hover:bg-red-500">
+ <AlertDialogCancel>Annuler</AlertDialogCancel>
+ <AlertDialogAction type="button" onClick={handleReset} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
  Oui, réinitialiser
  </AlertDialogAction>
  </AlertDialogFooter>
@@ -119,20 +121,19 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  </div>
 
  <div className="pt-6 flex justify-end gap-2">
- <button 
+ <Button 
  type="button" 
+ variant="secondary"
  onClick={onClose}
- className=" bg-slate-200 text-black px-4 py-2 text-sm font-black transition-colors"
  >
  Annuler
- </button>
- <button 
+ </Button>
+ <Button 
  type="submit" 
  disabled={loading}
- className=" bg- text-black px-4 py-2 text-sm font-black transition-colors disabled:opacity-50"
  >
  {loading ? 'Sauvegarde...' : 'Enregistrer'}
- </button>
+ </Button>
  </div>
  </form>
  </div>

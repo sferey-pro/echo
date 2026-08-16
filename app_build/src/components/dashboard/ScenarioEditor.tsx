@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ApiRequest } from '../../lib/parser';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { MethodBadge } from '@/components/ui/method-badge';
 import { fetchScenarios, updateScenario } from '../../lib/api';
 import type { Scenario, ScenarioAction } from '../../lib/api';
@@ -99,24 +100,25 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  <div className="p-4 border-b border-border bg-card/50 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0">
  <div className="flex-1 w-full">
  <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Éditer le scénario</h2>
- <input 
+ <Input 
  type="text" 
  value={name}
  onChange={e => setName(e.target.value)}
- className="text-xl font-bold text-foreground tracking-tight bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none px-0 py-1 w-full max-w-md transition-colors"
+ className="text-xl font-bold text-foreground tracking-tight bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-primary px-2 py-1 h-9 w-full max-w-md transition-colors shadow-none"
  />
  </div>
  <div className="flex items-center gap-3 shrink-0">
- <button onClick={onClose} className=" bg-slate-200 text-black font-black text-xs px-3 py-1.5">
+ <Button onClick={onClose} variant="secondary" size="sm" className="h-8 text-xs px-3">
  Fermer
- </button>
- <button 
+ </Button>
+ <Button 
  onClick={handleSave} 
  disabled={isSaving}
- className=" bg- text-black font-black text-xs px-3 py-1.5 disabled:opacity-50"
+ size="sm"
+ className="h-8 text-xs px-3"
  >
  {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
- </button>
+ </Button>
  </div>
  </div>
  
@@ -124,23 +126,24 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  
  <div className="flex items-center justify-between mb-2">
  <h3 className="text-sm font-semibold text-foreground/80">Requêtes Mockées ({actions.length})</h3>
- <button 
+ <Button 
  onClick={() => setIsAdding(!isAdding)}
- className={` text-black font-black text-xs px-3 py-1.5 ${isAdding ? 'bg-slate-200' : 'bg-'}`}
+ variant={isAdding ? "secondary" : "default"}
+ size="sm"
+ className="h-8 text-xs px-3"
  >
  {isAdding ? 'Annuler' : '+ Ajouter une requête'}
- </button>
+ </Button>
  </div>
 
  {isAdding && (
  <div className="bg-muted/50 border border-border rounded-lg p-3 flex flex-col gap-2">
- <input 
+ <Input 
  autoFocus
  type="text" 
  placeholder="Rechercher une requête (nom, url)..." 
  value={searchQuery}
  onChange={e => setSearchQuery(e.target.value)}
- className="bg-background border border-border rounded px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 w-full"
  />
  <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
  {filteredRequests.map(req => (
