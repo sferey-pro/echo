@@ -109,7 +109,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel className="neo-button bg-slate-200 text-black font-black">Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReset} className="neo-button bg-neo-red text-black font-black hover:bg-red-500">
+                    <AlertDialogAction type="button" onClick={handleReset} className="neo-button bg-neo-red text-black font-black hover:bg-red-500">
                       Oui, réinitialiser
                     </AlertDialogAction>
                   </AlertDialogFooter>
