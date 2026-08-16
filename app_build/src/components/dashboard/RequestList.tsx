@@ -18,7 +18,8 @@ type ListItem =
  | { type: 'starred-header', isExpanded: boolean }
  | { type: 'starred-request', request: ApiRequest }
  | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
- | { type: 'request', request: ApiRequest, depth: number };
+ | { type: 'request', request: ApiRequest, depth: number }
+ | { type: 'variant', variant: any, request: ApiRequest, depth: number };
 
 export function RequestList({ onOpenSettings, onOpenCollections }: RequestListProps) {
  const { folders, requests, selectedRequestId, selectedFolderId, setSelectedRequestId, setSelectedFolderId, loadCollection } = useStore();
@@ -50,6 +51,10 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  if (isStarredExpanded) {
  for (const req of starredRequests) {
  items.push({ type: 'starred-request', request: req });
+ const mockedVariants = req.variants?.filter(v => v.isMocked) || [];
+ for (const v of mockedVariants) {
+ items.push({ type: 'variant', variant: v, request: req, depth: 2 });
+ }
  }
  }
  }
@@ -67,6 +72,10 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  }
  for (const req of reqList) {
  items.push({ type: 'request', request: req, depth });
+ const mockedVariants = req.variants?.filter(v => v.isMocked) || [];
+ for (const v of mockedVariants) {
+ items.push({ type: 'variant', variant: v, request: req, depth: depth + 1 });
+ }
  }
  };
 
@@ -178,7 +187,32 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  {req.name}
  </span>
  <span className="ml-2 flex items-center shrink-0 z-10">
- {req.isMocked && <Lightning className="w-3 h-3 text-green-500 mr-1" weight="fill" />}
+ {req.variants?.some(v => v.isMocked) && <Lightning className="w-3 h-3 text-green-500 mr-1" weight="fill" />}
+ </span>
+ </div>
+ </div>
+ );
+ }
+ 
+ if (item.type === 'variant') {
+ const req = item.request;
+ const v = item.variant;
+ const paddingLeft = `${item.depth * 1.1 + 1.25}rem`;
+ 
+ return (
+ <div
+ key={virtualItem.key}
+ style={style}
+ onClick={() => setSelectedRequestId(req.id)}
+ className="flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative hover:bg-slate-100 :bg-slate-800 text-foreground"
+ >
+ <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
+ {Array.from({ length: item.depth }).map((_, i) => (
+ <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
+ ))}
+ <Lightning className="w-3.5 h-3.5 text-green-500 mr-2 z-10" weight="fill" />
+ <span className="truncate flex-1 z-10 font-medium text-muted-foreground text-[11px]">
+ {v.name} ({v.statusCode})
  </span>
  </div>
  </div>
@@ -197,7 +231,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  </span>
  <div className="flex items-center gap-1 border-l border-border pl-2 ml-1">
  <button 
- onClick={loadCollection}
+ onClick={() => loadCollection()}
  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Actualiser la collection"
  >
