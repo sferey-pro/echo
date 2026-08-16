@@ -3,7 +3,8 @@ import { join } from "path";
 import type { ScenarioAction } from "./api";
 
 // Initialize the SQLite database
-const dbPath = join(process.cwd(), '.echo-state.sqlite');
+const isTestEnv = process.env.NODE_ENV === 'test';
+const dbPath = isTestEnv ? ':memory:' : join(process.cwd(), '.echo-state.sqlite');
 const db = new Database(dbPath);
 
 // Create the table if it doesn't exist
