@@ -67,7 +67,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  <span className="font-medium truncate">{req.name}</span>
  <span className="text-xs opacity-60 truncate font-mono">{req.url}</span>
  </div>
- {req.isMocked && <Lightning className="w-4 h-4 text-green-500 mr-2" weight="fill" />}
+ {req.variants?.some(v => v.isMocked) && <Lightning className="w-4 h-4 text-green-500 mr-2" weight="fill" />}
  </Command.Item>
  ))}
  </Command.Group>
