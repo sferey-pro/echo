@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Command } from 'cmdk';
 import type { ApiRequest } from '../../lib/parser';
-import { Search, Folder, Zap, Settings } from 'lucide-react';
+import { MagnifyingGlass, Folder, Lightning, Gear } from '@phosphor-icons/react';
 import { MethodBadge } from '../ui/method-badge';
 
 interface CommandPaletteProps {
@@ -38,7 +38,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  >
  <Command className="w-full h-full flex flex-col bg-transparent" loop>
  <div className="flex items-center px-4 border-b border-border">
- <Search className="w-5 h-5 text-muted-foreground mr-2" />
+ <MagnifyingGlass className="w-5 h-5 text-muted-foreground mr-3" />
  <Command.Input 
  autoFocus
  className="flex-1 h-14 bg-transparent text-foreground outline-none placeholder:text-muted-foreground font-medium border-none focus:ring-0" 
@@ -67,7 +67,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  <span className="font-medium truncate">{req.name}</span>
  <span className="text-xs opacity-60 truncate font-mono">{req.url}</span>
  </div>
- {req.isMocked && <Zap className="w-4 h-4 text-yellow-400" />}
+ {req.isMocked && <Lightning className="w-4 h-4 text-green-500 mr-2" weight="fill" />}
  </Command.Item>
  ))}
  </Command.Group>
@@ -80,7 +80,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  }}
  className="flex items-center gap-3 px-3 py-2.5 mt-1 rounded-md text-sm text-foreground cursor-pointer aria-selected:bg-accent aria-selected:text-accent-foreground transition-colors"
  >
- <Settings className="w-4 h-4 text-muted-foreground" />
+ <Gear className="w-4 h-4 mr-3 opacity-50" weight="fill" />
  <span>Paramètres d'Environnement</span>
  </Command.Item>
  <Command.Item 
@@ -90,7 +90,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  }}
  className="flex items-center gap-3 px-3 py-2.5 mt-1 rounded-md text-sm text-foreground cursor-pointer aria-selected:bg-accent aria-selected:text-accent-foreground transition-colors"
  >
- <Folder className="w-4 h-4 text-muted-foreground" />
+ <Folder className="w-4 h-4 mr-3 opacity-50" weight="fill" />
  <span>Gérer les Collections</span>
  </Command.Item>
  </Command.Group>

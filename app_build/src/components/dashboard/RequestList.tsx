@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
+import { CaretRight, Folder, FolderOpen, Star, ArrowsClockwise, Books, Gear, Lightning } from '@phosphor-icons/react';
 import { MethodBadge } from '../ui/method-badge';
 
 import { useStore } from '../../store/useStore';
@@ -103,10 +103,11 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  onClick={(e) => toggleFolder('__starred__', e)}
  className="flex items-center px-2 hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
  >
- <ChevronRight 
+ <CaretRight 
  className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200", item.isExpanded && "rotate-90")} 
+ weight="bold"
  />
- <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-500" fill="currentColor" />
+ <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-500" weight="fill" />
  <span className="truncate" style={{ textShadow: '0 0 8px var(--color-)' }}>Mes Favoris</span>
  </div>
  );
@@ -131,13 +132,14 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  {Array.from({ length: item.depth }).map((_, i) => (
  <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
  ))}
- <ChevronRight 
+ <CaretRight 
  className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200 z-10", item.isExpanded && "rotate-90")} 
+ weight="bold"
  />
  {item.isExpanded ? (
- <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" />
+ <FolderOpen className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" weight="fill" />
  ) : (
- <Folder className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" fill="currentColor" />
+ <Folder className="w-3.5 h-3.5 mr-1.5 text-yellow-600/80 z-10" weight="fill" />
  )}
  <span className="truncate z-10">{item.folder.name}</span>
  </div>
@@ -170,11 +172,11 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  
  <MethodBadge method={req.method} className="z-10 mr-2" />
  <span className="truncate flex-1 z-10 font-medium">
- {req.isStarred && <Star className="w-3 h-3 inline mr-1 text-yellow-500" fill="currentColor" />}
+ {req.isStarred && <Star className="w-3 h-3 inline mr-1 text-yellow-500" weight="fill" />}
  {req.name}
  </span>
  <span className="ml-2 flex items-center shrink-0 z-10">
- {req.isMocked && <Zap className="w-3 h-3 text-green-400 mr-1" />}
+ {req.isMocked && <Lightning className="w-3 h-3 text-green-500 mr-1" weight="fill" />}
  </span>
  </div>
  </div>
@@ -188,7 +190,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  <div className="h-full bg-card/50 flex flex-col font-sans">
  <div className="p-3 bg-transparent flex items-center gap-2">
  <h2 className="text-xs font-black text-foreground tracking-wide uppercase flex-1">Filtres</h2>
- <span className="text-[10px] bg-yellow-400 text-black">
+ <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
  {requests.length}
  </span>
  <div className="flex items-center gap-1 border-l border-border pl-2 ml-1">
@@ -197,21 +199,21 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Actualiser la collection"
  >
- <RefreshCw className="w-3.5 h-3.5" />
+ <ArrowsClockwise className="w-3.5 h-3.5" weight="bold" />
  </button>
  <button 
  onClick={onOpenCollections}
  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Gérer les Collections"
  >
- <Library className="w-3.5 h-3.5" />
+ <Books className="w-3.5 h-3.5" weight="fill" />
  </button>
  <button 
  onClick={onOpenSettings}
  className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Paramètres de la Collection"
  >
- <Settings className="w-3.5 h-3.5" />
+ <Gear className="w-3.5 h-3.5" weight="bold" />
  </button>
  </div>
  </div>

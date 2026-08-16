@@ -42,7 +42,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  const rmProc = Bun.spawn(["rm", "-rf", targetDir], { stdout: "pipe", stderr: "pipe" });
  await rmProc.exited;
  
- const proc = Bun.spawn(["git", "clone", repoUrl, targetDir], { stdout: "pipe", stderr: "pipe" });
+ const proc = Bun.spawn(["git", "clone", "-b", "main", repoUrl, targetDir], { stdout: "pipe", stderr: "pipe" });
  await proc.exited;
  
  if (proc.exitCode !== 0) {

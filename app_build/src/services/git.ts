@@ -4,7 +4,7 @@ import { getSetting } from "../lib/db";
 import { parseCollection, parseFile, removeFileFromCache } from "../lib/parser";
 import { initProxy } from "../lib/proxy";
 
-export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "" };
+export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "", hasGit: false };
 
 export function getRepoPath() {
  const activeCol = getSetting('ACTIVE_COLLECTION_NAME');
@@ -21,14 +21,17 @@ let currentWatchPath: string | null = null;
 
 export async function runSync() {
  const repo = getRepoPath();
- if (existsSync(repo) && existsSync(resolve(repo, '.git'))) {
+ const hasGit = existsSync(repo) && existsSync(resolve(repo, '.git'));
+ gitSyncStatus.hasGit = hasGit;
+
+ if (hasGit) {
  try {
  // Execute fetch
- const fetchProc = Bun.spawn(["git", "fetch"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
+ const fetchProc = Bun.spawn(["git", "fetch", "origin", "main"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
  await fetchProc.exited;
  if (fetchProc.exitCode === 0) {
  // Check delta
- const revProc = Bun.spawn(["git", "rev-list", "HEAD..@{u}", "--count"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
+ const revProc = Bun.spawn(["git", "rev-list", "HEAD..origin/main", "--count"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
  await revProc.exited;
  if (revProc.exitCode === 0) {
  const countStr = await new Response(revProc.stdout).text();
@@ -50,6 +53,10 @@ export async function runSync() {
  console.error("[Git Polling] Failed to fetch", e);
  gitSyncStatus.error = e.message;
  }
+ } else {
+ gitSyncStatus.isSynced = false;
+ gitSyncStatus.commitsBehind = 0;
+ gitSyncStatus.error = "Aucun dépôt Git trouvé.";
  }
  
  const interval = parseInt(getSetting('GIT_SYNC_INTERVAL') || process.env.GIT_SYNC_INTERVAL || "300000", 10);

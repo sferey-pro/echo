@@ -15,7 +15,7 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  if (url.pathname === '/api/sync/pull' && req.method === 'POST') {
  try {
  const repo = getRepoPath();
- const proc = Bun.spawn(["git", "pull"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
+ const proc = Bun.spawn(["git", "pull", "origin", "main"], { cwd: repo, stdout: "pipe", stderr: "pipe" });
  await proc.exited;
  if (proc.exitCode !== 0) {
  const errText = await new Response(proc.stderr).text();

@@ -20,7 +20,7 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  rmSync(resolve(base, item), { recursive: true, force: true });
  }
  }
- } catch (e) {
+ } catch {
  // ignore if base doesn't exist
  }
  

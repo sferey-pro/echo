@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { MethodBadge } from '../ui/method-badge';
 import { Button } from '@/components/ui/button';
+import { MagnifyingGlass } from '@phosphor-icons/react';
 import { Input } from '@/components/ui/input';
 
 import { useStore } from '../../store/useStore';
@@ -56,7 +57,7 @@ export function RequestDetails() {
  return (
  <div className="h-full bg-background flex flex-col items-center justify-center text-muted-foreground space-y-4">
  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border border-border/50">
- <span className="text-2xl opacity-50">🔍</span>
+ <MagnifyingGlass className="w-12 h-12 text-muted-foreground opacity-50" weight="duotone" />
  </div>
  <p className="font-medium">Sélectionnez une requête pour voir les détails</p>
  </div>

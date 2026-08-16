@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useStore } from '../../store/useStore';
+import { MaskHappy } from '@phosphor-icons/react';
 
 export function ScenarioPanel() {
  const { selectedScenarioId, setSelectedScenarioId, loadCollection } = useStore();
@@ -111,7 +112,7 @@ export function ScenarioPanel() {
  <p className="text-xs text-muted-foreground text-center p-4">Chargement...</p>
  ) : scenarios.length === 0 ? (
  <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground space-y-2">
- <span className="text-2xl">🎭</span>
+ <MaskHappy className="w-10 h-10 mb-2 text-muted-foreground opacity-80" weight="duotone" />
  <p className="text-xs">Aucun scénario sauvegardé.</p>
  </div>
  ) : (
@@ -123,7 +124,7 @@ export function ScenarioPanel() {
  >
  <div className="flex items-center justify-between mb-2">
  <span className="text-sm font-black text-foreground flex items-center gap-2">
- <span>🎭</span> {scenario.name}
+ <MaskHappy className="w-4 h-4 mr-1.5 text-primary" weight="fill" /> {scenario.name}
  </span>
  </div>
  

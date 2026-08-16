@@ -3,6 +3,7 @@ import { getSettings, updateSetting, cloneCollection } from '../../lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Books } from '@phosphor-icons/react';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -119,17 +120,17 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
 
  return (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
- <div className="bg-background border-2 border- rounded-xl shadow-[8px_8px_0px_black] w-full max-w-3xl flex flex-col max-h-[85vh]">
- <div className="p-6 flex items-center justify-between border-b-2 border-">
- <h2 className="text-xl font-black text-foreground flex items-center gap-2">
- <span className="text-2xl">📚</span> Gestionnaire de Collections
+ <div className="bg-background border border-border rounded-xl shadow-lg w-full max-w-3xl flex flex-col max-h-[85vh]">
+ <div className="p-6 flex items-center justify-between border-b border-border">
+ <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+ <Books className="w-7 h-7 text-primary" weight="fill" /> Gestionnaire de Collections
  </h2>
- <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors font-black">✕</button>
+ <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">✕</button>
  </div>
 
  <div className="p-6 flex-1 overflow-y-auto">
- <div className="mb-8 p-4 bg-white rounded-xl border-2 border-">
- <h3 className="text-sm font-black text-foreground mb-3">Cloner un nouveau dépôt Git</h3>
+ <div className="mb-8 p-4 bg-card rounded-xl border border-border shadow-sm">
+ <h3 className="text-sm font-semibold text-foreground mb-3">Cloner un nouveau dépôt Git</h3>
  <div className="flex gap-2">
  <Input 
  type="text" 
@@ -147,21 +148,21 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  </div>
  </div>
 
- <h3 className="text-sm font-black text-muted-foreground mb-3 uppercase tracking-wider">Collections Disponibles</h3>
+ <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Collections Disponibles</h3>
  
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {collections.map(name => (
  <div 
  key={name} 
- className={`p-4 rounded-xl border-2 transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg-primary/5 border-primary shadow-sm' : 'bg-card border-border hover:shadow-md'}`}
+ className={`p-4 rounded-xl border transition-all flex flex-col justify-between group ${activeCollection === name ? 'bg-primary/5 border-primary shadow-sm' : 'bg-card border-border hover:shadow-md'}`}
  >
  <div className="flex justify-between items-start mb-4">
  <div className="flex flex-col">
- <span className="font-black text-foreground truncate w-48" title={name}>{name}</span>
- <span className="text-xs font-bold text-muted-foreground mt-1">/collection/{name}</span>
+ <span className="font-medium text-foreground truncate w-48" title={name}>{name}</span>
+ <span className="text-xs font-medium text-muted-foreground mt-1">/collection/{name}</span>
  </div>
  {activeCollection === name && (
- <span className="text-[10px] uppercase font-black bg-black text-white px-2 py-0.5 shadow-sm">Actif</span>
+ <span className="text-[10px] uppercase font-semibold bg-primary text-primary-foreground px-2 py-0.5 rounded-full shadow-sm">Actif</span>
  )}
  </div>
  
@@ -169,7 +170,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  <Button 
  variant="ghost"
  size="sm"
- className="text-destructive font-bold hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+ className="text-destructive font-medium hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
  onClick={() => handleDelete(name)}
  >
  Supprimer

@@ -4,8 +4,7 @@ import { MethodBadge } from '../ui/method-badge';
 import { Button } from '@/components/ui/button';
 import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
-import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
-import type { BrunoFolder, ApiRequest, BrunoEnvironment } from '../../lib/parser';
+import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { ScenarioPanel } from '../dashboard/ScenarioPanel';
 import { ScenarioEditor } from '../dashboard/ScenarioEditor';
 
@@ -17,7 +16,7 @@ import { EnvironmentViewerModal } from '../dashboard/EnvironmentViewerModal';
 import { useStore } from '../../store/useStore';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, CloudDownload, Loader2, Eye } from 'lucide-react';
+import { Gear, CloudArrowDown, Spinner, Eye } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 export function DashboardLayout() {
@@ -45,7 +44,7 @@ export function DashboardLayout() {
  const [splashAnimationDone, setSplashAnimationDone] = useState(false);
 
  const [isSyncing, setIsSyncing] = useState(false);
- const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "" });
+ const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "", hasGit: false });
 
  useEffect(() => {
  const checkStatus = async () => {
@@ -164,9 +163,9 @@ export function DashboardLayout() {
  {/* Header Néo-brutaliste */}
  <div className="flex-none px-4 py-3 bg-card border-b border-border flex items-center justify-between z-20">
  <div className="flex items-center gap-4">
- <h1 className="text-3xl font-black tracking-tight">Echo</h1>
+ <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-br from-primary to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Echo</h1>
  <div className="flex items-center gap-2 ml-4">
- <span className="text-[10px] bg-yellow-400 text-black">ENV</span>
+ <span className="px-1.5 py-0.5 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-700 font-semibold text-[10px] uppercase">ENV</span>
  <Select value={activeEnvironment} onValueChange={handleEnvChange}>
  <SelectTrigger className="w-[150px] h-9 text-sm bg-white text-black focus:ring-0">
  <SelectValue placeholder="Aucun" />
@@ -185,7 +184,7 @@ export function DashboardLayout() {
  className="ml-1 h-9 w-9 bg-green-50 text-green-700 hover:bg-green-100"
  title="Voir les variables d'environnement"
  >
- <Eye className="w-4 h-4" />
+ <Eye className="w-4 h-4" weight="bold" />
  </Button>
  <Button
  variant="secondary"
@@ -194,12 +193,13 @@ export function DashboardLayout() {
  className="ml-2 h-9 w-9 bg-blue-50 text-blue-700 hover:bg-blue-100"
  title="Paramètres Echo"
  >
- <Settings className="w-4 h-4" />
+ <Gear className="w-4 h-4" weight="bold" />
  </Button>
  </div>
  </div>
  <div className="flex items-center gap-3">
- <div className="mr-2 flex items-center border-r-2 border- pr-4">
+ {syncStatus.hasGit && (
+ <div className="mr-2 flex items-center border-r border-border pr-4">
  <Button
  variant="outline"
  onClick={handleGitSync}
@@ -212,11 +212,11 @@ export function DashboardLayout() {
  title="Cliquer pour forcer la synchronisation avec Git"
  >
  {isSyncing ? (
- <Loader2 className="w-4 h-4 animate-spin" />
+ <Spinner className="w-4 h-4 animate-spin" weight="bold" />
  ) : syncStatus.commitsBehind > 0 ? (
- <CloudDownload className="w-4 h-4" />
+ <CloudArrowDown className="w-4 h-4" weight="bold" />
  ) : (
- <CloudDownload className="w-4 h-4 opacity-50" />
+ <CloudArrowDown className="w-4 h-4 opacity-50" weight="bold" />
  )}
  <span className="text-xs font-semibold">
  {syncStatus.commitsBehind > 0 
@@ -225,6 +225,7 @@ export function DashboardLayout() {
  </span>
  </Button>
  </div>
+ )}
  </div>
  </div>
 
@@ -233,9 +234,9 @@ export function DashboardLayout() {
  
  {/* Colonne 1 : Collection & Scénarios */}
  <div className="flex flex-col gap-6 h-full overflow-hidden">
- <div className=" flex-1 flex flex-col overflow-hidden">
- <div className=" bg-muted p-2 border-b border-border ">
- <h2 className="font-bold text-sm uppercase neo:">Collection Bruno</h2>
+ <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+ <div className="bg-muted/50 p-3 border-b border-border">
+ <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Collection Bruno</h2>
  </div>
  <div className="flex-1 overflow-hidden">
  <RequestList 
@@ -245,9 +246,9 @@ export function DashboardLayout() {
  </div>
  </div>
 
- <div className=" h-1/3 flex flex-col overflow-hidden">
- <div className=" bg-muted p-2 border-b border-border ">
- <h2 className="font-bold text-sm uppercase neo:">Scénarios Rapides</h2>
+ <div className="h-1/3 flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+ <div className="bg-muted/50 p-3 border-b border-border">
+ <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Scénarios Rapides</h2>
  </div>
  <div className="flex-1 overflow-hidden">
  <ScenarioPanel />
@@ -256,33 +257,33 @@ export function DashboardLayout() {
  </div>
 
  {/* Colonne 2 : Liste des requêtes du dossier */}
- <div className=" flex flex-col h-full overflow-hidden">
- <div className="bg-card p-3 border-b border-border flex justify-between items-center">
- <h2 className="font-bold text-lg uppercase truncate">REQUÊTES : {selectedFolderName}</h2>
+ <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+ <div className="bg-muted/50 p-3 border-b border-border flex justify-between items-center">
+ <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Requêtes : {selectedFolderName}</h2>
  </div>
- <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-slate-50 ">
+ <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-card">
  {requestsInSelectedFolder.map((req, index) => (
  <div 
  key={req.id} 
  onClick={() => setSelectedRequestId(req.id)}
- className={` flex items-center p-3 cursor-pointer ${selectedRequestId === req.id ? 'bg- ' : 'bg-white '}`}
+ className={`flex items-center p-3 cursor-pointer rounded-lg border transition-colors ${selectedRequestId === req.id ? 'bg-primary/10 border-primary/20' : 'bg-background border-border hover:bg-muted/50'}`}
  >
- <span className="font-bold mr-3 text-lg">{index + 1}</span>
+ <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{index + 1}</span>
  <MethodBadge method={req.method} className="mr-3" />
- <span className="font-bold flex-1 truncate">{req.name}</span>
- {isPayloadModified(req) && <span className="">Payload Surchargé</span>}
- {req.isMocked && !isPayloadModified(req) && <span className="">Mock Actif</span>}
+ <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
+ {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2">Modifié</span>}
+ {req.isMocked && !isPayloadModified(req) && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Mock Actif</span>}
  </div>
  ))}
  </div>
  </div>
 
  {/* Colonne 3 : Édition */}
- <div className=" flex flex-col h-full overflow-hidden">
- <div className="bg-card p-3 border-b border-border ">
- <h2 className="font-bold text-lg uppercase truncate">ÉDITION DU MOCK : {selectedRequest?.name || 'Aucune Sélection'}</h2>
+ <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+ <div className="bg-muted/50 p-3 border-b border-border">
+ <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Édition du mock : {selectedRequest?.name || 'Aucune Sélection'}</h2>
  </div>
- <div className="flex-1 overflow-hidden bg-slate-50 ">
+ <div className="flex-1 overflow-hidden bg-card">
  {selectedScenarioId ? (
  <ScenarioEditor 
  key={selectedScenarioId}

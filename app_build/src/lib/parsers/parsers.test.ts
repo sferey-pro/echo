@@ -13,10 +13,10 @@ http:
  url: https://api.test.com/users
 examples:
  - name: Example 1
- response:
- status: 200
- body:
- data: '{"success":true}'
+   response:
+     status: 200
+     body:
+       data: '{"success":true}'
 `;
  const parser = new YamlParser();
  const result = parser.parse(yamlContent);
