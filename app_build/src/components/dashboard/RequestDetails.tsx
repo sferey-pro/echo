@@ -310,6 +310,7 @@ export function RequestDetails() {
                     </AlertDialogDescription>
                     <div className="py-4">
                       <Input 
+                        className="w-full"
                         autoFocus
                         placeholder="Nom de la variante" 
                         value={newVariantName} 
