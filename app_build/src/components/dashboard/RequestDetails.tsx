@@ -8,6 +8,17 @@ import { MethodBadge } from '../ui/method-badge';
 import { Button } from '@/components/ui/button';
 import { MagnifyingGlass, Plus, Trash } from '@phosphor-icons/react';
 import { Input } from '@/components/ui/input';
+import {
+ AlertDialog,
+ AlertDialogAction,
+ AlertDialogCancel,
+ AlertDialogContent,
+ AlertDialogDescription,
+ AlertDialogFooter,
+ AlertDialogHeader,
+ AlertDialogTitle,
+ AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { useStore } from '../../store/useStore';
 
@@ -204,17 +215,15 @@ export function RequestDetails() {
       toast.error("Impossible de supprimer la dernière variante");
       return;
     }
-    if (confirm("Supprimer cette variante ?")) {
-      setIsSaving(true);
-      try {
-        await deleteMockVariant(activeVariant.id);
-        await loadCollection();
-        toast.success("Variante supprimée");
-      } catch (e) {
-        toast.error("Erreur suppression variante");
-      } finally {
-        setIsSaving(false);
-      }
+    setIsSaving(true);
+    try {
+      await deleteMockVariant(activeVariant.id);
+      await loadCollection();
+      toast.success("Variante supprimée");
+    } catch (e) {
+      toast.error("Erreur suppression variante");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -287,9 +296,30 @@ export function RequestDetails() {
               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleCreateVariant} title="Créer une variante">
                 <Plus weight="bold" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleDeleteVariant} title="Supprimer la variante" disabled={variants.length <= 1}>
-                <Trash weight="bold" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50" title="Supprimer la variante" disabled={variants.length <= 1}>
+                    <Trash weight="bold" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="shadow-lg rounded-xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-bold text-xl text-red-600">Supprimer cette variante ?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-muted-foreground">
+                      Cette action supprimera définitivement cette variante. Elle ne pourra pas être annulée.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteVariant}
+                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    >
+                      Oui, supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
           <Select value={activeVariantId || ''} onValueChange={setActiveVariantId}>

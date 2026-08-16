@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting } from '../../lib/api';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import {
+ AlertDialog,
+ AlertDialogAction,
+ AlertDialogCancel,
+ AlertDialogContent,
+ AlertDialogDescription,
+ AlertDialogFooter,
+ AlertDialogHeader,
+ AlertDialogTitle,
+ AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CollectionSettingsModalProps {
  isOpen: boolean;
@@ -47,7 +58,6 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  };
 
  const handleCleanup = async () => {
- if (confirm("Voulez-vous vraiment supprimer définitivement toutes les requêtes, dossiers et environnements obsolètes (qui n'existent plus dans Git) ainsi que leurs configurations ? Cette action est irréversible.")) {
  setLoading(true);
  try {
  const res = await fetch('/api/sync/cleanup', { method: 'DELETE' });
@@ -61,7 +71,6 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  toast.error("Erreur réseau lors du nettoyage.");
  } finally {
  setLoading(false);
- }
  }
  };
 
@@ -97,14 +106,34 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <p className="text-xs text-muted-foreground mb-3">
  Supprime définitivement de la base de données toutes les requêtes et dossiers marqués comme <strong>Obsolètes</strong> (fichiers supprimés ou renommés dans Git), ainsi que leurs configurations (mocks, favoris, payloads modifiés).
  </p>
+ <AlertDialog>
+ <AlertDialogTrigger asChild>
  <button
  type="button"
- onClick={handleCleanup}
  disabled={loading}
  className="bg-red-600 text-white px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-red-700 disabled:opacity-50"
  >
  Nettoyer les données obsolètes
  </button>
+ </AlertDialogTrigger>
+ <AlertDialogContent className="shadow-lg rounded-xl">
+ <AlertDialogHeader>
+ <AlertDialogTitle className="font-bold text-xl text-red-600">Confirmer le nettoyage</AlertDialogTitle>
+ <AlertDialogDescription className="text-muted-foreground">
+ Voulez-vous vraiment supprimer définitivement toutes les requêtes, dossiers et environnements obsolètes (qui n'existent plus dans Git) ainsi que leurs configurations ? Cette action est irréversible.
+ </AlertDialogDescription>
+ </AlertDialogHeader>
+ <AlertDialogFooter>
+ <AlertDialogCancel>Annuler</AlertDialogCancel>
+ <AlertDialogAction 
+ onClick={handleCleanup}
+ className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+ >
+ Oui, nettoyer
+ </AlertDialogAction>
+ </AlertDialogFooter>
+ </AlertDialogContent>
+ </AlertDialog>
  </div>
  </div>
 
