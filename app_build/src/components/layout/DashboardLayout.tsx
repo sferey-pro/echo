@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SplashScreen } from './SplashScreen';
+import { MethodBadge } from '../ui/method-badge';
 import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
@@ -261,12 +262,7 @@ export function DashboardLayout() {
  className={` flex items-center p-3 cursor-pointer ${selectedRequestId === req.id ? 'bg- ' : 'bg-white '}`}
  >
  <span className="font-bold mr-3 text-lg">{index + 1}</span>
- <span className={` mr-3 text-black ${
- req.method === 'GET' ? ' bg-green-400' : 
- req.method === 'POST' ? ' bg-blue-400' : 
- req.method === 'DELETE' ? ' bg-pink-400' : 
- req.method === 'PUT' ? ' bg-yellow-400' : ' bg-orange-400'
- }`}>{req.method}</span>
+ <MethodBadge method={req.method} className="mr-3" />
  <span className="font-bold flex-1 truncate">{req.name}</span>
  {isPayloadModified(req) && <span className="">Payload Surchargé</span>}
  {req.isMocked && !isPayloadModified(req) && <span className="">Mock Actif</span>}

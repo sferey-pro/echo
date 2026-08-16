@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { updateMock } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { MethodBadge } from '../ui/method-badge';
 
 import { useStore } from '../../store/useStore';
 
@@ -176,14 +177,7 @@ export function RequestDetails() {
  </h2>
  <div className="flex flex-col gap-2 mt-2">
  <div className="flex items-center gap-2">
- <span className={` text-black ${
- request.method === 'GET' ? ' bg-green-400' : 
- request.method === 'POST' ? ' bg-blue-400' : 
- request.method === 'DELETE' ? ' bg-pink-400' : 
- request.method === 'PUT' ? ' bg-yellow-400' : ' bg-orange-400'
- }`}>
- {request.method}
- </span>
+ <MethodBadge method={request.method} />
  <p className="text-sm text-foreground font-bold truncate max-w-full">{request.url}</p>
  </div>
  

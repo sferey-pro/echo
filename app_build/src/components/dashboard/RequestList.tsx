@@ -3,6 +3,7 @@ import type { ApiRequest, BrunoFolder } from '../../lib/parser';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { ChevronRight, Folder, FolderOpen, Star, RefreshCw, Library, Settings, Zap } from 'lucide-react';
+import { MethodBadge } from '../ui/method-badge';
 
 import { useStore } from '../../store/useStore';
 
@@ -11,13 +12,7 @@ interface RequestListProps {
  onOpenCollections: () => void;
 }
 
-const methodStyles: Record<string, string> = {
- GET: ' bg-green-400 text-black',
- POST: ' bg-blue-400 text-black',
- PUT: ' bg-yellow-400 text-black',
- PATCH: ' bg-orange-400 text-black',
- DELETE: ' bg-pink-400 text-black',
-};
+
 
 type ListItem = 
  | { type: 'starred-header', isExpanded: boolean }
@@ -173,9 +168,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  <div key={i} className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors" style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }} />
  ))}
  
- <span className={cn(" text-[10px] w-16 text-center shrink-0 z-10 mr-2", methodStyles[req.method] || 'bg-slate-200 text-slate-500')}>
- {req.method}
- </span>
+ <MethodBadge method={req.method} className="z-10 mr-2" />
  <span className="truncate flex-1 z-10 font-medium">
  {req.isStarred && <Star className="w-3 h-3 inline mr-1 text-yellow-500" fill="currentColor" />}
  {req.name}

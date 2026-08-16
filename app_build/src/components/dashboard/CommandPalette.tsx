@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Command } from 'cmdk';
 import type { ApiRequest } from '../../lib/parser';
 import { Search, Folder, Zap, Settings } from 'lucide-react';
+import { MethodBadge } from '../ui/method-badge';
 
 interface CommandPaletteProps {
  open: boolean;
@@ -61,14 +62,7 @@ export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpe
  }}
  className="flex items-center gap-3 px-3 py-2.5 mt-1 rounded-md text-sm text-foreground cursor-pointer aria-selected:bg-primary aria-selected:text-primary-foreground transition-colors"
  >
- <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
- req.method === 'GET' ? ' bg-green-400 text-black' :
- req.method === 'POST' ? ' bg-blue-400 text-black' :
- req.method === 'PUT' ? ' bg-yellow-400 text-black' :
- req.method === 'DELETE' ? ' bg-pink-400 text-black' : ' bg-orange-400 text-black'
- }`}>
- {req.method}
- </span>
+ <MethodBadge method={req.method} />
  <div className="flex flex-col flex-1 overflow-hidden">
  <span className="font-medium truncate">{req.name}</span>
  <span className="text-xs opacity-60 truncate font-mono">{req.url}</span>

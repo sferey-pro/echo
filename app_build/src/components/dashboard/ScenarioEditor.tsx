@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ApiRequest } from '../../lib/parser';
 import { Button } from '@/components/ui/button';
+import { MethodBadge } from '@/components/ui/method-badge';
 import { fetchScenarios, updateScenario } from '../../lib/api';
 import type { Scenario, ScenarioAction } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -150,7 +151,7 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  >
  <span className="text-sm text-foreground font-medium">{req.name}</span>
  <div className="flex items-center gap-2 mt-0.5">
- <span className="text-[10px] font-mono bg-muted text-muted-foreground px-1 py-0.5 rounded">{req.method}</span>
+ <MethodBadge method={req.method} />
  <span className="text-xs text-muted-foreground font-mono">{req.url}</span>
  </div>
  </button>
@@ -181,7 +182,7 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  <span className="text-sm font-semibold text-foreground truncate">{req?.name || 'Requête inconnue'}</span>
  {req && (
  <div className="flex items-center gap-2">
- <span className="text-[10px] font-mono bg-muted text-muted-foreground px-1 py-0.5 rounded">{req.method}</span>
+ <MethodBadge method={req.method} />
  <span className="text-[10px] text-muted-foreground font-mono truncate">{req.url}</span>
  </div>
  )}
