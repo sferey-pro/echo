@@ -75,7 +75,7 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  deleteMockVariant(id);
  
  // Find in memory cache and delete
- for (const [reqId, variants] of mockVariants.entries()) {
+ for (const [_reqId, variants] of mockVariants.entries()) {
  const index = variants.findIndex(v => v.id === id);
  if (index !== -1) {
  variants.splice(index, 1);

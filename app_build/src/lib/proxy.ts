@@ -28,7 +28,7 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  requestMeta.set(k, v);
  }
 
- const handlerDefs: Array<{ mswPath: string, mswMethod: any, handler: any }> = [];
+ const handlerDefs: Array<{ mswPath: string, mswMethod: Function, handler: Function }> = [];
 
  for (const req of requests) {
  const variants = mockVariants.get(req.id) || [];

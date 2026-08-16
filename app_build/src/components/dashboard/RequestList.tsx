@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../lib/parser';
+import type { MockVariantDef } from '../../lib/db';
 import { cn } from '@/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { CaretRight, Folder, FolderOpen, Star, ArrowsClockwise, Books, Gear, Lightning } from '@phosphor-icons/react';
@@ -19,7 +20,7 @@ type ListItem =
  | { type: 'starred-request', request: ApiRequest }
  | { type: 'folder', folder: BrunoFolder, depth: number, isExpanded: boolean }
  | { type: 'request', request: ApiRequest, depth: number }
- | { type: 'variant', variant: any, request: ApiRequest, depth: number };
+ | { type: 'variant', variant: MockVariantDef, request: ApiRequest, depth: number };
 
 export function RequestList({ onOpenSettings, onOpenCollections }: RequestListProps) {
  const { folders, requests, selectedRequestId, selectedFolderId, setSelectedRequestId, setSelectedFolderId, loadCollection } = useStore();

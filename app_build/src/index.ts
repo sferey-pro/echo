@@ -1,6 +1,4 @@
-import { resolve } from "path";
 import { serve } from "bun";
-import { readFileSync, statSync } from "fs";
 
 process.on('unhandledRejection', (reason, promise) => {
  console.error('[Global] Unhandled Rejection at:', promise, 'reason:', reason);

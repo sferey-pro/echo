@@ -1,6 +1,7 @@
 import { readdir, readFile } from "fs/promises";
 import { join, basename } from "path";
 import { parse as parseYaml } from "yaml";
+import type { MockVariantDef } from './db';
 import { existsSync } from "fs";
 import { syncBrunoItemsToDb } from "./db";
 
@@ -32,7 +33,7 @@ export interface ApiRequest {
  // UI state (kept for backward compatibility with components)
  isStarred?: boolean;
  // Variants
- variants?: any[]; // Array of MockVariantDef
+ variants?: MockVariantDef[];
 }
 
 export interface BrunoVariable {

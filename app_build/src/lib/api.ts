@@ -1,4 +1,5 @@
-import type { ParserResult } from './parser';
+import type { ParserResult, ApiRequest } from './parser';
+import type { MockVariantDef } from './db';
 
 export async function fetchCollection(): Promise<ParserResult> {
  const response = await fetch('/api/collections');
@@ -28,7 +29,7 @@ export async function createMockVariant(requestId: string, name: string): Promis
  return data.id;
 }
 
-export async function updateMockVariant(id: string, updates: any): Promise<void> {
+export async function updateMockVariant(id: string, updates: Partial<MockVariantDef>): Promise<void> {
  const response = await fetch(`/api/mocks/variants/${id}`, {
  method: 'PUT',
  headers: { 'Content-Type': 'application/json' },

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { ApiRequest } from '../../lib/parser';
 import Editor from '@monaco-editor/react';
 import { updateRequestMeta, createMockVariant, updateMockVariant, deleteMockVariant } from '../../lib/api';
+import type { MockVariantDef } from '../../lib/db';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { MethodBadge } from '../ui/method-badge';
@@ -37,7 +38,9 @@ export function RequestDetails() {
       if (!activeVariantId || !variants.find(v => v.id === activeVariantId)) {
         // Default to the generic variant if it exists, otherwise the first one
         const defaultVar = variants.find(v => v.id === `${request.id}-default`) || variants[0];
-        setActiveVariantId(defaultVar.id);
+        if (defaultVar) {
+          setActiveVariantId(defaultVar.id);
+        }
       }
     } else {
       setActiveVariantId(null);
@@ -73,7 +76,7 @@ export function RequestDetails() {
       setLatencyMs(activeVariant.latencyMs ?? 0);
       setPathParamsOverrides(activeVariant.pathParamsOverrides || {});
     }
-  }, [activeVariantId, request]);
+  }, [activeVariantId, request, activeVariant]);
 
   const urlParams = useMemo(() => {
     if (!request?.url) return { variables: [], pathParams: [] };
@@ -206,7 +209,7 @@ export function RequestDetails() {
  toast.success("Variante créée");
  setIsCreateVariantOpen(false);
  setNewVariantName("");
- } catch (e) {
+ } catch {
  toast.error("Erreur création variante");
  } finally {
  setIsSaving(false);
@@ -223,7 +226,7 @@ export function RequestDetails() {
       await deleteMockVariant(activeVariant.id);
       await loadCollection();
       toast.success("Variante supprimée");
-    } catch (e) {
+    } catch {
       toast.error("Erreur suppression variante");
     } finally {
       setIsSaving(false);
@@ -366,7 +369,7 @@ export function RequestDetails() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {variants.map((v: any) => (
+              {variants.map((v: MockVariantDef) => (
                 <SelectItem key={v.id} value={v.id}>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${v.isMocked ? 'bg-green-500' : 'bg-slate-300'}`} />
