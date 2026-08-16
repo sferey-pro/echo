@@ -5,17 +5,17 @@ import App from './App';
 const originalFetch = global.fetch;
 
 beforeAll(() => {
-  global.fetch = mock(() => Promise.resolve(new Response(JSON.stringify({ folders: [], requests: [] })))) as unknown as typeof fetch;
+ global.fetch = mock(() => Promise.resolve(new Response(JSON.stringify({ folders: [], requests: [] })))) as unknown as typeof fetch;
 });
 
 afterAll(() => {
-  global.fetch = originalFetch;
+ global.fetch = originalFetch;
 });
 
 test('l\'application se monte sans erreur', async () => {
-  await act(async () => {
-    render(<App />);
-  });
-  // Vérifie simplement que le DOM est généré sans plantage initial
-  expect(document.body.innerHTML).not.toBe('');
+ await act(async () => {
+ render(<App />);
+ });
+ // Vérifie simplement que le DOM est généré sans plantage initial
+ expect(document.body.innerHTML).not.toBe('');
 });
