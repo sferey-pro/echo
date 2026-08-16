@@ -62,6 +62,14 @@ const cachedRequests: Map<string, ApiRequest> = new Map();
 let cachedEnvironments: BrunoEnvironment[] = [];
 let isFullParseDone = false;
 
+export function clearParserCache() {
+ cachedFolders.clear();
+ cachedRootFolders = [];
+ cachedRequests.clear();
+ cachedEnvironments = [];
+ isFullParseDone = false;
+}
+
 const bruParser = new BruParser();
 const yamlParser = new YamlParser();
 

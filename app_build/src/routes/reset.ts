@@ -1,7 +1,7 @@
 import { resetDatabase } from "../lib/db";
 import { mockStates, initProxy } from "../lib/proxy";
 import { updateBackgroundTasks, getRepoPath } from "../services/git";
-import { parseCollection } from "../lib/parser";
+import { parseCollection, clearParserCache } from "../lib/parser";
 import { readdirSync, rmSync } from "fs";
 import { resolve } from "path";
 
@@ -26,6 +26,7 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  
  updateBackgroundTasks(); // Re-init repo path and watcher
  
+ clearParserCache();
  const data = await parseCollection(getRepoPath());
  await initProxy(data.requests, data.environments);
  
