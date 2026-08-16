@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SplashScreen } from './SplashScreen';
 import { RequestList } from '../dashboard/RequestList';
 import { RequestDetails } from '../dashboard/RequestDetails';
 import { fetchCollection, getSettings, updateSetting } from '../../lib/api';
@@ -40,6 +41,7 @@ export function DashboardLayout() {
   const [isCollectionsOpen, setIsCollectionsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isEnvViewerOpen, setIsEnvViewerOpen] = useState(false);
+  const [splashAnimationDone, setSplashAnimationDone] = useState(false);
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "" });
@@ -149,31 +151,26 @@ export function DashboardLayout() {
     }
   }, [selectedRequest, selectedFolderId, setSelectedFolderId]);
 
-  if (isLoading) {
-    return (
-      <div className="h-screen w-full bg-neo-bg text-foreground flex items-center justify-center">
-        <div className="neo-box p-8 flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-neo-border border-t-transparent rounded-full animate-spin"></div>
-          <p className="font-bold text-lg">Lecture de la collection Bruno...</p>
-        </div>
-      </div>
-    );
+  const showSplash = isLoading || !splashAnimationDone;
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setSplashAnimationDone(true)} />;
   }
 
   return (
     <div className="h-screen w-full bg-slate-50 dark:bg-slate-900 text-foreground overflow-hidden flex flex-col font-sans selection:bg-neo-pink selection:text-black">
       
       {/* Header Néo-brutaliste */}
-      <div className="flex-none px-4 py-3 bg-white dark:bg-slate-800 border-b-4 border-neo-border flex items-center justify-between z-20">
+      <div className="flex-none px-4 py-3 bg-card border-b neo:border-b-4 border-border neo:border-neo-border flex items-center justify-between z-20">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-black tracking-tight">Echo</h1>
           <div className="flex items-center gap-2 ml-4">
-            <span className="text-sm font-bold bg-neo-yellow px-2 py-1 border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] dark:text-black">ENV</span>
+            <span className="text-[10px] neo-badge theme-neobrutalism:bg-neo-yellow bg-yellow-400 text-black">ENV</span>
             <Select value={activeEnvironment} onValueChange={handleEnvChange}>
-              <SelectTrigger className="w-[150px] h-9 text-sm bg-white text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] focus:ring-0 font-bold">
+              <SelectTrigger className="w-[150px] h-9 text-sm neo-button-sm bg-white text-black focus:ring-0">
                 <SelectValue placeholder="Aucun" />
               </SelectTrigger>
-              <SelectContent className="border-2 border-neo-border shadow-[4px_4px_0px_black] font-bold">
+              <SelectContent className="neo-select-content bg-white">
                 <SelectItem value="">Aucun</SelectItem>
                 {environments.map(env => (
                   <SelectItem key={env.name} value={env.name}>{env.name}</SelectItem>
@@ -182,14 +179,14 @@ export function DashboardLayout() {
             </Select>
             <button
               onClick={() => setIsEnvViewerOpen(true)}
-              className="ml-1 p-1.5 bg-neo-green text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-green-400 transition-colors"
+              className="ml-1 p-1.5 neo-button-sm theme-neobrutalism:bg-neo-green bg-green-400 text-black"
               title="Voir les variables d'environnement"
             >
               <Eye className="w-5 h-5" />
             </button>
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="ml-2 p-1.5 bg-neo-blue text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] hover:bg-blue-400 transition-colors"
+              className="ml-2 p-1.5 neo-button-sm theme-neobrutalism:bg-neo-blue bg-blue-400 text-black"
               title="Paramètres Echo"
             >
               <Settings className="w-5 h-5" />
@@ -201,10 +198,10 @@ export function DashboardLayout() {
             <button
               onClick={handleGitSync}
               disabled={isSyncing}
-              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-black border-2 border-neo-border rounded-md shadow-[2px_2px_0px_black] transition-transform active:translate-y-[2px] active:shadow-none ${
+              className={`flex items-center gap-2 px-3 py-1.5 neo-button-sm ${
                 syncStatus.commitsBehind > 0 
-                  ? 'bg-neo-orange hover:bg-orange-400' 
-                  : 'bg-neo-green hover:bg-green-400'
+                  ? 'theme-neobrutalism:bg-neo-orange bg-orange-400' 
+                  : 'theme-neobrutalism:bg-neo-green bg-green-400 text-black'
               } ${isSyncing ? 'opacity-50 cursor-wait shadow-none translate-y-[2px]' : ''}`}
               title="Cliquer pour forcer la synchronisation avec Git"
             >
@@ -232,8 +229,8 @@ export function DashboardLayout() {
         {/* Colonne 1 : Collection & Scénarios */}
         <div className="flex flex-col gap-6 h-full overflow-hidden">
           <div className="neo-box flex-1 flex flex-col overflow-hidden">
-            <div className="bg-neo-blue p-2 border-b-2 border-neo-border">
-              <h2 className="font-black text-sm uppercase dark:text-black">Collection Bruno</h2>
+            <div className="neo:bg-neo-blue bg-muted p-2 border-b neo:border-b-2 border-border neo:border-neo-border">
+              <h2 className="font-bold neo:font-black text-sm uppercase neo:dark:text-black">Collection Bruno</h2>
             </div>
             <div className="flex-1 overflow-hidden">
               <RequestList 
@@ -244,8 +241,8 @@ export function DashboardLayout() {
           </div>
 
           <div className="neo-box h-1/3 flex flex-col overflow-hidden">
-             <div className="bg-neo-green p-2 border-b-2 border-neo-border">
-              <h2 className="font-black text-sm uppercase dark:text-black">Scénarios Rapides</h2>
+             <div className="neo:bg-neo-green bg-muted p-2 border-b neo:border-b-2 border-border neo:border-neo-border">
+              <h2 className="font-bold neo:font-black text-sm uppercase neo:dark:text-black">Scénarios Rapides</h2>
             </div>
             <div className="flex-1 overflow-hidden">
               <ScenarioPanel />
@@ -255,8 +252,8 @@ export function DashboardLayout() {
 
         {/* Colonne 2 : Liste des requêtes du dossier */}
         <div className="neo-box flex flex-col h-full overflow-hidden">
-           <div className="bg-white dark:bg-slate-800 p-3 border-b-2 border-neo-border flex justify-between items-center">
-              <h2 className="font-black text-lg uppercase truncate">REQUÊTES : {selectedFolderName}</h2>
+           <div className="bg-card p-3 border-b neo:border-b-2 border-border neo:border-neo-border flex justify-between items-center">
+              <h2 className="font-bold neo:font-black text-lg uppercase truncate">REQUÊTES : {selectedFolderName}</h2>
            </div>
            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">
              {requestsInSelectedFolder.map((req, index) => (
@@ -272,8 +269,8 @@ export function DashboardLayout() {
                    req.method === 'DELETE' ? 'text-red-600' : 'text-orange-600'
                  }`}>{req.method}</span>
                  <span className="font-bold flex-1 truncate">{req.name}</span>
-                 {isPayloadModified(req) && <span className="neo-badge bg-neo-yellow text-black shadow-[2px_2px_0px_black]">Payload Surchargé</span>}
-                 {req.isMocked && !isPayloadModified(req) && <span className="neo-badge bg-neo-green text-black shadow-[2px_2px_0px_black]">Mock Actif</span>}
+                 {isPayloadModified(req) && <span className="neo-badge neo:bg-neo-yellow neo:text-black">Payload Surchargé</span>}
+                 {req.isMocked && !isPayloadModified(req) && <span className="neo-badge neo:bg-neo-green neo:text-black">Mock Actif</span>}
                </div>
              ))}
            </div>
@@ -281,8 +278,8 @@ export function DashboardLayout() {
 
         {/* Colonne 3 : Édition */}
         <div className="neo-box flex flex-col h-full overflow-hidden">
-           <div className="bg-white dark:bg-slate-800 p-3 border-b-2 border-neo-border">
-              <h2 className="font-black text-lg uppercase truncate">ÉDITION DU MOCK : {selectedRequest?.name || 'Aucune Sélection'}</h2>
+           <div className="bg-card p-3 border-b neo:border-b-2 border-border neo:border-neo-border">
+              <h2 className="font-bold neo:font-black text-lg uppercase truncate">ÉDITION DU MOCK : {selectedRequest?.name || 'Aucune Sélection'}</h2>
            </div>
            <div className="flex-1 overflow-hidden bg-slate-50 dark:bg-slate-900">
              {selectedScenarioId ? (

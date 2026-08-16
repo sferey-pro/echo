@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
 
-type Theme = "dark" | "light" | "system"
+type Theme = "dark" | "light" | "neobrutalism" | "system"
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -14,7 +14,7 @@ type ThemeProviderState = {
 }
 
 const initialState: ThemeProviderState = {
-  theme: "system",
+  theme: "light",
   setTheme: () => null,
 }
 
@@ -22,7 +22,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "light",
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
@@ -33,7 +33,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement
 
-    root.classList.remove("light", "dark")
+    root.classList.remove("light", "dark", "theme-neobrutalism")
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -42,6 +42,14 @@ export function ThemeProvider({
         : "light"
 
       root.classList.add(systemTheme)
+      return
+    }
+
+    if (theme === "neobrutalism") {
+      root.classList.add("theme-neobrutalism")
+      // Neobrutalism uses a light base for its vibrant colors usually, but could also support dark
+      // Let's assume neobrutalism is basically light mode with heavy borders
+      root.classList.add("light")
       return
     }
 

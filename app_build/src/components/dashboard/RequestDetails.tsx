@@ -158,7 +158,7 @@ export function RequestDetails() {
   return (
     <div className="h-full bg-transparent flex flex-col relative overflow-hidden font-sans">
       
-      <div className="p-4 bg-white dark:bg-slate-800 border-b-2 border-neo-border z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="p-4 bg-card border-b neo:border-b-2 border-border neo:border-neo-border z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="w-full">
           <h2 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
             <button 
@@ -171,7 +171,7 @@ export function RequestDetails() {
             </button>
             <span className="truncate">{request.name}</span>
             {request.isMocked && (
-              <span className="neo-badge bg-neo-green text-black">
+              <span className="neo-badge neo:bg-neo-green neo:text-black">
                 MOCK ACTIF
               </span>
             )}
@@ -194,7 +194,7 @@ export function RequestDetails() {
                 <span className="text-xs font-black uppercase mr-1">URL Params:</span>
                 {[...urlParams.variables, ...urlParams.pathParams].map(param => (
                   <div key={param} className="flex items-center neo-input p-0 overflow-hidden h-8">
-                    <span className="text-xs font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 border-r-2 border-neo-border h-full flex items-center">
+                    <span className="text-xs font-bold px-2 py-1 bg-muted border-r neo:border-r-2 border-border neo:border-neo-border h-full flex items-center">
                       {urlParams.variables.includes(param) ? `{{${param}}}` : `:${param}`}
                     </span>
                     <input 
@@ -215,13 +215,13 @@ export function RequestDetails() {
           <button 
             onClick={handleToggleMock} 
             disabled={isSaving}
-            className={`neo-button px-4 py-2 ${request.isMocked ? 'bg-neo-green text-black' : 'bg-slate-200 dark:bg-slate-700'}`}>
+            className={`neo-button px-4 py-2 ${request.isMocked ? 'neo:bg-neo-green neo:text-black bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
             {request.isMocked ? 'Mock Actif' : 'Pass-through'}
           </button>
           <button 
             onClick={handleSavePayload} 
             disabled={isSaving}
-            className="neo-button px-4 py-2 bg-neo-pink text-black">
+            className="neo-button px-4 py-2 neo:bg-neo-pink bg-primary text-primary-foreground neo:text-black">
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
           </button>
         </div>
@@ -230,14 +230,14 @@ export function RequestDetails() {
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 z-10 bg-slate-50 dark:bg-slate-900">
         <div className="flex flex-col h-full bg-white dark:bg-slate-800 p-4 neo-box">
           
-          <div className="flex flex-col xl:flex-row xl:items-center gap-6 mb-6 bg-neo-bg dark:bg-slate-900 p-4 border-2 border-neo-border rounded-xl">
+          <div className="flex flex-col xl:flex-row xl:items-center gap-6 mb-6 bg-muted p-4 border neo:border-2 border-border neo:border-neo-border rounded-xl">
             <div className="flex items-center gap-3 shrink-0">
               <span className="text-sm font-black uppercase">Statut :</span>
               <Select value={statusCode.toString()} onValueChange={(v) => handleStatusChange(parseInt(v))}>
                 <SelectTrigger className="w-[160px] h-10 neo-input font-bold bg-white text-black">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-2 border-neo-border shadow-[4px_4px_0px_black] font-bold">
+                <SelectContent className="neo-select-content bg-card">
                   <SelectItem value="200">🟢 200 OK</SelectItem>
                   <SelectItem value="201">🟢 201 Created</SelectItem>
                   <SelectItem value="204">🟢 204 No Content</SelectItem>
@@ -250,12 +250,12 @@ export function RequestDetails() {
               </Select>
             </div>
             
-            <div className="h-px xl:h-10 xl:w-px bg-neo-border w-full xl:w-px"></div>
+            <div className="h-px xl:h-10 xl:w-px bg-border neo:bg-neo-border w-full xl:w-px"></div>
             
             <div className="flex flex-col flex-1 gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-black uppercase">Latence :</span>
-                <span className="text-sm font-bold neo-badge bg-white dark:bg-slate-800 text-black dark:text-white">
+                <span className="text-sm font-bold neo-badge bg-card text-foreground">
                   {latencyMs} ms
                 </span>
               </div>

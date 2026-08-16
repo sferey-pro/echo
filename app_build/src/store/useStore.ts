@@ -31,7 +31,7 @@ interface AppState {
   loadCollection: () => Promise<void>;
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
   folders: [],
   requests: [],
   environments: [],
@@ -57,7 +57,9 @@ export const useStore = create<AppState>((set) => ({
   },
 
   loadCollection: async () => {
-    set({ isLoading: true });
+    if (get().requests.length === 0) {
+      set({ isLoading: true });
+    }
     try {
       const [data, settings] = await Promise.all([fetchCollection(), getSettings()]);
       set({

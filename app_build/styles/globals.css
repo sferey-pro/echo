@@ -3,6 +3,7 @@
 @import "./neobrutalism.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant neo (&:is(.theme-neobrutalism *));
 
 @theme inline {
   --color-background: var(--background);

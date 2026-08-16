@@ -128,7 +128,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
           onClick={(e) => toggleFolder(item.folder.id, e)}
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative",
-            selectedFolderId === item.folder.id ? "bg-neo-blue/20 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
+            selectedFolderId === item.folder.id ? "neo:bg-neo-blue/20 bg-primary/10 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
           )}
         >
           <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
@@ -163,7 +163,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
             selectedRequestId === req.id 
-              ? "bg-neo-blue/30 text-foreground font-bold" 
+              ? "neo:bg-neo-blue/30 bg-primary/20 text-foreground font-bold" 
               : "hover:bg-slate-100 dark:hover:bg-slate-800 text-foreground border-transparent"
           )}
         >
@@ -195,10 +195,10 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
     <div className="h-full bg-card/50 flex flex-col font-sans">
       <div className="p-3 bg-transparent flex items-center gap-2">
         <h2 className="text-xs font-black text-foreground tracking-wide uppercase flex-1">Filtres</h2>
-        <span className="text-[10px] font-bold text-black px-1.5 py-0.5 rounded bg-neo-yellow border-2 border-neo-border">
-          {requests.length}
+        <span className="text-[10px] neo-badge neo:bg-neo-yellow bg-yellow-400 text-black">
+           {requests.length}
         </span>
-        <div className="flex items-center gap-1 border-l-2 border-neo-border pl-2 ml-1">
+        <div className="flex items-center gap-1 border-l neo:border-l-2 border-border neo:border-neo-border pl-2 ml-1">
           <button 
             onClick={loadCollection}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

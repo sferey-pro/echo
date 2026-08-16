@@ -1,23 +1,38 @@
 import React from "react"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, Palette } from "lucide-react"
 import { useTheme } from "./theme-provider"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
-
   return (
-    <button
-      onClick={toggleTheme}
-      className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-white/10 dark:hover:bg-white/10 h-8 w-8 text-neutral-400 hover:text-white"
-      title="Basculer le thème"
-    >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon" className="h-9 w-9 bg-transparent border-neo-border">
+          {theme === "light" && <Sun className="h-[1.2rem] w-[1.2rem] text-black" />}
+          {theme === "dark" && <Moon className="h-[1.2rem] w-[1.2rem] text-white" />}
+          {theme === "neobrutalism" && <Palette className="h-[1.2rem] w-[1.2rem] text-black" />}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="border-2 border-neo-border shadow-[4px_4px_0px_black] font-bold">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          Classique Clair
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          Classique Sombre
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("neobrutalism")}>
+          Néo-Brutalisme
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
