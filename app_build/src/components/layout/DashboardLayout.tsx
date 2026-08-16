@@ -137,13 +137,14 @@ export function DashboardLayout() {
  const selectedFolderName = getFolderName(folders, selectedFolderId);
 
  const isPayloadModified = (req: ApiRequest) => {
+ if (!req.variants || req.variants.length === 0) return false;
  const getPayloadStr = (data: unknown) => {
  if (typeof data === 'string') return data;
  if (data === null || data === undefined) return '';
  return JSON.stringify(data, null, 2);
  };
  const defaultPayload = getPayloadStr(req.examples?.[0]?.response?.body?.data);
- return req.currentPayload !== defaultPayload;
+ return req.variants.some(v => v.payload !== defaultPayload);
  };
 
  useEffect(() => {
@@ -273,7 +274,7 @@ export function DashboardLayout() {
  <MethodBadge method={req.method} className="mr-3" />
  <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
  {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2">Modifié</span>}
- {req.isMocked && !isPayloadModified(req) && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Mock Actif</span>}
+ {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Mock Actif</span>}
  </div>
  ))}
  </div>
