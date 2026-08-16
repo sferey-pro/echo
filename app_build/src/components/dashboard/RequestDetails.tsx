@@ -3,7 +3,6 @@ import type { ApiRequest } from '../../lib/parser';
 import Editor from '@monaco-editor/react';
 import { updateMock } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTheme } from '../theme-provider';
 import { toast } from 'sonner';
 
 import { useStore } from '../../store/useStore';
@@ -25,7 +24,6 @@ export function RequestDetails() {
  const [latencyMs, setLatencyMs] = useState<number>(request?.latencyMs ?? 0);
  const [pathParamsOverrides, setPathParamsOverrides] = useState<Record<string, string>>(request?.pathParamsOverrides || {});
  const [isSaving, setIsSaving] = useState(false);
- const { theme } = useTheme();
 
  // Sync state when request changes
  useEffect(() => {
@@ -312,7 +310,7 @@ export function RequestDetails() {
  <Editor
  height="100%"
  defaultLanguage="json"
- theme={theme === 'light' ? 'light' : 'vs-dark'}
+ theme="light"
  value={payload}
  onChange={handlePayloadChange}
  options={{
