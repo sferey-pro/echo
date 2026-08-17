@@ -37,7 +37,6 @@ const startServer = () => {
      "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
      "/": index,
      "/_hmr": index,
-     "/*": index, // SPA Fallback
      },
     
      async fetch(req) {
@@ -61,6 +60,11 @@ const startServer = () => {
          if (req.headers.get("accept")?.includes("text/html")) {
            return new Response(Bun.file(path.join(process.cwd(), "dist", "index.html")));
          }
+       }
+     } else if (!isProd && req.method === "GET" && !url.pathname.startsWith("/api/")) {
+       // SPA fallback in development mode for non-API routes
+       if (req.headers.get("accept")?.includes("text/html")) {
+         return new Response(Bun.file("./src/client/index.html"));
        }
      }
     
