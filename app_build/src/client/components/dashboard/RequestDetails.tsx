@@ -20,6 +20,15 @@ import {
  AlertDialogTitle,
  AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
+import {
+ Dialog,
+ DialogContent,
+ DialogDescription,
+ DialogFooter,
+ DialogHeader,
+ DialogTitle,
+ DialogTrigger,
+} from "@/client/components/ui/dialog";
 
 import { useStore } from '../../store/useStore';
 
@@ -321,34 +330,36 @@ export function RequestDetails() {
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs font-bold uppercase text-muted-foreground">Variante active :</span>
             <div className="flex items-center gap-1">
-              <AlertDialog open={isCreateVariantOpen} onOpenChange={setIsCreateVariantOpen}>
-                <AlertDialogTrigger asChild>
+              <Dialog open={isCreateVariantOpen} onOpenChange={setIsCreateVariantOpen}>
+                <DialogTrigger asChild>
                   <Button size="icon" variant="ghost" className="h-6 w-6" title="Créer une variante">
                     <Plus weight="bold" />
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="shadow-lg rounded-xl">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="font-bold text-xl text-foreground">Créer une variante</AlertDialogTitle>
-                    <AlertDialogDescription className="text-muted-foreground">
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-bold text-xl text-foreground">Créer une variante</DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
                       Nom de la nouvelle variante (ex: Erreur 404, Admin User) :
-                    </AlertDialogDescription>
-                    <div className="py-4">
-                      <Input 
-                        className="w-full"
-                        autoFocus
-                        placeholder="Nom de la variante" 
-                        value={newVariantName} 
-                        onChange={e => setNewVariantName(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') submitCreateVariant();
-                        }}
-                      />
-                    </div>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setNewVariantName('')}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction 
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Input 
+                      className="w-full"
+                      autoFocus
+                      placeholder="Nom de la variante" 
+                      value={newVariantName} 
+                      onChange={e => setNewVariantName(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newVariantName.trim() && !isSaving) submitCreateVariant();
+                      }}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="secondary" onClick={() => { setIsCreateVariantOpen(false); setNewVariantName(''); }}>
+                      Annuler
+                    </Button>
+                    <Button 
                       onClick={(e) => {
                         e.preventDefault();
                         submitCreateVariant();
@@ -356,10 +367,10 @@ export function RequestDetails() {
                       disabled={!newVariantName.trim() || isSaving}
                     >
                       Créer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50" title="Supprimer la variante" disabled={variants.length <= 1}>
