@@ -30,6 +30,7 @@ Echo est un **outil de Mocking d'API** performant conçu pour les développeurs 
 
 ## 📖 Documentation
 Pour plus de détails, consultez les fichiers suivants :
-- [CONTEXT.md](./CONTEXT.md) : Contexte global, objectifs métier et architecture.
+- [CONTEXT.md](./docs/CONTEXT.md) : Contexte global, objectifs métier et architecture.
 - [CHANGELOG.md](./CHANGELOG.md) : Suivi des modifications et nouveautés.
-- [ISSUES.md](./ISSUES.md) : Problèmes connus et tâches en attente.
+- [ISSUES.md](./docs/ISSUES.md) : Problèmes connus et tâches en attente.
+- [VERIFICATION_REPORT.md](./docs/VERIFICATION_REPORT.md) : Rapports de vérification technique.
