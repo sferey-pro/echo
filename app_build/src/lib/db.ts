@@ -5,7 +5,7 @@ import type { ApiRequest, BrunoFolder, BrunoEnvironment } from "./parser";
 
 // Initialize the SQLite database
 const isTestEnv = process.env.NODE_ENV === 'test';
-const dbPath = isTestEnv ? ':memory:' : join(process.cwd(), '.echo-state.sqlite');
+const dbPath = isTestEnv ? ':memory:' : join(__dirname, '..', '..', '.echo-state.sqlite');
 const db = new Database(dbPath);
 
 // Database migration: drop old mock_states and create mock_variants
