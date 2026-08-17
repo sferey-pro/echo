@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getSettings, updateSetting, cloneCollection } from '../../lib/api';
-import { toast } from 'sonner';
-import { Button } from '@/client/components/ui/button';
-import { Input } from '@/client/components/ui/input';
 import { Books } from '@phosphor-icons/react';
+import { toast } from 'sonner';
+import { Input } from '@/client/components/ui/input';
+import { Button } from '@/client/components/ui/button';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -14,6 +13,12 @@ import {
  AlertDialogHeader,
  AlertDialogTitle,
 } from "@/client/components/ui/alert-dialog";
+import {
+ Dialog,
+ DialogContent,
+ DialogHeader,
+ DialogTitle,
+} from "@/client/components/ui/dialog";
 
 interface CollectionManagerModalProps {
  isOpen: boolean;
@@ -34,60 +39,51 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  const res = await fetch('/api/repositories');
  if (res.ok) {
  const data = await res.json();
- setCollections(data);
+ setCollections(data.repositories);
+ setActiveCollection(data.activeRepository);
  }
  } catch (e) {
  console.error(e);
+ } finally {
+ setLoading(false);
  }
  };
 
  useEffect(() => {
  if (isOpen) {
- // eslint-disable-next-line react-hooks/set-state-in-effect
- setLoading(true);
- Promise.all([
- getSettings(),
- fetchCollections()
- ]).then(([settings]) => {
- setActiveCollection(settings.ACTIVE_COLLECTION_NAME || '');
- }).finally(() => setLoading(false));
+ fetchCollections();
  }
  }, [isOpen]);
 
- useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen) {
-  onClose();
-  }
-  };
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
- }, [isOpen, onClose]);
-
  const handleClone = async (force: boolean = false) => {
- if (!repoUrl) return;
  setCloning(true);
  try {
- const repoName = await cloneCollection(repoUrl, force);
- await fetchCollections();
+ const res = await fetch('/api/repositories', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ url: repoUrl, force })
+ });
+ 
+ if (res.ok) {
+ toast.success("Dépôt cloné avec succès !");
  setRepoUrl('');
- toast.success("Dépôt cloné avec succès");
- if (repoName) {
- await handleActivate(repoName);
- }
- } catch (e: unknown) {
- const err = e as Error;
- if (err.message === 'EXISTS') {
+ await fetchCollections();
+ await onSaved();
+ } else {
+ const err = await res.json();
+ if (res.status === 409) {
  setConfirmDialog({
  isOpen: true,
- title: 'Dépôt existant',
- description: "Ce dépôt existe déjà. Voulez-vous le supprimer et le cloner à nouveau ?",
+ title: "Dépôt existant",
+ description: err.error,
  onConfirm: () => handleClone(true)
  });
  } else {
- console.error(err);
- toast.error(err.message || "Erreur lors du clonage du dépôt");
+ toast.error(err.error || "Erreur lors du clonage");
  }
+ }
+ } catch (e) {
+ toast.error("Erreur réseau");
  } finally {
  setCloning(false);
  }
@@ -96,28 +92,41 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  const handleActivate = async (name: string) => {
  setLoading(true);
  try {
- await updateSetting('ACTIVE_COLLECTION_NAME', name);
- setActiveCollection(name);
+ const res = await fetch('/api/repositories/active', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ name })
+ });
+ if (res.ok) {
+ toast.success("Collection activée !");
+ await fetchCollections();
  await onSaved();
- } catch (e) {
- console.error(e);
+ } else {
  toast.error("Erreur lors de l'activation");
+ }
+ } catch (e) {
+ toast.error("Erreur réseau");
  } finally {
  setLoading(false);
  }
  };
 
- const handleDelete = async (name: string) => {
+ const handleDelete = (name: string) => {
  setConfirmDialog({
  isOpen: true,
- title: 'Supprimer la collection ?',
- description: `Êtes-vous sûr de vouloir supprimer la collection ${name} ?`,
+ title: "Supprimer la collection",
+ description: `Voulez-vous vraiment supprimer le dossier de la collection "${name}" ? Cette action est irréversible.`,
  onConfirm: async () => {
  try {
- const res = await fetch(`/api/repositories/${encodeURIComponent(name)}`, { method: 'DELETE' });
+ const res = await fetch(`/api/repositories/${encodeURIComponent(name)}`, {
+ method: 'DELETE'
+ });
  if (res.ok) {
+ toast.success("Collection supprimée !");
  await fetchCollections();
- toast.success("Collection supprimée");
+ if (activeCollection === name) {
+ await onSaved(); // Reload without active collection
+ }
  } else {
  toast.error("Erreur lors de la suppression");
  }
@@ -129,19 +138,16 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  });
  };
 
- if (!isOpen) return null;
-
  return (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
- <div className="bg-background border border-border rounded-xl shadow-lg w-full max-w-3xl flex flex-col max-h-[85vh]">
- <div className="p-6 flex items-center justify-between border-b border-border">
- <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+ <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+ <DialogContent className="sm:max-w-3xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
+ <DialogHeader className="p-6 pb-4 border-b border-border bg-background">
+ <DialogTitle className="text-xl font-semibold text-foreground flex items-center gap-2">
  <Books className="w-7 h-7 text-primary" weight="fill" /> Gestionnaire de Collections
- </h2>
- <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">✕</button>
- </div>
+ </DialogTitle>
+ </DialogHeader>
 
- <div className="p-6 flex-1 overflow-y-auto">
+ <div className="p-6 flex-1 overflow-y-auto bg-background">
  <div className="mb-8 p-4 bg-card rounded-xl border border-border shadow-sm">
  <h3 className="text-sm font-semibold text-foreground mb-3">Cloner un nouveau dépôt Git</h3>
  <div className="flex gap-2">
@@ -220,7 +226,6 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  )}
  </div>
  </div>
- </div>
 
  <AlertDialog open={confirmDialog?.isOpen} onOpenChange={(open) => !open && setConfirmDialog(null)}>
  <AlertDialogContent className="shadow-lg rounded-xl">
@@ -244,6 +249,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  </AlertDialogFooter>
  </AlertDialogContent>
  </AlertDialog>
- </div>
+ </DialogContent>
+ </Dialog>
  );
 }
