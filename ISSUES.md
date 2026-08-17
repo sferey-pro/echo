@@ -6,7 +6,7 @@ Ce fichier liste les bugs connus, les limitations actuelles et les axes d'améli
 - *Aucun bug critique identifié pour le moment.*
 
 ## 📋 Tâches en attente (Backlog technique)
-- [ ] Connecter un système de backend complet ou une base de données (lorsque les prochaines spécifications le dicteront).
+- [x] Connecter un système de backend complet ou une base de données (Base locale SQLite `echo.db` intégrée).
 - [ ] Configurer un pipeline CI/CD automatisé standard (GitHub Actions / GitLab CI) si un déploiement continu est envisagé hors local.
 
 ## 💡 Idées d'améliorations

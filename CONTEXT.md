@@ -10,6 +10,8 @@
 * L'application est propulsée par le runtime **Bun** et fonctionne comme un serveur HTTP autonome agissant en proxy.
 * Le mock des requêtes repose sur la technologie **Mock Service Worker (MSW)** configurée côté serveur (`msw/node`) pour injecter dynamiquement des *handlers*.
 * Un mode "Pass-through" est implémenté pour permettre aux développeurs de désactiver le mock sur certaines routes et de laisser passer la requête jusqu'à la véritable API.
+* Une base de données locale (`echo.db`) a été intégrée dans le répertoire de l'application pour stocker l'état.
+* Un serveur de démonstration autonome (`demo_server`) basé sur ElysiaJS est inclus pour simuler un backend E-Commerce (avec Swagger et requêtes REST) afin de tester le proxy.
 
 ## 🔄 Ingestion et Synchronisation des Données
 Afin de gérer les plus de 600 requêtes et les nombreux exemples sans impacter les performances de l'outil, Echo intègre un moteur de synchronisation avancé :
@@ -18,11 +20,11 @@ Afin de gérer les plus de 600 requêtes et les nombreux exemples sans impacter 
 * Un système de *Hot-Swap* (remplacement à chaud) met à jour les intercepteurs MSW en mémoire de manière sélective sans interrompre les mocks en cours d'utilisation.
 
 ## 🖥️ Interface de Contrôle (Dashboard)
-* **Design Néo-brutaliste** : L'application adopte une esthétique audacieuse (bordures épaisses, couleurs pastel vives, ombres pleines décalées) supportant entièrement le mode clair et sombre (Dark Mode) pour un confort d'utilisation maximal.
-* L'interface adopte une vue structurée en "Split-Screen" (3 colonnes simultanées : Navigation, Liste des requêtes, Édition) avec un rendu virtualisé (*virtual scrolling*) pour afficher la liste massive des requêtes de manière fluide.
+* **Design Moderne & Épuré** : L'application a récemment abandonné le style néo-brutaliste au profit d'une interface plus sobre (liste plate, suppression des bordures lourdes, nouvelles couleurs pour les badges HTTP, boutons d'action primaires mis en avant).
+* L'interface conserve une vue structurée en "Split-Screen" (3 colonnes simultanées : Navigation, Liste des requêtes, Édition) avec un rendu virtualisé (*virtual scrolling*) pour afficher la liste massive des requêtes de manière fluide.
 * Un panneau latéral (colonne de gauche) reproduit fidèlement l'arborescence des dossiers du projet Bruno et donne accès aux scénarios.
 * Les développeurs frontend peuvent sélectionner, pour chaque route, l'exemple MSW à activer via des menus déroulants.
-* L'interface intègre un éditeur JSON (Monaco Editor) permettant de surcharger (*override*) le payload de réponse à la volée. Un halo visuel jaune (glow) indique clairement lorsqu'un mock a été modifié. Un bouton "Recharger l'original" permet de purger la modification.
+* L'interface intègre un éditeur JSON (Monaco Editor, en thème sombre) permettant de surcharger (*override*) le payload de réponse à la volée. Un halo visuel indique clairement lorsqu'un mock a été modifié. Un bouton "Recharger l'original" permet de purger la modification.
 * Un système de Favoris (Starred) permet d'épingler des requêtes spécifiques pour les retrouver rapidement dans une vue dédiée.
 * Des boutons de scénarios (Bulk Actions) sont prévus pour appliquer instantanément un ensemble de mocks métiers, comme simuler une panne généralisée (Erreurs 500) sur plusieurs endpoints en un seul clic.
 
