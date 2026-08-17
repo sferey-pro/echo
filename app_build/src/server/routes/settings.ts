@@ -12,7 +12,7 @@ export async function handleSettingsRoute(req: Request, url: URL): Promise<Respo
  try {
   const body = await req.json();
   if (body && typeof body.key === 'string' && typeof body.value === 'string') {
-  const allowedKeys = ['REPO_PATH', 'ACTIVE_COLLECTION_NAME', 'TARGET_API_URL', 'GIT_SYNC_INTERVAL'];
+  const allowedKeys = ['REPO_PATH', 'ACTIVE_COLLECTION_NAME', 'TARGET_API_URL', 'GIT_SYNC_INTERVAL', 'ACTIVE_ENVIRONMENT'];
   if (!allowedKeys.includes(body.key)) {
     return new Response("Invalid setting key", { status: 400 });
   }

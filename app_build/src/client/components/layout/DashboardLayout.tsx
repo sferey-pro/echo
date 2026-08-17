@@ -204,28 +204,7 @@ export function DashboardLayout() {
  <div className="flex-none px-4 py-3 bg-card border-b border-border flex items-center justify-between z-20">
  <div className="flex items-center gap-4">
  <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-br from-primary to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Echo</h1>
- <div className="flex items-center gap-2 ml-4">
- <span className="px-1.5 py-0.5 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-700 font-semibold text-[10px] uppercase">ENV</span>
- <Select value={activeEnvironment} onValueChange={handleEnvChange}>
- <SelectTrigger className="w-[150px] h-9 text-sm bg-white text-black focus:ring-0">
- <SelectValue placeholder="Aucun" />
- </SelectTrigger>
- <SelectContent className=" bg-white">
- <SelectItem value="">Aucun</SelectItem>
- {environments.map(env => (
- <SelectItem key={env.name} value={env.name}>{env.name}</SelectItem>
- ))}
- </SelectContent>
- </Select>
- <Button
- variant="secondary"
- size="icon"
- onClick={() => setIsEnvViewerOpen(true)}
- className="ml-1 h-9 w-9 bg-green-50 text-green-700 hover:bg-green-100"
- title="Voir les variables d'environnement"
- >
- <Eye className="w-4 h-4" weight="bold" />
- </Button>
+
  <Button
  variant="secondary"
  size="icon"
@@ -235,7 +214,6 @@ export function DashboardLayout() {
  >
  <Gear className="w-4 h-4" weight="bold" />
  </Button>
- </div>
  </div>
  <div className="flex items-center gap-3">
  {syncStatus.hasGit && (
@@ -275,8 +253,33 @@ export function DashboardLayout() {
   {/* Colonne 1 : Collection & Scénarios */}
   <div className="flex flex-col gap-6 min-h-[400px] md:h-full overflow-hidden">
  <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm">
- <div className="bg-muted/50 p-3 border-b border-border">
+ <div className="bg-muted/50 p-3 border-b border-border flex flex-col gap-3">
+ <div className="flex items-center justify-between">
  <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Collection Bruno</h2>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="px-1.5 py-0.5 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-700 font-semibold text-[10px] uppercase">ENV</span>
+ <Select value={activeEnvironment} onValueChange={handleEnvChange}>
+ <SelectTrigger className="flex-1 h-7 text-xs bg-white text-black focus:ring-0">
+ <SelectValue placeholder="Aucun env." />
+ </SelectTrigger>
+ <SelectContent className="bg-white">
+ <SelectItem value="" className="text-xs">Aucun env.</SelectItem>
+ {environments.map(env => (
+ <SelectItem key={env.name} value={env.name} className="text-xs">{env.name}</SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
+ <Button
+ variant="secondary"
+ size="icon"
+ onClick={() => setIsEnvViewerOpen(true)}
+ className="h-7 w-7 bg-green-50 text-green-700 hover:bg-green-100 shrink-0"
+ title="Voir les variables d'environnement"
+ >
+ <Eye className="w-3.5 h-3.5" weight="bold" />
+ </Button>
+ </div>
  </div>
  <div className="flex-1 overflow-hidden">
  <RequestList 
