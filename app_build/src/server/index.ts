@@ -20,62 +20,85 @@ import { handleRepositoriesRoute } from "./routes/repositories";
 import { handleScenariosRoute } from "./routes/scenarios";
 import { handleResetRoute } from "./routes/reset";
 
-const PORT = process.env.PORT || 3000;
 
-const server = serve({
- port: PORT,
- hostname: "127.0.0.1",
- routes: {
- "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
- "/": index,
- },
 
- async fetch(req) {
- const url = new URL(req.url);
+let PORT = parseInt(process.env.PORT || '3000', 10);
+let server: ReturnType<typeof serve> | undefined = undefined;
 
- // Cors preflight for all requests (API and Proxy)
- if (req.method === 'OPTIONS') {
- return new Response(null, {
- headers: {
- "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
- "Access-Control-Allow-Headers": "*"
- }
- });
- }
+const startServer = () => {
+  try {
+    server = serve({
+     port: PORT,
+     hostname: "127.0.0.1",
+     routes: {
+     "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
+     "/": index,
+     "/_hmr": index,
+     "/*": index, // SPA Fallback
+     },
+    
+     async fetch(req) {
+     const url = new URL(req.url);
+    
+     if (url.pathname === '/health') {
+       return new Response(JSON.stringify({ status: 'ok', uptime: process.uptime() }), {
+         headers: { 'Content-Type': 'application/json' }
+       });
+     }
+    
+     if (url.pathname.startsWith("/api/")) {
+     let response = await handleCollectionsRoute(req, url)
+      || await handleMocksRoute(req, url)
+      || await handleSettingsRoute(req, url)
+      || await handleSyncRoute(req, url)
+      || await handleRepositoriesRoute(req, url)
+      || await handleScenariosRoute(req, url)
+      || await handleResetRoute(req, url);
+    
+     if (response) {
+       if (response.status >= 500) {
+         console.error(`[API] ${req.method} ${url.pathname} - ${response.status}`);
+       } else {
+         console.log(`[API] ${req.method} ${url.pathname} - ${response.status}`);
+       }
+       return response;
+     }
+     }
+    
+     return handleProxyRequest(req);
+     },
+    
+     development: process.env.NODE_ENV !== "production" && {
+     hmr: true,
+     console: true,
+     },
+    });
 
- // Try routing through our extracted route handlers
- const handlers = [
- handleCollectionsRoute,
- handleMocksRoute,
- handleSettingsRoute,
- handleSyncRoute,
- handleRepositoriesRoute,
- handleScenariosRoute,
- handleResetRoute
- ];
+    console.log(`🚀 Unified Echo Server running at ${server.url} (Dashboard, API & Proxy)`);
+    console.log(`📂 Using Repo Path: ${getRepoPath()}`);
+  } catch (err: any) {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`⚠️ Port ${PORT} in use, trying ${PORT + 1}...`);
+      PORT++;
+      startServer();
+    } else {
+      console.error("Failed to start server:", err);
+      process.exit(1);
+    }
+  }
+};
 
- for (const handler of handlers) {
- const response = await handler(req, url);
- if (response) {
- return response;
- }
- }
-
- // Tout ce qui ne correspond ni aux routes (SPA), ni à l'API interne, part vers le proxy MSW !
- return handleProxyRequest(req);
- },
-
- development: process.env.NODE_ENV !== "production" && {
- // Enable browser hot reloading in development
- hmr: true,
- // Echo console logs from the browser to the server
- console: true,
- },
-});
-
-console.log(`🚀 Unified Echo Server running at ${server.url} (Dashboard, API & Proxy)`);
-console.log(`📂 Using Repo Path: ${getRepoPath()}`);
+startServer();
 
 // Initial start
 updateBackgroundTasks();
 runSync();
+
+const shutdown = () => {
+  console.log('🛑 Shutting down server gracefully...');
+  if (server) server.stop();
+  process.exit(0);
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

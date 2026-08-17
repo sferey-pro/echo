@@ -51,7 +51,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  if (proc.exitCode !== 0) {
  const errText = await new Response(proc.stderr).text();
  console.error("Git clone failed:", errText);
- return new Response(JSON.stringify({ error: "Git clone failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json" } });
+ return new Response(JSON.stringify({ error: "Git clone failed. Check server logs." }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  
  return new Response(JSON.stringify({ success: true, name: repoName }), {

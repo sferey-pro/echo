@@ -1,12 +1,25 @@
 import { Database } from "bun:sqlite";
 import { join } from "path";
+import { randomUUID } from "crypto";
 import type { ScenarioAction } from "../../client/lib/api";
 import type { ApiRequest, BrunoFolder, BrunoEnvironment } from "../../shared/lib/parser";
 
 // Initialize the SQLite database
 const isTestEnv = process.env.NODE_ENV === 'test';
-const dbPath = isTestEnv ? ':memory:' : join(__dirname, '..', '..', '.echo-state.sqlite');
+const defaultDbPath = join(process.cwd(), '.echo-state.sqlite');
+const dbPath = isTestEnv ? ':memory:' : (process.env.ECHO_DATA_DIR ? join(process.env.ECHO_DATA_DIR, '.echo-state.sqlite') : defaultDbPath);
 const db = new Database(dbPath);
+db.exec('PRAGMA journal_mode = WAL;');
+
+function safeJsonParse<T>(data: string | null | undefined, fallback: T): T {
+  if (!data) return fallback;
+  try {
+    return JSON.parse(data) as T;
+  } catch (err) {
+    console.error("JSON parse error on DB read:", err);
+    return fallback;
+  }
+}
 
 // Database migration: drop old mock_states and create mock_variants
 db.exec(`
@@ -30,10 +43,6 @@ db.exec(`
  );
 `);
 
-// Optional: Drop old mock_states table to avoid confusion
-try {
- db.exec("DROP TABLE mock_states");
-} catch { /* ignore */ }
 
 // Create scenarios table
 db.exec(`
@@ -106,7 +115,7 @@ export const getMockVariants = (): Record<string, MockVariantDef[]> => {
  selectedExample: row.selected_example,
  statusCode: row.status_code ?? 200,
  latencyMs: row.latency_ms ?? 0,
- pathParamsOverrides: row.path_params_overrides ? JSON.parse(row.path_params_overrides) : {}
+ pathParamsOverrides: safeJsonParse<Record<string, string>>(row.path_params_overrides, {})
  });
  }
  return variants;
@@ -241,7 +250,7 @@ export const getScenarios = (): { id: string, name: string, actions: ScenarioAct
  return results.map(row => ({
  id: row.id,
  name: row.name,
- actions: JSON.parse(row.actions || '[]')
+ actions: safeJsonParse<ScenarioAction[]>(row.actions, [])
  }));
 };
 
@@ -266,16 +275,18 @@ export const deleteScenario = (id: string) => {
 };
 
 export const applyScenarioActions = (actions: ScenarioAction[]) => {
- // Reset all to is_mocked = 0 first
- db.exec("UPDATE mock_variants SET is_mocked = 0");
+ // Do not reset all mocks globally.
+ // Instead, for each action, we upsert a specific variant named "Scenario" 
+ // so we don't overwrite user's manual variants.
  
- // Then apply the specific ones. 
- // Since ScenarioActions were originally tied to requestId, we need to find the "Default" variant or the first variant of that request and update it.
- // For robustness, we will find the first variant for each request_id and update it.
  for (const action of actions) {
  if (!action.requestId) continue;
  
- const checkQuery = db.query("SELECT id FROM mock_variants WHERE request_id = $id LIMIT 1");
+ // Disable other variants for this specific request
+ db.query("UPDATE mock_variants SET is_mocked = 0 WHERE request_id = $id").run({ $id: action.requestId });
+ 
+ // Upsert a "Scenario" variant
+ const checkQuery = db.query("SELECT id FROM mock_variants WHERE request_id = $id AND name = 'Scenario' LIMIT 1");
  const exists = checkQuery.get({ $id: action.requestId }) as { id: string } | null;
  
  if (exists) {
@@ -298,9 +309,19 @@ export const applyScenarioActions = (actions: ScenarioAction[]) => {
  $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
  });
  } else {
- // Create a default variant if none exists
- const variantId = `${action.requestId}-default`;
- createMockVariant(variantId, action.requestId, "Générique", true, action.payload || '{}', action.selectedExample || null, action.statusCode || 200, action.latencyMs || 0, action.pathParamsOverrides || null);
+ const insertQuery = db.query(`
+ INSERT INTO mock_variants (id, request_id, name, is_mocked, payload, status_code, latency_ms, selected_example, path_params_overrides)
+ VALUES ($id, $reqId, 'Scenario', 1, $payload, $statusCode, $latencyMs, $selectedExample, $pathParamsOverrides)
+ `);
+ insertQuery.run({
+ $id: randomUUID(),
+ $reqId: action.requestId,
+ $payload: action.payload !== undefined ? action.payload : '{}',
+ $statusCode: action.statusCode !== undefined ? action.statusCode : 200,
+ $latencyMs: action.latencyMs !== undefined ? action.latencyMs : 0,
+ $selectedExample: action.selectedExample !== undefined ? action.selectedExample : null,
+ $pathParamsOverrides: action.pathParamsOverrides ? JSON.stringify(action.pathParamsOverrides) : null
+ });
  }
  }
 };
@@ -348,23 +369,32 @@ export const getCollectionFromDb = () => {
  const folderRows = db.query("SELECT * FROM bruno_folders").all() as {id: string, data: string, is_obsolete: number}[];
  const envRows = db.query("SELECT * FROM bruno_environments").all() as {name: string, data: string, is_obsolete: number}[];
 
- const requests = reqRows.map(r => {
- const parsed = JSON.parse(r.data);
- parsed.isObsolete = r.is_obsolete === 1;
- return parsed as ApiRequest;
- });
+ const requests: ApiRequest[] = [];
+ for (const r of reqRows) {
+   const parsed = safeJsonParse<ApiRequest | null>(r.data, null);
+   if (parsed) {
+     parsed.isObsolete = r.is_obsolete === 1;
+     requests.push(parsed);
+   }
+ }
 
- const folders = folderRows.map(f => {
- const parsed = JSON.parse(f.data);
- parsed.isObsolete = f.is_obsolete === 1;
- return parsed as BrunoFolder;
- });
+ const folders: BrunoFolder[] = [];
+ for (const f of folderRows) {
+   const parsed = safeJsonParse<BrunoFolder | null>(f.data, null);
+   if (parsed) {
+     parsed.isObsolete = f.is_obsolete === 1;
+     folders.push(parsed);
+   }
+ }
 
- const environments = envRows.map(e => {
- const parsed = JSON.parse(e.data);
- parsed.isObsolete = e.is_obsolete === 1;
- return parsed as BrunoEnvironment;
- });
+ const environments: BrunoEnvironment[] = [];
+ for (const e of envRows) {
+   const parsed = safeJsonParse<BrunoEnvironment | null>(e.data, null);
+   if (parsed) {
+     (parsed as any).isObsolete = e.is_obsolete === 1;
+     environments.push(parsed);
+   }
+ }
 
  return { requests, folders, environments };
 };

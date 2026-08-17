@@ -1,15 +1,16 @@
 import { http, HttpResponse } from 'msw';
 import type { ApiRequest } from '../../shared/lib/parser';
 import type { MockVariantDef } from './db';
+import type { SetupServer } from 'msw/node';
 
 export const mockVariants = new Map<string, MockVariantDef[]>();
 export const requestMeta = new Map<string, { isStarred: boolean }>();
+
 let isInitialized = false;
+let mswServer: SetupServer | null = null;
+let initPromise: Promise<void> | null = null;
 
 import { getMockVariants, getRequestMeta, getSetting } from './db';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mswServer: any = null;
 
 export async function initProxy(requests: ApiRequest[], environments: { name: string, variables: { name: string, value: string }[] }[] = []) {
  const targetApiUrl = getSetting('TARGET_API_URL') || process.env.TARGET_API_URL || "http://localhost:8080";
@@ -117,11 +118,16 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  const handlers = handlerDefs.map(def => def.mswMethod(def.mswPath, def.handler));
 
  if (!isInitialized) {
- isInitialized = true;
+ if (!initPromise) {
+ initPromise = (async () => {
  const moduleName = 'msw/node';
  const { setupServer } = await import(moduleName);
  mswServer = setupServer(...handlers);
  mswServer.listen({ onUnhandledRequest: 'bypass' });
+ isInitialized = true;
+ })();
+ }
+ await initPromise;
  } else {
  // Reset existing MSW server with new handlers (for hot-reload on settings update)
  if (mswServer) {
@@ -175,8 +181,8 @@ export async function handleProxyRequest(req: Request): Promise<Response> {
  headers: responseHeaders
  });
  } catch (err: unknown) {
- const e = err as Error;
- console.error("[PROXY ERROR]", e);
- return new Response(e.stack || String(e), { status: 500 });
- }
+  const e = err as Error;
+  console.error("[PROXY ERROR]", e);
+  return new Response("Internal Server Error", { status: 500 });
+  }
 }

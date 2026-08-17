@@ -12,31 +12,7 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
  const [textIndex, setTextIndex] = useState(0);
 
  useEffect(() => {
- const duration = 1500;
- const intervalTime = 30; // ms
- const steps = duration / intervalTime;
- let currentStep = 0;
-
- const interval = setInterval(() => {
- currentStep++;
- const newProgress = Math.min(100, Math.round((currentStep / steps) * 100));
- setProgress(newProgress);
- 
- const newTextIndex = Math.min(
- loadingTexts.length - 1,
- Math.floor((newProgress / 100) * loadingTexts.length)
- );
- setTextIndex(newTextIndex);
-
- if (currentStep >= steps) {
- clearInterval(interval);
- setTimeout(() => {
  if (onComplete) onComplete();
- }, 200);
- }
- }, intervalTime);
-
- return () => clearInterval(interval);
  }, [onComplete]);
 
  return (

@@ -71,6 +71,8 @@ export async function runSync() {
  syncTimer = setTimeout(runSync, interval);
 }
 
+let watchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function updateBackgroundTasks() {
  const repo = getRepoPath();
  if (repo !== currentWatchPath) {
@@ -86,18 +88,22 @@ export function updateBackgroundTasks() {
  console.log(`📂 Using Repo Path: ${repo}`);
  currentWatcher = watch(repo, { recursive: true }, async (event, filename) => {
  if (!filename || filename.startsWith('.git') || filename.startsWith('node_modules')) return;
- if (filename.endsWith('.yml') || filename.endsWith('.bru') || filename.endsWith('.json')) {
- const fullPath = resolve(repo, filename);
- if (existsSync(fullPath)) {
- await parseFile(repo, fullPath);
- } else {
- removeFileFromCache(repo, fullPath);
- }
- await syncGitToDatabase(repo);
- const data = getCollectionFromDb();
- await initProxy(data.requests, data.environments);
- }
- });
+      if (filename.endsWith('.yml') || filename.endsWith('.bru') || filename.endsWith('.json')) {
+        const fullPath = resolve(repo, filename);
+        if (existsSync(fullPath)) {
+          await parseFile(repo, fullPath);
+        } else {
+          removeFileFromCache(repo, fullPath);
+        }
+        
+        if (watchDebounceTimer) clearTimeout(watchDebounceTimer);
+        watchDebounceTimer = setTimeout(async () => {
+          await syncGitToDatabase(repo);
+          const data = getCollectionFromDb();
+          await initProxy(data.requests, data.environments);
+        }, 1000);
+      }
+    });
  }
  }
 }

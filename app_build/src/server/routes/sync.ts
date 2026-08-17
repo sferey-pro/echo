@@ -30,7 +30,8 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  const errText = await new Response(proc.stderr).text();
  const outText = await new Response(proc.stdout).text();
  const fullError = (errText + "\n" + outText).trim();
- return new Response(JSON.stringify({ error: "Git pull failed:\n" + fullError }), { status: 500, headers: { "Content-Type": "application/json" } });
+ console.error("Git pull failed:\n" + fullError);
+ return new Response(JSON.stringify({ error: "Git pull failed. Check server logs." }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  
  await syncGitToDatabase(repo);

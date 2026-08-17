@@ -24,7 +24,7 @@ import {
 import { useStore } from '../../store/useStore';
 
 export function RequestDetails() {
-  const { requests, selectedRequestId, loadCollection, activeEnvironment, environments } = useStore();
+  const { requests, selectedRequestId, loadCollection, activeEnvironment, environments, updateLocalVariant } = useStore();
   const request = requests.find(r => r.id === selectedRequestId) || null;
   const variants = request?.variants || [];
   
@@ -109,8 +109,9 @@ export function RequestDetails() {
   const handleToggleMock = async () => {
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { isMocked: !activeVariant.isMocked, payload, statusCode, latencyMs, pathParamsOverrides });
-      await loadCollection();
+      const updates = { isMocked: !activeVariant.isMocked, payload, statusCode, latencyMs, pathParamsOverrides };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
     } finally {
@@ -121,8 +122,9 @@ export function RequestDetails() {
   const handleSavePayload = async () => {
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { payload, selectedExample, statusCode, latencyMs, pathParamsOverrides });
-      await loadCollection();
+      const updates = { payload, selectedExample, statusCode, latencyMs, pathParamsOverrides };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
       toast.success("Variante sauvegardée");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde');
@@ -135,8 +137,9 @@ export function RequestDetails() {
     setStatusCode(newCode);
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { statusCode: newCode, payload, selectedExample, latencyMs, pathParamsOverrides });
-      await loadCollection();
+      const updates = { statusCode: newCode, payload, selectedExample, latencyMs, pathParamsOverrides };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de statut');
     } finally {
@@ -147,8 +150,9 @@ export function RequestDetails() {
   const handleLatencyChange = async (newLatency: number) => {
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { latencyMs: newLatency, payload, selectedExample, statusCode, pathParamsOverrides });
-      await loadCollection();
+      const updates = { latencyMs: newLatency, payload, selectedExample, statusCode, pathParamsOverrides };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de latence');
     } finally {
@@ -163,8 +167,9 @@ export function RequestDetails() {
     
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { pathParamsOverrides: newOverrides, payload, selectedExample, statusCode, latencyMs });
-      await loadCollection();
+      const updates = { pathParamsOverrides: newOverrides, payload, selectedExample, statusCode, latencyMs };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des paramètres');
     } finally {
@@ -176,12 +181,13 @@ export function RequestDetails() {
     setSelectedExample(ex.name);
     const newPayload = getPayloadString(ex.response?.body?.data);
     setPayload(newPayload);
-    const newStatus = ex.response?.status || statusCode;
+    const newStatus = ex.response?.status || (ex as any).res?.status || statusCode;
     setStatusCode(newStatus);
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { payload: newPayload, selectedExample: ex.name, statusCode: newStatus, latencyMs, pathParamsOverrides });
-      await loadCollection();
+      const updates = { payload: newPayload, selectedExample: ex.name, statusCode: newStatus, latencyMs, pathParamsOverrides };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (e: unknown) {
       toast.error("Erreur: " + (e instanceof Error ? e.message : String(e)));
     } finally {
@@ -454,6 +460,7 @@ export function RequestDetails() {
                 onChange={(e) => setLatencyMs(parseInt(e.target.value))}
                 onMouseUp={() => handleLatencyChange(latencyMs)}
                 onTouchEnd={() => handleLatencyChange(latencyMs)}
+                onKeyUp={(e) => { if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) handleLatencyChange(latencyMs); }}
                 className="w-full accent-primary h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer border-2 border-slate-300"
               />
             </div>

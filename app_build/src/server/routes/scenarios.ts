@@ -1,6 +1,6 @@
 import { getScenarios, createScenario, updateScenario, deleteScenario, applyScenarioActions, getCollectionFromDb } from "../lib/db";
 import { initProxy, mockVariants } from "../lib/proxy";
-import type { ScenarioAction } from "../lib/api";
+import type { ScenarioAction } from "../../client/lib/api";
 
 export async function handleScenariosRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/scenarios' && req.method === 'GET') {
@@ -90,7 +90,7 @@ export async function handleScenariosRoute(req: Request, url: URL): Promise<Resp
  const id = matchUpdateScenario[1];
  if (!id) return new Response("Bad Request", { status: 400, headers: {  } });
  const body = await req.json();
- if (!body.name || !body.actions) return new Response("Bad Request: missing name or actions", { status: 400, headers: {  } });
+ if (!body.name || !Array.isArray(body.actions)) return new Response("Bad Request: missing name or invalid actions", { status: 400, headers: {  } });
  
  updateScenario(id, body.name, body.actions);
  return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });

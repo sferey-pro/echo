@@ -1,5 +1,5 @@
-import type { ParserResult, ApiRequest } from './parser';
-import type { MockVariantDef } from './db';
+import type { ParserResult, ApiRequest } from '../../shared/lib/parser';
+import type { MockVariantDef } from '../../server/lib/db';
 
 export async function fetchCollection(): Promise<ParserResult> {
  const response = await fetch('/api/collections');

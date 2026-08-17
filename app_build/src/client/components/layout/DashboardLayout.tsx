@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { SplashScreen } from './SplashScreen';
 import { MethodBadge } from '../ui/method-badge';
 import { Button } from '@/client/components/ui/button';
@@ -26,6 +27,8 @@ export function DashboardLayout() {
  environments,
  activeEnvironment,
  isLoading,
+ isError,
+ errorMessage,
  selectedRequestId,
  selectedFolderId,
  selectedScenarioId,
@@ -46,27 +49,37 @@ export function DashboardLayout() {
  const [isSyncing, setIsSyncing] = useState(false);
  const [syncStatus, setSyncStatus] = useState({ isSynced: true, commitsBehind: 0, error: "", hasGit: false });
 
- useEffect(() => {
- const checkStatus = async () => {
- try {
- const res = await fetch('http://localhost:3000/api/sync/status?fetch=true');
- if (res.ok) {
- const data = await res.json();
- setSyncStatus(data);
- }
- } catch {
- // ignore
- }
- };
- checkStatus();
- const interval = setInterval(checkStatus, 30000);
- return () => clearInterval(interval);
- }, []);
+  useEffect(() => {
+  const checkStatus = async () => {
+  if (document.visibilityState !== 'visible') return;
+  try {
+  const res = await fetch('/api/sync/status?fetch=true');
+  if (res.ok) {
+  const data = await res.json();
+  setSyncStatus(data);
+  }
+  } catch {
+  // ignore
+  }
+  };
+  checkStatus();
+  const interval = setInterval(checkStatus, 30000);
+  
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') checkStatus();
+  };
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  return () => {
+    clearInterval(interval);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  };
+  }, []);
 
  const handleGitSync = async () => {
  setIsSyncing(true);
  try {
- const res = await fetch('http://localhost:3000/api/sync/pull', { method: 'POST' });
+ const res = await fetch('/api/sync/pull', { method: 'POST' });
  if (res.ok) {
  setSyncStatus(prev => ({ ...prev, commitsBehind: 0, isSynced: true }));
  loadCollection(); // Recharger la collection après le sync
@@ -82,9 +95,14 @@ export function DashboardLayout() {
  }
  };
 
- useEffect(() => {
- loadCollection();
- }, [loadCollection]);
+  const initialLoadDone = useRef(false);
+
+  useEffect(() => {
+    if (!initialLoadDone.current) {
+      loadCollection();
+      initialLoadDone.current = true;
+    }
+  }, [loadCollection]);
 
  const handleEnvChange = (val: string) => {
  setActiveEnvironment(val);
@@ -147,6 +165,14 @@ export function DashboardLayout() {
  return req.variants.some(v => v.payload !== defaultPayload);
  };
 
+ const scrollParentRef = useRef<HTMLDivElement>(null);
+ const rowVirtualizer = useVirtualizer({
+   count: requestsInSelectedFolder.length,
+   getScrollElement: () => scrollParentRef.current,
+   estimateSize: () => 52, // approximate height of a row
+   overscan: 5,
+ });
+
  useEffect(() => {
  if (selectedRequest && selectedRequest.folderId !== selectedFolderId && selectedRequest.folderId !== 'root') {
  setSelectedFolderId(selectedRequest.folderId);
@@ -155,8 +181,20 @@ export function DashboardLayout() {
 
  const showSplash = isLoading || !splashAnimationDone;
 
- if (showSplash) {
+ if (showSplash && !isError) {
  return <SplashScreen onComplete={() => setSplashAnimationDone(true)} />;
+ }
+
+ if (isError) {
+ return (
+   <div className="h-screen w-full flex items-center justify-center bg-slate-50 text-foreground">
+     <div className="p-8 max-w-md w-full bg-white rounded-xl shadow-sm border border-red-200">
+       <h2 className="text-xl font-bold text-red-600 mb-4">Erreur de chargement</h2>
+       <p className="text-sm text-slate-600 mb-6">{errorMessage || "Une erreur inconnue s'est produite."}</p>
+       <Button onClick={() => loadCollection(true)} className="w-full">Réessayer</Button>
+     </div>
+   </div>
+ );
  }
 
  return (
@@ -263,22 +301,42 @@ export function DashboardLayout() {
         <div className="bg-muted/50 p-3 border-b border-border flex justify-between items-center">
           <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Requêtes : {selectedFolderName}</h2>
         </div>
-        <div className="flex-1 overflow-y-auto p-0 flex flex-col bg-card">
-          {requestsInSelectedFolder.map((req, index) => (
-            <div 
-              key={req.id} 
-              onClick={() => setSelectedRequestId(req.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
-              tabIndex={0}
-              className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
-            >
-              <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{index + 1}</span>
-              <MethodBadge method={req.method} className="mr-3" />
-              <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
-              {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Modifié</span>}
-              {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Mock Actif</span>}
-            </div>
-          ))}
+        <div ref={scrollParentRef} className="flex-1 overflow-y-auto p-0 bg-card">
+          <div
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const req = requestsInSelectedFolder[virtualRow.index];
+              if (!req) return null;
+              return (
+                <div 
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  onClick={() => setSelectedRequestId(req.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
+                  tabIndex={0}
+                  className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
+                >
+                  <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{virtualRow.index + 1}</span>
+                  <MethodBadge method={req.method} className="mr-3" />
+                  <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
+                  {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Modifié</span>}
+                  {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Mock Actif</span>}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

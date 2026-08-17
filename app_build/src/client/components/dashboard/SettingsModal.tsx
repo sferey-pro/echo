@@ -33,6 +33,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
 
  useEffect(() => {
  if (isOpen) {
+ setLoading(true);
  getSettings().then(settings => {
  setTargetApiUrl(settings.TARGET_API_URL || '');
  }).finally(() => setLoading(false));
@@ -62,7 +63,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  const { resetApplication } = await import('../../lib/api');
  await resetApplication();
  toast.success("Application réinitialisée avec succès !");
- window.location.reload();
+ setTimeout(() => window.location.reload(), 1500);
  } catch (err: unknown) {
  toast.error(err instanceof Error ? err.message : "Erreur lors de la réinitialisation");
  setLoading(false);

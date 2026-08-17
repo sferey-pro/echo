@@ -7,7 +7,10 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  if (url.pathname === '/api/mocks/meta' && req.method === 'POST') {
  try {
  const body = await req.json();
- updateRequestMeta(body.id, body.isStarred);
+ if (!body || typeof body.id !== 'string') {
+ return new Response("Invalid body", { status: 400 });
+ }
+ updateRequestMeta(body.id, !!body.isStarred);
  return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
  return new Response(String(err), { status: 400, headers: {  } });
@@ -18,6 +21,9 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  if (url.pathname === '/api/mocks/variants' && req.method === 'POST') {
  try {
  const body = await req.json();
+ if (!body || typeof body.requestId !== 'string' || typeof body.name !== 'string') {
+ return new Response("Invalid body", { status: 400 });
+ }
  const variantId = randomUUID();
  createMockVariant(variantId, body.requestId, body.name, false, '{}', null, 200, 0, null);
  

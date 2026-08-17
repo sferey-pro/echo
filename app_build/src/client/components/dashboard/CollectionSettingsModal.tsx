@@ -32,6 +32,7 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
 
  useEffect(() => {
  if (isOpen) {
+ setLoading(true);
  getSettings().then(settings => {
  setGitSyncInterval(settings.GIT_SYNC_INTERVAL || '300000');
  }).finally(() => setLoading(false));
