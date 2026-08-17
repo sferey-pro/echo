@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { handleMocksRoute } from "./mocks";
-import { resetDatabase, getRequestMeta, getMockVariants } from "../lib/db";
+import { resetDatabase, getRequestMeta, getMockVariants } from "../lib/db/index";
 
 describe("API Route: /api/mocks/*", () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import type { ApiRequest } from "../../shared/lib/parser";
-import type { MockVariantDef } from "./db";
+import type { MockVariantDef } from "./db/index";
 import type { SetupServer } from "msw/node";
 
 export const mockVariants = new Map<string, MockVariantDef[]>();
@@ -10,7 +10,7 @@ let isInitialized = false;
 let mswServer: SetupServer | null = null;
 let initPromise: Promise<void> | null = null;
 
-import { getMockVariants, getRequestMeta, getSetting } from "./db";
+import { getMockVariants, getRequestMeta, getSetting } from "./db/index";
 
 export async function initProxy(
   requests: ApiRequest[],
@@ -46,10 +46,14 @@ export async function initProxy(
   }> = [];
 
   for (const req of requests) {
-    const variants = mockVariants.get(req.id) || [];
+    let variants = mockVariants.get(req.id);
+    if (!variants) {
+      variants = [];
+      mockVariants.set(req.id, variants);
+    }
 
-    // S'assurer qu'il y a toujours au moins la variante Default
-    if (variants.length === 0) {
+    // S'assurer qu'il y a toujours la variante Default
+    if (!variants.some(v => v.id === `${req.id}-default`)) {
       const data = req.examples?.[0]?.response?.body?.data;
       const payloadStr =
         typeof data === "string"
@@ -58,7 +62,7 @@ export async function initProxy(
             ? JSON.stringify(data, null, 2)
             : "{}";
 
-      variants.push({
+      variants.unshift({
         id: `${req.id}-default`,
         name: "Default",
         isMocked: false,

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { handleScenariosRoute } from "./scenarios";
-import { resetDatabase } from "../lib/db";
+import { resetDatabase } from "../lib/db/index";
 
 describe("API Route: /api/scenarios", () => {
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe("API Route: /api/scenarios", () => {
     const data = (await res?.json()) as any;
     expect(data.success).toBe(true);
 
-    const { getScenarios } = require("../lib/db");
+    const { getScenarios } = require("../lib/db/index");
     const scenarios = getScenarios();
     const created = scenarios.find((s: any) => s.id === data.id);
     expect(created.actions.length).toBe(1);

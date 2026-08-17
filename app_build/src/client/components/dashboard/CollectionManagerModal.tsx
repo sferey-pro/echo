@@ -20,6 +20,9 @@ import {
   DialogTitle,
 } from "@/client/components/ui/dialog";
 
+import { ImportCollectionModal } from "./ImportCollectionModal";
+import { exportCollection } from "@/client/lib/api";
+
 interface CollectionManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,6 +45,7 @@ export function CollectionManagerModal({
     description: string;
     onConfirm: () => void;
   } | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const fetchCollections = async () => {
     try {
@@ -204,6 +208,28 @@ export function CollectionManagerModal({
             </div>
           </div>
 
+          <div className="mb-8 p-4 bg-card rounded-xl border border-border shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-3">
+              Export / Import de Configuration
+            </h3>
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => exportCollection()}
+                disabled={!activeCollection}
+              >
+                Exporter la configuration actuelle
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => setIsImportModalOpen(true)}
+              >
+                Importer une configuration
+              </Button>
+            </div>
+          </div>
+
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
             Collections Disponibles
           </h3>
@@ -303,6 +329,14 @@ export function CollectionManagerModal({
           </AlertDialogContent>
         </AlertDialog>
       </DialogContent>
+      <ImportCollectionModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportSuccess={async () => {
+          await fetchCollections();
+          await onSaved();
+        }}
+      />
     </Dialog>
   );
 }

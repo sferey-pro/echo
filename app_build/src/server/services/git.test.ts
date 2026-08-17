@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import { getRepoPath } from "./git";
-import { resetDatabase, setSetting } from "../lib/db";
+import { resetDatabase, setSetting } from "../lib/db/index";
 
 describe("Service: git", () => {
   beforeEach(() => {

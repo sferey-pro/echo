@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, mock } from "bun:test";
 import { initProxy, mockVariants, requestMeta } from "./proxy";
-import * as db from "./db";
+import * as db from "./db/index";
 import * as mswNode from "msw/node";
 import { http, HttpResponse } from "msw";
 

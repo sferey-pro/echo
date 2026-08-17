@@ -163,6 +163,22 @@ export async function deleteScenario(id: string): Promise<void> {
     throw new Error("Erreur lors de la suppression du scénario");
 }
 
+export const exportCollection = async () => {
+  window.open("/api/export", "_blank");
+};
+
+export const importCollection = async (targetName: string, exportData: any) => {
+  const res = await fetch("/api/import", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ targetName, exportData }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to import collection");
+  }
+};
+
 export async function resetApplication(): Promise<void> {
   const response = await fetch("/api/reset", {
     method: "POST",

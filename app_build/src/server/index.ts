@@ -20,6 +20,8 @@ import { handleSyncRoute } from "./routes/sync";
 import { handleRepositoriesRoute } from "./routes/repositories";
 import { handleScenariosRoute } from "./routes/scenarios";
 import { handleResetRoute } from "./routes/reset";
+import { handleExportRoute } from "./routes/export";
+import { handleImportRoute } from "./routes/import";
 
 let PORT = parseInt(process.env.PORT || "3000", 10);
 let server: ReturnType<typeof serve> | undefined = undefined;
@@ -85,15 +87,25 @@ const startServer = () => {
           }
         }
 
+        let maybeResponse: Response | null = null;
+        if (url.pathname.startsWith("/api/settings"))
+          maybeResponse = await handleSettingsRoute(req, url);
+        if (!maybeResponse && url.pathname.startsWith("/api/scenarios"))
+          maybeResponse = await handleScenariosRoute(req, url);
+        if (!maybeResponse && url.pathname.startsWith("/api/reset"))
+          maybeResponse = await handleResetRoute(req, url);
+        if (!maybeResponse && url.pathname === "/api/export")
+          maybeResponse = await handleExportRoute(req, url);
+        if (!maybeResponse && url.pathname === "/api/import")
+          maybeResponse = await handleImportRoute(req, url);
+        if (maybeResponse) return maybeResponse;
+
         if (url.pathname.startsWith("/api/")) {
           const response =
             (await handleCollectionsRoute(req, url)) ||
             (await handleMocksRoute(req, url)) ||
-            (await handleSettingsRoute(req, url)) ||
             (await handleSyncRoute(req, url)) ||
-            (await handleRepositoriesRoute(req, url)) ||
-            (await handleScenariosRoute(req, url)) ||
-            (await handleResetRoute(req, url));
+            (await handleRepositoriesRoute(req, url));
 
           if (response) {
             if (response.status >= 500) {

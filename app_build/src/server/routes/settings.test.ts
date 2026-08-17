@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { handleSettingsRoute } from "./settings";
-import { resetDatabase } from "../lib/db";
+import { resetDatabase } from "../lib/db/index";
 import { spyOn } from "bun:test";
 
 import { mock } from "bun:test";

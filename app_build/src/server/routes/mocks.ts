@@ -4,7 +4,7 @@ import {
   createMockVariant,
   updateMockVariant,
   deleteMockVariant,
-} from "../lib/db";
+} from "../lib/db/index";
 import { randomUUID } from "crypto";
 
 export async function handleMocksRoute(

@@ -261,8 +261,12 @@ export function RequestList({
           className={cn(
             "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
             selectedRequestId === req.id
-              ? "border-primary bg-primary/20 text-foreground font-bold"
-              : "hover:bg-accent text-foreground border-transparent",
+              ? req.variants?.some((v) => v.isMocked)
+                ? "border-green-500 bg-green-500/30 text-foreground font-bold"
+                : "border-primary bg-primary/20 text-foreground font-bold"
+              : req.variants?.some((v) => v.isMocked)
+                ? "bg-green-500/10 hover:bg-green-500/20 text-foreground border-transparent"
+                : "hover:bg-accent text-foreground border-transparent",
           )}
         >
           <div

@@ -5,7 +5,7 @@ import {
   deleteScenario,
   applyScenarioActions,
   getCollectionFromDb,
-} from "../lib/db";
+} from "../lib/db/index";
 import { initProxy, mockVariants } from "../lib/proxy";
 import type { ScenarioAction } from "../../client/lib/api";
 

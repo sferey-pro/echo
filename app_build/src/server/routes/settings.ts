@@ -1,4 +1,4 @@
-import { getAllSettings, setSetting } from "../lib/db";
+import { getAllSettings, setSetting } from "../lib/db/index";
 import { updateBackgroundTasks } from "../services/git";
 
 export async function handleSettingsRoute(

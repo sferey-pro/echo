@@ -1,4 +1,4 @@
-import { resetDatabase, getCollectionFromDb } from "../lib/db";
+import { resetDatabase, getCollectionFromDb } from "../lib/db/index";
 import { mockVariants, initProxy } from "../lib/proxy";
 import { updateBackgroundTasks, getRepoPath } from "../services/git";
 import { syncGitToDatabase } from "../../shared/lib/parser";

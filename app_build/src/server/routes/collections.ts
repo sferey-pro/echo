@@ -1,4 +1,4 @@
-import { getCollectionFromDb } from "../lib/db";
+import { getCollectionFromDb } from "../lib/db/index";
 import { syncGitToDatabase } from "../../shared/lib/parser";
 import { initProxy, mockVariants, requestMeta } from "../lib/proxy";
 import { getRepoPath } from "../services/git";

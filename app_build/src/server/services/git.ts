@@ -1,6 +1,6 @@
 import { existsSync, watch } from "node:fs";
 import { resolve } from "path";
-import { getSetting } from "../lib/db";
+import { getSetting } from "../lib/db/index";
 import {
   syncGitToDatabase,
   parseFile,
@@ -8,7 +8,7 @@ import {
   clearParserCache,
 } from "../../shared/lib/parser";
 import { initProxy } from "../lib/proxy";
-import { getCollectionFromDb, clearBrunoTables } from "../lib/db";
+import { getCollectionFromDb, clearBrunoTables } from "../lib/db/index";
 import { getSafeRepoPath } from "../../shared/lib/paths";
 
 export const gitSyncStatus = {

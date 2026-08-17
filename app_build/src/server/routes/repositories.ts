@@ -21,7 +21,7 @@ export async function handleRepositoriesRoute(
         .filter((e: Dirent) => e.isDirectory())
         .map((e: Dirent) => e.name);
       
-      const { getSetting } = await import("../lib/db");
+      const { getSetting } = await import("../lib/db/index");
       const activeRepo = getSetting("ACTIVE_COLLECTION_NAME") || "";
 
       return new Response(JSON.stringify({ repositories: repos, activeRepository: activeRepo }), {
@@ -103,10 +103,10 @@ export async function handleRepositoriesRoute(
         return new Response("Bad Request", { status: 400 });
       }
       
-      const { setSetting } = await import("../lib/db");
+      const { setSetting } = await import("../lib/db/index");
       const { updateBackgroundTasks } = await import("../services/git");
       const { syncGitToDatabase } = await import("../../shared/lib/parser");
-      const { getCollectionFromDb } = await import("../lib/db");
+      const { getCollectionFromDb } = await import("../lib/db/index");
       const { initProxy } = await import("../lib/proxy");
       const { getRepoPath } = await import("../services/git");
 

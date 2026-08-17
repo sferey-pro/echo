@@ -1,8 +1,8 @@
 import { runSync, gitSyncStatus, getRepoPath } from "../services/git";
 import { syncGitToDatabase } from "../../shared/lib/parser";
-import { getCollectionFromDb } from "../lib/db";
+import { getCollectionFromDb } from "../lib/db/index";
 import { initProxy } from "../lib/proxy";
-import { cleanupObsoleteItems } from "../lib/db";
+import { cleanupObsoleteItems } from "../lib/db/index";
 
 export async function handleSyncRoute(
   req: Request,

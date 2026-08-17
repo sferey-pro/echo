@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, mock, spyOn } from "bun:test";
 import { handleRepositoriesRoute } from "./repositories";
-import { resetDatabase, setSetting } from "../lib/db";
+import { resetDatabase, setSetting } from "../lib/db/index";
 import * as fs from "node:fs";
 import * as fsPromises from "node:fs/promises";
 

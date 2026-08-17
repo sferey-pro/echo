@@ -6,9 +6,9 @@ mock.module("../../../client/lib/api", () => ({
 }));
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { RequestDetails } from "./RequestDetails";
-import { useStore } from "../../store/useStore";
-import type { ApiRequest } from "../../../shared/lib/parser";
+import { RequestDetails } from "./index";
+import { useStore } from "../../../store/useStore";
+import type { ApiRequest } from "../../../../shared/lib/parser";
 
 mock.module("@monaco-editor/react", () => {
   return {
