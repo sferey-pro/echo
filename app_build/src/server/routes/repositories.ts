@@ -12,7 +12,7 @@ export async function handleRepositoriesRoute(
     try {
       const collDir = resolve(process.cwd(), "collection");
       if (!existsSync(collDir)) {
-        return new Response(JSON.stringify([]), {
+        return new Response(JSON.stringify({ repositories: [], activeRepository: "" }), {
           headers: { "Content-Type": "application/json" },
         });
       }
@@ -20,7 +20,11 @@ export async function handleRepositoriesRoute(
       const repos = entries
         .filter((e: Dirent) => e.isDirectory())
         .map((e: Dirent) => e.name);
-      return new Response(JSON.stringify(repos), {
+      
+      const { getSetting } = await import("../lib/db");
+      const activeRepo = getSetting("ACTIVE_COLLECTION_NAME") || "";
+
+      return new Response(JSON.stringify({ repositories: repos, activeRepository: activeRepo }), {
         headers: { "Content-Type": "application/json" },
       });
     } catch (err: unknown) {
@@ -87,6 +91,38 @@ export async function handleRepositoriesRoute(
       return new Response(JSON.stringify({ error: e.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  if (url.pathname === "/api/repositories/active" && req.method === "POST") {
+    try {
+      const body = await req.json();
+      const name = body.name;
+      if (!name || typeof name !== "string") {
+        return new Response("Bad Request", { status: 400 });
+      }
+      
+      const { setSetting } = await import("../lib/db");
+      const { updateBackgroundTasks } = await import("../services/git");
+      const { syncGitToDatabase } = await import("../../shared/lib/parser");
+      const { getCollectionFromDb } = await import("../lib/db");
+      const { initProxy } = await import("../lib/proxy");
+      const { getRepoPath } = await import("../services/git");
+
+      setSetting("ACTIVE_COLLECTION_NAME", name);
+      updateBackgroundTasks(true);
+      await syncGitToDatabase(getRepoPath());
+      const data = getCollectionFromDb();
+      await initProxy(data.requests, data.environments);
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (err: unknown) {
+      return new Response(JSON.stringify({ error: (err as Error).message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
       });
     }
   }

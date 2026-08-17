@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { SplashScreen } from "./SplashScreen";
 import { MethodBadge } from "../ui/method-badge";
@@ -67,19 +67,20 @@ export function DashboardLayout() {
     hasGit: false,
   });
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      if (document.visibilityState !== "visible") return;
-      try {
-        const res = await fetch("/api/sync/status?fetch=true");
-        if (res.ok) {
-          const data = await res.json();
-          setSyncStatus(data);
-        }
-      } catch {
-        // ignore
+  const checkStatus = useCallback(async () => {
+    if (document.visibilityState !== "visible") return;
+    try {
+      const res = await fetch("/api/sync/status?fetch=true");
+      if (res.ok) {
+        const data = await res.json();
+        setSyncStatus(data);
       }
-    };
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
     checkStatus();
     const interval = setInterval(checkStatus, 30000);
 
@@ -92,7 +93,14 @@ export function DashboardLayout() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [checkStatus]);
+
+  // Rafraichir le status git après le chargement d'une nouvelle collection
+  useEffect(() => {
+    if (!isLoading) {
+      checkStatus();
+    }
+  }, [isLoading, checkStatus]);
 
   const handleGitSync = async () => {
     setIsSyncing(true);
