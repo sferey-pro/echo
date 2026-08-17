@@ -354,17 +354,7 @@ export function DashboardLayout() {
  <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Édition du mock : {selectedRequest?.name || 'Aucune Sélection'}</h2>
  </div>
  <div className="flex-1 overflow-hidden bg-card">
- {selectedScenarioId ? (
- <ScenarioEditor 
- key={selectedScenarioId}
- scenarioId={selectedScenarioId} 
- requests={requests}
- onUpdate={loadCollection}
- onClose={() => setSelectedScenarioId(null)}
- />
- ) : (
- <RequestDetails key={selectedRequest?.id} />
- )}
+  <RequestDetails key={selectedRequest?.id} />
  </div>
  </div>
  </div>
@@ -378,7 +368,17 @@ export function DashboardLayout() {
  onOpenCollectionManager={() => setIsCollectionsOpen(true)}
  />
  
- <CollectionManagerModal
+  {selectedScenarioId && (
+    <ScenarioEditor 
+      key={selectedScenarioId}
+      scenarioId={selectedScenarioId} 
+      requests={requests}
+      onUpdate={loadCollection}
+      onClose={() => setSelectedScenarioId(null)}
+    />
+  )}
+
+  <CollectionManagerModal
  isOpen={isCollectionsOpen}
  onClose={() => setIsCollectionsOpen(false)}
  onSaved={() => loadCollection(true)}

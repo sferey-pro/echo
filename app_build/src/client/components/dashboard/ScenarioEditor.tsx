@@ -6,6 +6,7 @@ import { MethodBadge } from '@/client/components/ui/method-badge';
 import { fetchScenarios, updateScenario } from '../../lib/api';
 import type { Scenario, ScenarioAction } from '../../lib/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/client/components/ui/dialog';
 
 interface ScenarioEditorProps {
  scenarioId: string;
@@ -87,40 +88,56 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  r.url.toLowerCase().includes(searchQuery.toLowerCase()))
  ).slice(0, 10);
 
- if (isLoading) {
- return <div className="h-full flex items-center justify-center"><p className="text-muted-foreground">Chargement...</p></div>;
- }
+  if (isLoading) {
+    return (
+      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-5xl h-[85vh] p-0 flex items-center justify-center">
+          <p className="text-muted-foreground">Chargement...</p>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
- if (!scenario) {
- return <div className="h-full flex items-center justify-center"><p className="text-muted-foreground">Scénario introuvable</p></div>;
- }
+  if (!scenario) {
+    return (
+      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-5xl h-[85vh] p-0 flex items-center justify-center">
+          <p className="text-muted-foreground">Scénario introuvable</p>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
- return (
- <div className="h-full bg-transparent flex flex-col relative overflow-hidden">
- <div className="p-4 border-b border-border bg-card/50 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0">
- <div className="flex-1 w-full">
- <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Éditer le scénario</h2>
- <Input 
- type="text" 
- value={name}
- onChange={e => setName(e.target.value)}
- className="text-xl font-bold text-foreground tracking-tight bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-primary px-2 py-1 h-9 w-full max-w-md transition-colors shadow-none"
- />
- </div>
- <div className="flex items-center gap-3 shrink-0">
- <Button onClick={onClose} variant="secondary" size="sm" className="h-8 text-xs px-3">
- Fermer
- </Button>
- <Button 
- onClick={handleSave} 
- disabled={isSaving}
- size="sm"
- className="h-8 text-xs px-3"
- >
- {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
- </Button>
- </div>
- </div>
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-5xl h-[85vh] p-0 flex flex-col overflow-hidden bg-background gap-0">
+        <DialogHeader className="p-4 border-b border-border bg-card/50 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 m-0 shrink-0">
+          <div className="flex-1 w-full text-left">
+            <DialogTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Éditer le scénario
+            </DialogTitle>
+            <DialogDescription className="sr-only">Éditeur de scénario</DialogDescription>
+            <Input 
+              type="text" 
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="text-xl font-bold text-foreground tracking-tight bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-primary px-2 py-1 h-9 w-full max-w-md transition-colors shadow-none"
+            />
+          </div>
+          <div className="flex items-center gap-3 shrink-0 mr-6">
+            <Button onClick={onClose} variant="secondary" size="sm" className="h-8 text-xs px-3">
+              Fermer
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              size="sm"
+              className="h-8 text-xs px-3"
+            >
+              {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+            </Button>
+          </div>
+        </DialogHeader>
  
  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 z-10">
  
@@ -297,8 +314,9 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  );
  })
  )}
- </div>
- </div>
- </div>
- );
+  </div>
+  </div>
+  </DialogContent>
+  </Dialog>
+  );
 }
