@@ -12,7 +12,33 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const [textIndex, setTextIndex] = useState(0);
 
   useEffect(() => {
-    if (onComplete) onComplete();
+    let frame: number;
+    let startTime: number | null = null;
+    const duration = 1500;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const nextProgress = Math.min((elapsed / duration) * 100, 100);
+
+      setProgress(Math.floor(nextProgress));
+
+      // Mettre à jour le texte en fonction de la progression
+      const nextIndex = Math.min(
+        Math.floor((nextProgress / 100) * loadingTexts.length),
+        loadingTexts.length - 1
+      );
+      setTextIndex(nextIndex);
+
+      if (nextProgress < 100) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        if (onComplete) setTimeout(onComplete, 200); // Petit délai pour voir le 100%
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
   }, [onComplete]);
 
   return (

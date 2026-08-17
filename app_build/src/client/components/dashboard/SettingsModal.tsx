@@ -73,7 +73,7 @@ export function SettingsModal({
       const { resetApplication } = await import("../../lib/api");
       await resetApplication();
       toast.success("Application réinitialisée avec succès !");
-      setTimeout(() => window.location.reload(), 1500);
+      window.location.reload();
     } catch (err: unknown) {
       toast.error(
         err instanceof Error

@@ -36,8 +36,8 @@ export async function handleRepositoriesRoute(
       const body = await req.json();
       const repoUrl = body.repoUrl;
       const force = body.force;
-      if (!repoUrl || typeof repoUrl !== "string") {
-        return new Response("Bad Request", { status: 400, headers: {} });
+      if (!repoUrl || typeof repoUrl !== "string" || !repoUrl.startsWith("http")) {
+        return new Response("Bad Request: Invalid URL", { status: 400, headers: {} });
       }
 
       let repoName = `repo-${Date.now()}`;
