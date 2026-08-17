@@ -138,7 +138,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  tabIndex={0}
  className={cn(
  "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
- selectedFolderId === item.folder.id ? "/20 bg-primary/10 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
+ selectedFolderId === item.folder.id ? "border-l-primary bg-primary/10 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
  )}
  >
  <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
@@ -177,8 +177,8 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  className={cn(
  "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
  selectedRequestId === req.id 
- ? "/30 bg-primary/20 text-foreground font-bold" 
- : "hover:bg-slate-100 :bg-slate-800 text-foreground border-transparent"
+ ? "border-primary bg-primary/20 text-foreground font-bold" 
+ : "hover:bg-accent text-foreground border-transparent"
  )}
  >
  <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
@@ -234,7 +234,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  return (
  <div className="h-full bg-card/50 flex flex-col font-sans">
  <div className="p-3 bg-transparent flex items-center gap-2">
- <h2 className="text-xs font-black text-foreground tracking-wide uppercase flex-1">Filtres</h2>
+ <h2 className="text-xs font-black text-foreground tracking-wide uppercase flex-1">Explorateur</h2>
  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
  {requests.length}
  </span>

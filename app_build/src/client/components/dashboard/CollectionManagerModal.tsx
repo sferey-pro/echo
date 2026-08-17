@@ -114,7 +114,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  description: `Êtes-vous sûr de vouloir supprimer la collection ${name} ?`,
  onConfirm: async () => {
  try {
- const res = await fetch(`/api/repositories/${name}`, { method: 'DELETE' });
+ const res = await fetch(`/api/repositories/${encodeURIComponent(name)}`, { method: 'DELETE' });
  if (res.ok) {
  await fetchCollections();
  toast.success("Collection supprimée");

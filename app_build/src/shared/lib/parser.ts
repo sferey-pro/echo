@@ -1,9 +1,9 @@
 import { readdir, readFile } from "fs/promises";
 import { join, basename } from "path";
 import { parse as parseYaml } from "yaml";
-import type { MockVariantDef } from './db';
+import type { MockVariantDef } from '../../server/lib/db';
 import { existsSync } from "fs";
-import { syncBrunoItemsToDb } from "./db";
+import { syncBrunoItemsToDb } from "../../server/lib/db";
 
 export interface BrunoFolder {
  id: string;
@@ -177,7 +177,7 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  console.error("Error reading basePath: " + basePath, e);
  }
 
- async function loadEnvironmentsFromDir(envPath: string) {
+ async function loadEnvironmentsFromDir(envPath: string, parentRelPath: string) {
  if (!existsSync(envPath)) return;
  try {
  const envEntries = await readdir(envPath, { withFileTypes: true });
@@ -187,13 +187,15 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  try {
  if (entry.name.endsWith('.yml') || entry.name.endsWith('.json')) {
  const parsed = entry.name.endsWith('.yml') ? parseYaml(content) : (JSON.parse(content) as Record<string, unknown>);
- const name = (parsed?.name as string) || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
+ const rawName = (parsed?.name as string) || basename(entry.name, entry.name.endsWith('.yml') ? '.yml' : '.json');
+ const name = parentRelPath ? `${parentRelPath}/${rawName}` : rawName;
  localEnvironments.push({
  name: name,
  variables: (parsed?.variables as BrunoVariable[]) || []
  });
  } else if (entry.name.endsWith('.bru')) {
- const name = basename(entry.name, '.bru');
+ const rawName = basename(entry.name, '.bru');
+ const name = parentRelPath ? `${parentRelPath}/${rawName}` : rawName;
  const variables: BrunoVariable[] = [];
  
  const varsMatch = content.match(/vars\s*\{([\s\S]*?)\}/);
@@ -231,16 +233,16 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  }
  }
 
- async function searchAndLoadEnvironments(currentPath: string) {
+ async function searchAndLoadEnvironments(currentPath: string, relPath: string = '') {
  if (!existsSync(currentPath)) return;
  try {
  const entries = await readdir(currentPath, { withFileTypes: true });
  for (const entry of entries) {
  if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
  if (entry.name.toLowerCase() === 'environments') {
- await loadEnvironmentsFromDir(join(currentPath, entry.name));
+ await loadEnvironmentsFromDir(join(currentPath, entry.name), relPath);
  } else {
- await searchAndLoadEnvironments(join(currentPath, entry.name));
+ await searchAndLoadEnvironments(join(currentPath, entry.name), relPath ? `${relPath}/${entry.name}` : entry.name);
  }
  }
  }
@@ -249,7 +251,7 @@ export async function parseCollection(basePath: string, forceFull: boolean = fal
  }
  }
 
- await searchAndLoadEnvironments(basePath);
+ await searchAndLoadEnvironments(basePath, '');
 
  return {
  folders: localRootFolders,

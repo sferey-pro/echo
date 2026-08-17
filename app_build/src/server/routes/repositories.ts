@@ -67,7 +67,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  const matchDelete = url.pathname.match(/^\/api\/repositories\/(.+)$/);
  if (matchDelete && req.method === 'DELETE') {
  try {
- const repoName = matchDelete[1];
+ const repoName = decodeURIComponent(matchDelete[1] || '');
  if (!repoName) return new Response("Bad Request", { status: 400, headers: {  } });
  const targetDir = getSafeRepoPath(repoName);
  if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), '../collection')) {

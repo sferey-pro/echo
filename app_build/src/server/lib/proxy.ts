@@ -36,11 +36,14 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  
  // S'assurer qu'il y a toujours au moins la variante Default
  if (variants.length === 0) {
- variants.push({
- id: `${req.id}-default`,
- name: 'Default',
- isMocked: false,
- payload: typeof req.examples?.[0]?.response?.body?.data === 'string' ? req.examples[0].response.body.data : (req.examples?.[0]?.response?.body?.data ? JSON.stringify(req.examples[0].response.body.data) : '{}'),
+  const data = req.examples?.[0]?.response?.body?.data;
+  const payloadStr = typeof data === 'string' ? data : (data !== null && data !== undefined ? JSON.stringify(data, null, 2) : '{}');
+  
+  variants.push({
+  id: `${req.id}-default`,
+  name: 'Default',
+  isMocked: false,
+  payload: payloadStr,
  selectedExample: null,
  statusCode: 200,
  latencyMs: 0,
@@ -96,11 +99,15 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  "Access-Control-Expose-Headers": "*"
  };
 
- try {
- return HttpResponse.json(JSON.parse(variant.payload), { headers: corsHeaders, status: variant.statusCode });
- } catch {
- return new HttpResponse(variant.payload, { headers: corsHeaders, status: variant.statusCode });
- }
+  if (variant.statusCode === 204) {
+    return new HttpResponse(null, { headers: corsHeaders, status: 204 });
+  }
+
+  try {
+    return HttpResponse.json(JSON.parse(variant.payload), { headers: corsHeaders, status: variant.statusCode });
+  } catch {
+    return new HttpResponse(variant.payload, { headers: corsHeaders, status: variant.statusCode });
+  }
  }
  return; // Pass-through
  }
@@ -122,9 +129,11 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  initPromise = (async () => {
  const moduleName = 'msw/node';
  const { setupServer } = await import(moduleName);
- mswServer = setupServer(...handlers);
- mswServer.listen({ onUnhandledRequest: 'bypass' });
- isInitialized = true;
+  mswServer = setupServer(...handlers);
+  if (mswServer) {
+    mswServer.listen({ onUnhandledRequest: 'bypass' });
+  }
+  isInitialized = true;
  })();
  }
  await initPromise;

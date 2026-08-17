@@ -241,6 +241,18 @@ export function RequestDetails() {
     }
   };
 
+  if (!request) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center min-h-[300px] bg-transparent">
+        <div className="w-16 h-16 mb-4 rounded-2xl bg-muted/30 flex items-center justify-center border border-border/50">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-40"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <p className="text-base font-semibold text-foreground/70">Aucune requête sélectionnée</p>
+        <p className="text-sm mt-1.5 text-muted-foreground max-w-sm">Sélectionnez une requête dans le panneau de gauche pour voir ses détails et configurer ses mocks.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full bg-transparent flex flex-col relative overflow-hidden font-sans">
       

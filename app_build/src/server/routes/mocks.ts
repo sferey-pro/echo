@@ -78,6 +78,11 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  if (url.pathname.startsWith('/api/mocks/variants/') && req.method === 'DELETE') {
  try {
  const id = url.pathname.split('/').pop()!;
+ 
+ if (id.endsWith('-default')) {
+ return new Response("Cannot delete default variant", { status: 403 });
+ }
+ 
  deleteMockVariant(id);
  
  // Find in memory cache and delete

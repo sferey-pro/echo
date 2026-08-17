@@ -1,4 +1,5 @@
 import { serve } from "bun";
+import path from "node:path";
 
 process.on('unhandledRejection', (reason, promise) => {
  console.error('[Global] Unhandled Rejection at:', promise, 'reason:', reason);
@@ -25,12 +26,14 @@ import { handleResetRoute } from "./routes/reset";
 let PORT = parseInt(process.env.PORT || '3000', 10);
 let server: ReturnType<typeof serve> | undefined = undefined;
 
+const isProd = process.env.NODE_ENV === "production";
+
 const startServer = () => {
   try {
     server = serve({
      port: PORT,
      hostname: "127.0.0.1",
-     routes: {
+     routes: isProd ? undefined : {
      "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
      "/": index,
      "/_hmr": index,
@@ -44,6 +47,21 @@ const startServer = () => {
        return new Response(JSON.stringify({ status: 'ok', uptime: process.uptime() }), {
          headers: { 'Content-Type': 'application/json' }
        });
+     }
+
+     if (isProd && req.method === "GET") {
+       // Ignore proxy-like requests or API requests for static files
+       if (!url.pathname.startsWith("/api/")) {
+         const filePath = path.join(process.cwd(), "dist", url.pathname === "/" ? "index.html" : url.pathname);
+         const file = Bun.file(filePath);
+         if (await file.exists()) {
+           return new Response(file);
+         }
+         // SPA fallback
+         if (req.headers.get("accept")?.includes("text/html")) {
+           return new Response(Bun.file(path.join(process.cwd(), "dist", "index.html")));
+         }
+       }
      }
     
      if (url.pathname.startsWith("/api/")) {

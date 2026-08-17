@@ -17,7 +17,7 @@ import { EnvironmentViewerModal } from '../dashboard/EnvironmentViewerModal';
 import { useStore } from '../../store/useStore';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select';
-import { Gear, CloudArrowDown, Spinner, Eye } from '@phosphor-icons/react';
+import { Gear, CloudArrowDown, Spinner, FolderDashed, Eye } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 export function DashboardLayout() {
@@ -269,11 +269,11 @@ export function DashboardLayout() {
  </div>
  </div>
 
- {/* Grid 3 colonnes */}
- <div className="flex-1 min-h-0 w-full p-4 grid grid-cols-1 md:grid-cols-[280px_350px_1fr] xl:grid-cols-[300px_400px_1fr] gap-6">
+  {/* Grid 3 colonnes */}
+  <div className="flex-1 min-h-0 w-full p-4 grid grid-cols-1 md:grid-cols-[280px_350px_1fr] xl:grid-cols-[300px_400px_1fr] gap-6 overflow-y-auto md:overflow-hidden">
  
- {/* Colonne 1 : Collection & Scénarios */}
- <div className="flex flex-col gap-6 h-full overflow-hidden">
+  {/* Colonne 1 : Collection & Scénarios */}
+  <div className="flex flex-col gap-6 min-h-[400px] md:h-full overflow-hidden">
  <div className="flex-1 flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm">
  <div className="bg-muted/50 p-3 border-b border-border">
  <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">Collection Bruno</h2>
@@ -297,51 +297,59 @@ export function DashboardLayout() {
  </div>
 
       {/* Colonne 2 : Liste des requêtes du dossier */}
-      <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+      <div className="flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm min-h-[500px] md:h-full">
         <div className="bg-muted/50 p-3 border-b border-border flex justify-between items-center">
           <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Requêtes : {selectedFolderName}</h2>
         </div>
         <div ref={scrollParentRef} className="flex-1 overflow-y-auto p-0 bg-card">
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const req = requestsInSelectedFolder[virtualRow.index];
-              if (!req) return null;
-              return (
-                <div 
-                  key={virtualRow.key}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  onClick={() => setSelectedRequestId(req.id)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
-                  tabIndex={0}
-                  className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
-                >
-                  <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{virtualRow.index + 1}</span>
-                  <MethodBadge method={req.method} className="mr-3" />
-                  <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
-                  {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Modifié</span>}
-                  {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Mock Actif</span>}
-                </div>
-              );
-            })}
-          </div>
+          {requestsInSelectedFolder.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-8 text-center min-h-[300px]">
+              <FolderDashed className="w-12 h-12 mb-4 opacity-20" weight="duotone" />
+              <p className="text-sm font-medium text-foreground/70">Aucune requête à afficher</p>
+              <p className="text-xs mt-1 text-muted-foreground">Sélectionnez un dossier contenant des requêtes.</p>
+            </div>
+          ) : (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const req = requestsInSelectedFolder[virtualRow.index];
+                if (!req) return null;
+                return (
+                  <div 
+                    key={virtualRow.key}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    onClick={() => setSelectedRequestId(req.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
+                    tabIndex={0}
+                    className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
+                  >
+                    <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{virtualRow.index + 1}</span>
+                    <MethodBadge method={req.method} className="mr-3" />
+                    <span className="font-medium flex-1 truncate text-sm">{req.name}</span>
+                    {isPayloadModified(req) && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Modifié</span>}
+                    {req.variants?.some(v => v.isMocked) && !isPayloadModified(req) && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">Mock Actif</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
- {/* Colonne 3 : Édition */}
- <div className="flex flex-col h-full overflow-hidden bg-card border border-border rounded-xl shadow-sm">
+  {/* Colonne 2 : Détails de la Requête */}
+  <div className="flex flex-col overflow-hidden bg-card border border-border rounded-xl shadow-sm min-h-[500px] md:h-full">
  <div className="bg-muted/50 p-3 border-b border-border">
  <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider truncate">Édition du mock : {selectedRequest?.name || 'Aucune Sélection'}</h2>
  </div>

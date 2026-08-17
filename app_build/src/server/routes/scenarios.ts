@@ -39,7 +39,7 @@ export async function handleScenariosRoute(req: Request, url: URL): Promise<Resp
  }
  }
  
- const id = `scenario-${Date.now()}`;
+ const id = `scenario-${crypto.randomUUID()}`;
  createScenario(id, body.name, actionsToSave);
  
  return new Response(JSON.stringify({ success: true, id }), {

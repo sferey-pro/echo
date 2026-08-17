@@ -24,7 +24,7 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  // ignore if base doesn't exist
  }
  
- updateBackgroundTasks(); // Re-init repo path and watcher
+ updateBackgroundTasks(true); // Re-init repo path and watcher
  
  await syncGitToDatabase(getRepoPath());
  const data = getCollectionFromDb();

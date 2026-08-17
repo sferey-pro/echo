@@ -73,9 +73,9 @@ export async function runSync() {
 
 let watchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-export function updateBackgroundTasks() {
+export function updateBackgroundTasks(force = false) {
  const repo = getRepoPath();
- if (repo !== currentWatchPath) {
+ if (force || repo !== currentWatchPath) {
  if (currentWatcher) {
  currentWatcher.close();
  currentWatcher = null;

@@ -15,12 +15,15 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ open, setOpen, requests, onSelectRequest, onOpenSettings, onOpenCollectionManager }: CommandPaletteProps) {
  useEffect(() => {
- const down = (e: KeyboardEvent) => {
- if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
- e.preventDefault();
- setOpen(!open);
- }
- };
+  const down = (e: KeyboardEvent) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      setOpen(!open);
+    } else if (e.key === 'Escape' && open) {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
 
  document.addEventListener('keydown', down);
  return () => document.removeEventListener('keydown', down);
