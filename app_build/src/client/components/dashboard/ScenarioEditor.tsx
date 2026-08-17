@@ -233,8 +233,32 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  </div>
  </div>
 
- {/* Exemples & Payload */}
+ {/* Variantes, Exemples & Payload */}
  <div className="p-3 pt-0 flex flex-col gap-2">
+ {req?.variants && req.variants.length > 0 && (
+ <div className="flex flex-wrap items-center gap-2">
+ <span className="text-xs font-semibold text-muted-foreground w-16">Variante</span>
+ <div className="flex flex-wrap gap-1">
+ {req.variants.map(variant => (
+ <button
+ key={variant.id}
+ onClick={() => updateAction(index, { 
+ statusCode: variant.statusCode,
+ latencyMs: variant.latencyMs,
+ selectedExample: variant.selectedExample, 
+ payload: variant.payload 
+ })}
+ className="text-[10px] px-2 py-1 rounded-md font-medium transition-all bg-muted text-muted-foreground hover:bg-accent border border-transparent"
+ title={`Appliquer la variante: ${variant.statusCode} / ${variant.latencyMs}ms`}
+ >
+ {variant.name}
+ </button>
+ ))}
+ </div>
+ </div>
+ )}
+
+
  {req?.examples && req.examples.length > 0 && (
  <div className="flex flex-wrap items-center gap-2">
  <span className="text-xs font-semibold text-muted-foreground w-16">Exemple</span>
