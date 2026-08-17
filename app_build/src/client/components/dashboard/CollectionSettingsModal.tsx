@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSettings, updateSetting } from '../../lib/api';
 import { toast } from 'sonner';
 import { Input } from '@/client/components/ui/input';
+import { Button } from '@/client/components/ui/button';
 import {
  AlertDialog,
  AlertDialogAction,
@@ -106,13 +107,14 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  <AlertDialog>
  <div className="flex justify-end mt-4">
  <AlertDialogTrigger asChild>
- <button
+ <Button
  type="button"
  disabled={loading}
- className="bg-destructive text-white px-3 py-1.5 text-xs font-semibold rounded-md transition-colors hover:bg-destructive/90 disabled:opacity-50"
+ variant="destructive"
+ className="px-3 py-1.5 text-xs font-semibold"
  >
  Nettoyer les données obsolètes
- </button>
+ </Button>
  </AlertDialogTrigger>
  </div>
  <AlertDialogContent className="shadow-lg rounded-xl">
@@ -137,20 +139,19 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  </div>
 
  <div className="pt-6 flex justify-end gap-2">
- <button 
+ <Button 
  type="button" 
+ variant="secondary"
  onClick={onClose}
- className="bg-secondary text-secondary-foreground px-4 py-2 text-sm font-medium rounded-md transition-colors hover:bg-secondary/80"
  >
  Annuler
- </button>
- <button 
+ </Button>
+ <Button 
  type="submit" 
  disabled={loading}
- className="bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded-md transition-colors hover:bg-primary/90 disabled:opacity-50"
  >
  {loading ? 'Sauvegarde...' : 'Enregistrer'}
- </button>
+ </Button>
  </div>
  </form>
  </DialogContent>

@@ -5,6 +5,7 @@ import { cn } from '@/client/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { CaretRight, Folder, FolderOpen, Star, ArrowsClockwise, Books, Gear, Lightning } from '@phosphor-icons/react';
 import { MethodBadge } from '../ui/method-badge';
+import { Button } from '@/client/components/ui/button';
 
 import { useStore } from '../../store/useStore';
 
@@ -239,27 +240,33 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  {requests.length}
  </span>
  <div className="flex items-center gap-1 border-l border-border pl-2 ml-1">
- <button 
+ <Button 
+ variant="ghost"
+ size="icon"
  onClick={() => loadCollection()}
- className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+ className="w-6 h-6 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Actualiser la collection"
  >
  <ArrowsClockwise className="w-3.5 h-3.5" weight="bold" />
- </button>
- <button 
+ </Button>
+ <Button 
+ variant="ghost"
+ size="icon"
  onClick={onOpenCollections}
- className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+ className="w-6 h-6 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Gérer les Collections"
  >
  <Books className="w-3.5 h-3.5" weight="fill" />
- </button>
- <button 
+ </Button>
+ <Button 
+ variant="ghost"
+ size="icon"
  onClick={onOpenSettings}
- className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+ className="w-6 h-6 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
  title="Paramètres de la Collection"
  >
  <Gear className="w-3.5 h-3.5" weight="bold" />
- </button>
+ </Button>
  </div>
  </div>
  <div 

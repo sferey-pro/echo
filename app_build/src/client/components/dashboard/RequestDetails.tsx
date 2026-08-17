@@ -260,14 +260,16 @@ export function RequestDetails() {
       <div className="p-4 bg-card border-b border-border z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="w-full xl:flex-1">
           <h2 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <button 
+            <Button 
+              variant="ghost"
+              size="icon"
               onClick={handleToggleStar}
               disabled={isSaving}
-              className={`hover:scale-110 transition-transform ${request.isStarred ? 'text-yellow-500' : 'text-slate-400 hover:text-slate-500'}`}
+              className={`hover:scale-110 transition-transform bg-transparent hover:bg-transparent ${request.isStarred ? 'text-yellow-500 hover:text-yellow-400' : 'text-slate-400 hover:text-slate-500'}`}
               title={request.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
               {request.isStarred ? <Star weight="fill" className="w-6 h-6" /> : <Star weight="regular" className="w-6 h-6" />}
-            </button>
+            </Button>
             <span className="truncate">{request.name}</span>
           </h2>
           <div className="flex flex-col gap-2 mt-2">
@@ -535,15 +537,16 @@ export function RequestDetails() {
           </div>
 
           <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <button 
-              className="bg-muted text-foreground hover:bg-slate-200 rounded-md w-full sm:w-auto px-6 py-3 flex items-center justify-center gap-2 font-bold transition-colors"
+            <Button 
+              variant="secondary"
+              className="w-full sm:w-auto px-6 py-6 font-bold flex items-center justify-center gap-2 transition-colors"
               onClick={() => {
                 setPayload(defaultExamplePayload);
                 setSelectedExample(request.examples?.[0]?.name || 'custom');
               }}
             >
               <span>↺</span> Recharger l'original (Bruno Reset)
-            </button>
+            </Button>
             
             <div className="flex items-center gap-2 font-black uppercase text-sm">
               ÉTAT ACTUEL : 
