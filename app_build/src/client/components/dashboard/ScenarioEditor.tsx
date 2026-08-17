@@ -252,7 +252,7 @@ export function ScenarioEditor({ scenarioId, requests, onUpdate, onClose }: Scen
  onClick={() => updateAction(index, { selectedExample: 'custom' })}
  className={`text-[10px] px-2 py-1 rounded-md font-medium transition-all ${action.selectedExample === 'custom' ? 'bg-accent text-foreground border border-border' : 'bg-muted text-muted-foreground hover:bg-accent border border-dashed border-border'}`}
  >
- Sur-mesure
+ Personnalisé
  </button>
  </div>
  </div>
