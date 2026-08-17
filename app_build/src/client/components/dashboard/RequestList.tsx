@@ -112,7 +112,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={(e) => toggleFolder('__starred__', e)}
- onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder('__starred__', e as any); }}
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder('__starred__', e as unknown as React.MouseEvent); }}
  tabIndex={0}
  className="flex items-center px-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
  >
@@ -135,7 +135,7 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={(e) => toggleFolder(item.folder.id, e)}
- onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder(item.folder.id, e as any); }}
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder(item.folder.id, e as unknown as React.MouseEvent); }}
  tabIndex={0}
  className={cn(
  "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",

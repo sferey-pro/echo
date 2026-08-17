@@ -51,7 +51,7 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  onClose();
  } catch (e: unknown) {
  console.error(e);
- toast.error("Failed to save collection settings");
+ toast.error(`Erreur lors de la sauvegarde: ${e instanceof Error ? e.message : String(e)}`);
  } finally {
  setLoading(false);
  }
@@ -65,10 +65,11 @@ export function CollectionSettingsModal({ isOpen, onClose, onSaved }: Collection
  toast.success("Données obsolètes nettoyées !");
  onSaved(); // Reload collection
  } else {
- toast.error("Erreur lors du nettoyage.");
+ const err = await res.json().catch(() => ({}));
+ toast.error(`Erreur lors du nettoyage: ${err.error || err.message || 'Inconnue'}`);
  }
  } catch (e) {
- toast.error("Erreur réseau lors du nettoyage.");
+ toast.error(`Erreur réseau lors du nettoyage: ${e instanceof Error ? e.message : String(e)}`);
  } finally {
  setLoading(false);
  }

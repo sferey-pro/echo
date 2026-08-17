@@ -4,7 +4,7 @@ import {
   createMockVariant, getMockVariants, deleteMockVariant, updateMockVariant,
   createScenario, getScenarios, updateScenario, deleteScenario,
   resetDatabase 
-} from '../lib/db';
+} from './db';
 
 describe('Database (SQLite in memory)', () => {
   beforeEach(() => {
@@ -33,14 +33,14 @@ describe('Database (SQLite in memory)', () => {
       
       const variants = getMockVariants();
       expect(variants['req1']).toBeDefined();
-      expect(variants['req1'].length).toBe(1);
+      expect(variants['req1']?.length).toBe(1);
       
-      const v = variants['req1'][0];
-      expect(v.id).toBe('v1');
-      expect(v.name).toBe('My Variant');
-      expect(v.isMocked).toBe(true);
-      expect(v.payload).toBe('{"ok":true}');
-      expect(v.latencyMs).toBe(150);
+      const v = variants['req1']?.[0];
+      expect(v?.id).toBe('v1');
+      expect(v?.name).toBe('My Variant');
+      expect(v?.isMocked).toBe(true);
+      expect(v?.payload).toBe('{"ok":true}');
+      expect(v?.latencyMs).toBe(150);
     });
 
     it('should update a mock variant', () => {
@@ -48,10 +48,10 @@ describe('Database (SQLite in memory)', () => {
       updateMockVariant('v2', { name: 'New Name', isMocked: true, statusCode: 201 });
       
       const variants = getMockVariants();
-      const v = variants['req2'][0];
-      expect(v.name).toBe('New Name');
-      expect(v.isMocked).toBe(true);
-      expect(v.statusCode).toBe(201);
+      const v = variants['req2']?.[0];
+      expect(v?.name).toBe('New Name');
+      expect(v?.isMocked).toBe(true);
+      expect(v?.statusCode).toBe(201);
     });
 
     it('should delete a mock variant', () => {
@@ -105,5 +105,39 @@ describe('Database (SQLite in memory)', () => {
       scenarios = getScenarios();
       expect(scenarios.length).toBe(0);
     });
+  });
+});
+
+import { applyScenarioActions, syncBrunoItemsToDb, getCollectionFromDb } from './db';
+
+describe('Database (SQLite in memory) > Complex operations', () => {
+  beforeEach(() => {
+    resetDatabase();
+  });
+
+  it('syncBrunoItemsToDb and getCollectionFromDb should handle full sync', () => {
+    syncBrunoItemsToDb(
+      [{ id: 'req1', folderId: 'f1', name: 'Req', method: 'GET', url: '/url', examples: [] }],
+      [{ id: 'f1', name: 'Folder 1', children: [] }],
+      [{ name: 'Env 1', variables: [] }]
+    );
+    
+    const collection = getCollectionFromDb();
+    expect(collection.requests.length).toBe(1);
+    expect(collection.folders.length).toBe(1);
+    expect(collection.environments.length).toBe(1);
+  });
+
+  it('applyScenarioActions should upsert scenario variants', () => {
+    applyScenarioActions([
+      { requestId: 'req1', payload: '{"ok":true}', statusCode: 200, latencyMs: 100 } as any,
+      { requestId: 'req1', payload: '{"ok":false}', statusCode: 400 } as any
+    ]);
+    const variantsMap = getMockVariants();
+    const variants = variantsMap['req1'] || [];
+    expect(variants.length).toBe(1);
+    expect(variants[0]?.name).toBe('Scenario');
+    expect(variants[0]?.payload).toBe('{"ok":false}');
+    expect(variants[0]?.statusCode).toBe(400);
   });
 });

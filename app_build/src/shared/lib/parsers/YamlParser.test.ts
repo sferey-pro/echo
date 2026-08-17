@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { YamlParser } from '../lib/parsers/YamlParser';
+import { YamlParser } from './YamlParser';
 
 describe('YamlParser', () => {
   const parser = new YamlParser();
@@ -27,8 +27,8 @@ examples:
     expect(result?.http?.method).toBe('GET');
     expect(result?.http?.url).toBe('https://api.example.com/users');
     expect(result?.examples?.length).toBe(1);
-    expect(result?.examples?.[0].name).toBe('Success');
-    expect(result?.examples?.[0].response.status).toBe(200);
+    expect(result?.examples?.[0]?.name).toBe('Success');
+    expect(result?.examples?.[0]?.response?.status).toBe(200);
   });
 
   it('should return null for invalid or non-http yaml', () => {

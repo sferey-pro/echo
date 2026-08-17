@@ -12,7 +12,7 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  mockVariants.clear();
  
  // Empty the collection folder
- const base = resolve(process.cwd(), '../collection');
+ const base = resolve(process.cwd(), 'collection');
  try {
  const items = readdirSync(base);
  for (const item of items) {

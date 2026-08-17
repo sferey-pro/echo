@@ -391,6 +391,7 @@ export const getCollectionFromDb = () => {
  for (const e of envRows) {
    const parsed = safeJsonParse<BrunoEnvironment | null>(e.data, null);
    if (parsed) {
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
      (parsed as any).isObsolete = e.is_obsolete === 1;
      environments.push(parsed);
    }

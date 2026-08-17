@@ -67,8 +67,8 @@ export function RequestDetails() {
   const defaultExamplePayload = getPayloadString(request?.examples?.[0]?.response?.body?.data);
   
   // Local states for the active variant to ensure smooth typing
-  const [payload, setPayload] = useState(activeVariant?.payload || defaultExamplePayload);
-  const [selectedExample, setSelectedExample] = useState<string>(activeVariant?.selectedExample || request?.examples?.[0]?.name || 'custom');
+  const [payload, setPayload] = useState(activeVariant?.payload ?? defaultExamplePayload);
+  const [selectedExample, setSelectedExample] = useState<string>(activeVariant?.selectedExample ?? request?.examples?.[0]?.name ?? 'custom');
   const [statusCode, setStatusCode] = useState<number>(activeVariant?.statusCode ?? 200);
   const [latencyMs, setLatencyMs] = useState<number>(activeVariant?.latencyMs ?? 0);
   const [pathParamsOverrides, setPathParamsOverrides] = useState<Record<string, string>>(activeVariant?.pathParamsOverrides || {});
@@ -79,8 +79,9 @@ export function RequestDetails() {
   // Sync local states when active variant changes
   useEffect(() => {
     if (activeVariant) {
-      setPayload(activeVariant.payload || getPayloadString(request?.examples?.[0]?.response?.body?.data));
-      setSelectedExample(activeVariant.selectedExample || request?.examples?.[0]?.name || 'custom');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPayload(activeVariant.payload ?? getPayloadString(request?.examples?.[0]?.response?.body?.data));
+      setSelectedExample(activeVariant.selectedExample ?? request?.examples?.[0]?.name ?? 'custom');
       setStatusCode(activeVariant.statusCode ?? 200);
       setLatencyMs(activeVariant.latencyMs ?? 0);
       setPathParamsOverrides(activeVariant.pathParamsOverrides || {});

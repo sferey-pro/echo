@@ -38,9 +38,13 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  try {
  const res = await fetch('/api/repositories');
  if (res.ok) {
- const data = await res.json();
- setCollections(data.repositories);
- setActiveCollection(data.activeRepository);
+  const data = await res.json();
+  if (Array.isArray(data)) {
+    setCollections(data);
+  } else {
+    setCollections(data.repositories || []);
+    setActiveCollection(data.activeRepository || '');
+  }
  }
  } catch (e) {
  console.error(e);
@@ -58,10 +62,10 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  const handleClone = async (force: boolean = false) => {
  setCloning(true);
  try {
- const res = await fetch('/api/repositories', {
+ const res = await fetch('/api/repositories/clone', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ url: repoUrl, force })
+ body: JSON.stringify({ repoUrl, force })
  });
  
  if (res.ok) {
@@ -75,7 +79,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  setConfirmDialog({
  isOpen: true,
  title: "Dépôt existant",
- description: err.error,
+ description: "Un dossier portant le nom de ce dépôt existe déjà localement. Voulez-vous l'écraser et recommencer le clonage ?",
  onConfirm: () => handleClone(true)
  });
  } else {
@@ -83,7 +87,7 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  }
  }
  } catch (e) {
- toast.error("Erreur réseau");
+ toast.error(`Erreur réseau: ${e instanceof Error ? e.message : String(e)}`);
  } finally {
  setCloning(false);
  }
@@ -102,10 +106,11 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  await fetchCollections();
  await onSaved();
  } else {
- toast.error("Erreur lors de l'activation");
+ const err = await res.json().catch(() => ({}));
+ toast.error(`Erreur lors de l'activation: ${err.error || err.message || 'Inconnue'}`);
  }
  } catch (e) {
- toast.error("Erreur réseau");
+ toast.error(`Erreur réseau: ${e instanceof Error ? e.message : String(e)}`);
  } finally {
  setLoading(false);
  }
@@ -128,11 +133,12 @@ export function CollectionManagerModal({ isOpen, onClose, onSaved }: CollectionM
  await onSaved(); // Reload without active collection
  }
  } else {
- toast.error("Erreur lors de la suppression");
+ const err = await res.json().catch(() => ({}));
+ toast.error(`Erreur lors de la suppression: ${err.error || err.message || 'Inconnue'}`);
  }
  } catch (e) {
  console.error(e);
- toast.error("Erreur lors de la suppression");
+ toast.error(`Erreur lors de la suppression: ${e instanceof Error ? e.message : String(e)}`);
  }
  }
  });

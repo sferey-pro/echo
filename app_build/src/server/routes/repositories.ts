@@ -7,7 +7,7 @@ import { getSafeRepoPath } from "../../shared/lib/paths";
 export async function handleRepositoriesRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/repositories' && req.method === 'GET') {
  try {
- const collDir = resolve(process.cwd(), '../collection');
+ const collDir = resolve(process.cwd(), 'collection');
  if (!existsSync(collDir)) {
  return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
  }
@@ -35,7 +35,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  repoName = lastPart.replace(/\.git$/, '');
  }
  const targetDir = getSafeRepoPath(repoName);
- if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), '../collection')) {
+ if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), 'collection')) {
  return new Response("Forbidden", { status: 403, headers: {  } });
  }
  
@@ -70,7 +70,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  const repoName = decodeURIComponent(matchDelete[1] || '');
  if (!repoName) return new Response("Bad Request", { status: 400, headers: {  } });
  const targetDir = getSafeRepoPath(repoName);
- if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), '../collection')) {
+ if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), 'collection')) {
  return new Response("Forbidden", { status: 403, headers: {  } });
  }
  if (!existsSync(targetDir)) {

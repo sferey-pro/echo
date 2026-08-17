@@ -55,7 +55,7 @@ export function ScenarioPanel() {
  toast.success("Scénario créé avec succès");
  } catch (err) {
  console.error(err);
- toast.error("Erreur lors de la création du scénario");
+ toast.error(`Erreur lors de la création du scénario: ${err instanceof Error ? err.message : String(err)}`);
  }
  setIsSaving(false);
  };
@@ -67,7 +67,7 @@ export function ScenarioPanel() {
  toast.success("Scénario appliqué avec succès");
  } catch (err) {
  console.error(err);
- toast.error("Erreur lors de l'application du scénario");
+ toast.error(`Erreur lors de l'application du scénario: ${err instanceof Error ? err.message : String(err)}`);
  }
  };
 
@@ -78,7 +78,7 @@ export function ScenarioPanel() {
  toast.success("Scénario supprimé avec succès");
  } catch (err) {
  console.error(err);
- toast.error("Erreur lors de la suppression du scénario");
+ toast.error(`Erreur lors de la suppression du scénario: ${err instanceof Error ? err.message : String(err)}`);
  }
  };
 

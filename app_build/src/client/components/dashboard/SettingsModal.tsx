@@ -33,7 +33,8 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
 
  useEffect(() => {
  if (isOpen) {
- setLoading(true);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  setLoading(true);
  getSettings().then(settings => {
  setTargetApiUrl(settings.TARGET_API_URL || '');
  }).finally(() => setLoading(false));
@@ -50,9 +51,9 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  onSaved();
  onClose();
  } catch (e: unknown) {
- console.error(e);
- toast.error("Failed to save settings");
- } finally {
+  console.error(e);
+  toast.error(`Erreur lors de la sauvegarde: ${e instanceof Error ? e.message : String(e)}`);
+  } finally {
  setLoading(false);
  }
  };

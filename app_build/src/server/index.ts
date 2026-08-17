@@ -48,6 +48,10 @@ const startServer = () => {
        });
      }
 
+      if (url.pathname === '/favicon.ico') {
+        return new Response(null, { status: 204 });
+      }
+
      if (isProd && req.method === "GET") {
        // Ignore proxy-like requests or API requests for static files
        if (!url.pathname.startsWith("/api/")) {
@@ -69,7 +73,7 @@ const startServer = () => {
      }
     
      if (url.pathname.startsWith("/api/")) {
-     let response = await handleCollectionsRoute(req, url)
+     const response = await handleCollectionsRoute(req, url)
       || await handleMocksRoute(req, url)
       || await handleSettingsRoute(req, url)
       || await handleSyncRoute(req, url)
@@ -89,6 +93,11 @@ const startServer = () => {
     
      return handleProxyRequest(req);
      },
+
+     error(err) {
+       console.error("Unhandled server error:", err);
+       return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { status: 500, headers: { "Content-Type": "application/json" } });
+     },
     
      development: process.env.NODE_ENV !== "production" && {
      hmr: true,
@@ -98,6 +107,7 @@ const startServer = () => {
 
     console.log(`🚀 Unified Echo Server running at ${server.url} (Dashboard, API & Proxy)`);
     console.log(`📂 Using Repo Path: ${getRepoPath()}`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     if (err.code === 'EADDRINUSE') {
       console.warn(`⚠️ Port ${PORT} in use, trying ${PORT + 1}...`);

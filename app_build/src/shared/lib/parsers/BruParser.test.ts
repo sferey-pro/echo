@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { BruParser } from '../lib/parsers/BruParser';
+import { BruParser } from './BruParser';
 
 describe('BruParser', () => {
   const parser = new BruParser();
