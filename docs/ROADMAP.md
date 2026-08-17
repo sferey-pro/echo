@@ -165,3 +165,15 @@ L'ordre ci-dessous privilégie ce qui débloque le reste, à effort contenu.
 5. **Adoption externe** — mode CLI headless, puis distribution en binaire et tests d'intégration en CI.
 6. **Puissance du moteur** — réponses dynamiques, règles conditionnelles, injection de fautes, scénarios composables.
 7. **Élargissement** — OpenAPI, autres formats de collection, mode serveur partagé.
+
+---
+
+## ♿ Thème 9 — Accessibilité (A11Y) et améliorations de l'interface (Non Urgent)
+
+Les points d'accessibilité identifiés lors de l'audit sont notés ici pour traitement ultérieur. Ils ne constituent pas des bugs bloquants, mais amélioreront l'utilisabilité globale :
+
+**Primitives sémantiques et attributs ARIA** · valeur : moyenne · effort : faible
+Utilisation exhaustive de composants avec labels associés (`htmlFor`), textareas accessibles, et ajout de libellés `aria-label` sur l'ensemble des boutons à icones (notamment l'iconographie Phosphor).
+
+**Navigation au clavier et Rôles ARIA avancés** · valeur : forte · effort : moyen
+Rendre navigables les arbres de dossiers et de listes de requêtes au clavier (rôles `tree` / `treeitem` ou `listbox` / `option`), utiliser le _roving_ `tabIndex` pour une gestion fine des flèches directionnelles et de la touche Entrée.
