@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { MethodBadge } from '../ui/method-badge';
 import { Button } from '@/client/components/ui/button';
-import { MagnifyingGlass, Plus, Trash } from '@phosphor-icons/react';
+import { MagnifyingGlass, Plus, Trash, Star } from '@phosphor-icons/react';
 import { Input } from '@/client/components/ui/input';
 import {
  AlertDialog,
@@ -263,10 +263,10 @@ export function RequestDetails() {
             <button 
               onClick={handleToggleStar}
               disabled={isSaving}
-              className={`text-2xl hover:scale-110 transition-transform ${request.isStarred ? 'text-yellow-500' : 'text-slate-400'}`}
+              className={`hover:scale-110 transition-transform ${request.isStarred ? 'text-yellow-500' : 'text-slate-400 hover:text-slate-500'}`}
               title={request.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
-              {request.isStarred ? '⭐' : '☆'}
+              {request.isStarred ? <Star weight="fill" className="w-6 h-6" /> : <Star weight="regular" className="w-6 h-6" />}
             </button>
             <span className="truncate">{request.name}</span>
           </h2>
