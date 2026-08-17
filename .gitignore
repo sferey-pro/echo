@@ -8,3 +8,5 @@
 # Ignore collections downloaded via the UI
 collection/*
 !collection/.gitkeep
+app_build/collection/*
+!app_build/collection/.gitkeep
