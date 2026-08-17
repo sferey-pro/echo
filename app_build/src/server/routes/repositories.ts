@@ -1,20 +1,21 @@
 import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import { resolve } from "path";
+import { getSafeRepoPath } from "../../shared/lib/paths";
 
 export async function handleRepositoriesRoute(req: Request, url: URL): Promise<Response | null> {
  if (url.pathname === '/api/repositories' && req.method === 'GET') {
  try {
  const collDir = resolve(process.cwd(), '../collection');
  if (!existsSync(collDir)) {
- return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
  }
  const entries = await readdir(collDir, { withFileTypes: true });
  const repos = entries.filter((e: Dirent) => e.isDirectory()).map((e: Dirent) => e.name);
- return new Response(JSON.stringify(repos), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify(repos), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  }
 
@@ -24,7 +25,7 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  const repoUrl = body.repoUrl;
  const force = body.force;
  if (!repoUrl || typeof repoUrl !== 'string') {
- return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response("Bad Request", { status: 400, headers: {  } });
  }
  
  let repoName = `repo-${Date.now()}`;
@@ -33,14 +34,16 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  if (lastPart) {
  repoName = lastPart.replace(/\.git$/, '');
  }
- const targetDir = resolve(process.cwd(), '../collection', repoName);
- 
- if (existsSync(targetDir) && !force) {
- return new Response(JSON.stringify({ error: "EXISTS" }), { status: 409, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ const targetDir = getSafeRepoPath(repoName);
+ if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), '../collection')) {
+ return new Response("Forbidden", { status: 403, headers: {  } });
  }
  
- const rmProc = Bun.spawn(["rm", "-rf", targetDir], { stdout: "pipe", stderr: "pipe" });
- await rmProc.exited;
+ if (existsSync(targetDir) && !force) {
+ return new Response(JSON.stringify({ error: "EXISTS" }), { status: 409, headers: { "Content-Type": "application/json" } });
+ }
+ 
+ await rm(targetDir, { recursive: true, force: true });
  
  const proc = Bun.spawn(["git", "clone", "-b", "main", repoUrl, targetDir], { stdout: "pipe", stderr: "pipe" });
  await proc.exited;
@@ -48,16 +51,16 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  if (proc.exitCode !== 0) {
  const errText = await new Response(proc.stderr).text();
  console.error("Git clone failed:", errText);
- return new Response(JSON.stringify({ error: "Git clone failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: "Git clone failed: " + errText }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  
  return new Response(JSON.stringify({ success: true, name: repoName }), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  } catch (err: unknown) {
  const e = err as Error;
  console.error("Clone error", e);
- return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  }
 
@@ -65,27 +68,24 @@ export async function handleRepositoriesRoute(req: Request, url: URL): Promise<R
  if (matchDelete && req.method === 'DELETE') {
  try {
  const repoName = matchDelete[1];
- if (!repoName) return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
- // Protect against path traversal
- if (repoName.includes('..') || repoName.includes('/')) {
- return new Response("Forbidden", { status: 403, headers: { "Access-Control-Allow-Origin": "*" } });
+ if (!repoName) return new Response("Bad Request", { status: 400, headers: {  } });
+ const targetDir = getSafeRepoPath(repoName);
+ if (targetDir.endsWith('.empty') || targetDir === resolve(process.cwd(), '../collection')) {
+ return new Response("Forbidden", { status: 403, headers: {  } });
  }
- const targetDir = resolve(process.cwd(), '../collection', repoName);
  if (!existsSync(targetDir)) {
- return new Response("Not found", { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response("Not found", { status: 404, headers: {  } });
  }
  
- const rmProc = Bun.spawn(["rm", "-rf", targetDir], { stdout: "pipe", stderr: "pipe" });
- await rmProc.exited;
- 
- if (rmProc.exitCode !== 0) {
- const errText = await new Response(rmProc.stderr).text();
- return new Response(JSON.stringify({ error: "Failed to delete: " + errText }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
- }
- 
- return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ try {
+ await rm(targetDir, { recursive: true, force: true });
  } catch (err: unknown) {
- return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: "Failed to delete: " + (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
+ }
+ 
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+ } catch (err: unknown) {
+ return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  }
 

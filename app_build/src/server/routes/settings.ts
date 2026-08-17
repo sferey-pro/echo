@@ -5,7 +5,7 @@ export async function handleSettingsRoute(req: Request, url: URL): Promise<Respo
  if (url.pathname === '/api/settings') {
  if (req.method === 'GET') {
  return new Response(JSON.stringify(getAllSettings()), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  }
  if (req.method === 'POST') {
@@ -19,13 +19,13 @@ export async function handleSettingsRoute(req: Request, url: URL): Promise<Respo
  }
  
  return new Response(JSON.stringify({ success: true }), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  }
  } catch (e: unknown) {
  console.error("Settings parse error", e);
  }
- return new Response("Bad Request", { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response("Bad Request", { status: 400, headers: {  } });
  }
  }
  return null;

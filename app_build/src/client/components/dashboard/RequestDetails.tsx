@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import type { ApiRequest } from '../../../shared/lib/parser';
 import Editor from '@monaco-editor/react';
 import { updateRequestMeta, createMockVariant, updateMockVariant, deleteMockVariant } from '../../lib/api';
-import type { MockVariantDef } from '../../lib/db';
+import type { MockVariantDef } from '../../../server/lib/db';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select';
 import { toast } from 'sonner';
 import { MethodBadge } from '../ui/method-badge';
@@ -135,7 +135,7 @@ export function RequestDetails() {
     setStatusCode(newCode);
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { statusCode: newCode });
+      await updateMockVariant(activeVariant.id, { statusCode: newCode, payload, selectedExample, latencyMs, pathParamsOverrides });
       await loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de statut');
@@ -147,7 +147,7 @@ export function RequestDetails() {
   const handleLatencyChange = async (newLatency: number) => {
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { latencyMs: newLatency });
+      await updateMockVariant(activeVariant.id, { latencyMs: newLatency, payload, selectedExample, statusCode, pathParamsOverrides });
       await loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du changement de latence');
@@ -163,7 +163,7 @@ export function RequestDetails() {
     
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { pathParamsOverrides: newOverrides });
+      await updateMockVariant(activeVariant.id, { pathParamsOverrides: newOverrides, payload, selectedExample, statusCode, latencyMs });
       await loadCollection();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors de la mise à jour des paramètres');
@@ -176,9 +176,11 @@ export function RequestDetails() {
     setSelectedExample(ex.name);
     const newPayload = getPayloadString(ex.response?.body?.data);
     setPayload(newPayload);
+    const newStatus = ex.response?.status || statusCode;
+    setStatusCode(newStatus);
     setIsSaving(true);
     try {
-      await updateMockVariant(activeVariant.id, { payload: newPayload, selectedExample: ex.name });
+      await updateMockVariant(activeVariant.id, { payload: newPayload, selectedExample: ex.name, statusCode: newStatus, latencyMs, pathParamsOverrides });
       await loadCollection();
     } catch (e: unknown) {
       toast.error("Erreur: " + (e instanceof Error ? e.message : String(e)));

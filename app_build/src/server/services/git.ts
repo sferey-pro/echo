@@ -4,25 +4,27 @@ import { getSetting } from "../lib/db";
 import { syncGitToDatabase, parseFile, removeFileFromCache, clearParserCache } from "../../shared/lib/parser";
 import { initProxy } from "../lib/proxy";
 import { getCollectionFromDb, clearBrunoTables } from "../lib/db";
+import { getSafeRepoPath } from "../../shared/lib/paths";
 
 export const gitSyncStatus = { isSynced: true, commitsBehind: 0, error: "", hasGit: false };
 
 export function getRepoPath() {
  const activeCol = getSetting('ACTIVE_COLLECTION_NAME');
- const base = resolve(process.cwd(), '../collection');
  if (activeCol) {
- return resolve(base, activeCol);
+ return getSafeRepoPath(activeCol);
  }
  if (process.env.REPO_PATH) {
- return process.env.REPO_PATH;
+ return getSafeRepoPath(process.env.REPO_PATH);
  }
  
- return resolve(base, '.empty');
+ return getSafeRepoPath('.empty');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentWatcher: any = null;
 let currentWatchPath: string | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let syncTimer: any = null;
 
 export async function runSync() {
  const repo = getRepoPath();
@@ -65,7 +67,8 @@ export async function runSync() {
  }
  
  const interval = parseInt(getSetting('GIT_SYNC_INTERVAL') || process.env.GIT_SYNC_INTERVAL || "300000", 10);
- setTimeout(runSync, interval);
+ if (syncTimer) clearTimeout(syncTimer);
+ syncTimer = setTimeout(runSync, interval);
 }
 
 export function updateBackgroundTasks() {

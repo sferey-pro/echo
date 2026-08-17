@@ -30,9 +30,9 @@ export async function handleResetRoute(req: Request, url: URL): Promise<Response
  const data = getCollectionFromDb();
  await initProxy(data.requests, data.environments);
  
- return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  }
  return null;

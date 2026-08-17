@@ -27,15 +27,14 @@ export async function handleCollectionsRoute(req: Request, url: URL): Promise<Re
  environments: data.environments || []
  }), {
  headers: {
- "Content-Type": "application/json",
- "Access-Control-Allow-Origin": "*"
+ "Content-Type": "application/json"
  }
  });
  } catch (error) {
  console.error("Error parsing collection:", error);
  return new Response(JSON.stringify({ error: "Failed to parse collection" }), { 
  status: 500,
- headers: { "Access-Control-Allow-Origin": "*" }
+ headers: {  }
  });
  }
  }

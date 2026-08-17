@@ -8,9 +8,9 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  try {
  const body = await req.json();
  updateRequestMeta(body.id, body.isStarred);
- return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response(String(err), { status: 400, headers: {  } });
  }
  }
 
@@ -34,9 +34,9 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  pathParamsOverrides: {}
  });
 
- return new Response(JSON.stringify({ success: true, id: variantId }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ success: true, id: variantId }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response(String(err), { status: 400, headers: {  } });
  }
  }
 
@@ -62,9 +62,9 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  }
  }
 
- return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response(String(err), { status: 400, headers: {  } });
  }
  }
 
@@ -83,9 +83,9 @@ export async function handleMocksRoute(req: Request, url: URL): Promise<Response
  }
  }
 
- return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
  } catch (err: unknown) {
- return new Response(String(err), { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+ return new Response(String(err), { status: 400, headers: {  } });
  }
  }
 

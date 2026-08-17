@@ -10,14 +10,14 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  await runSync();
  }
  return new Response(JSON.stringify(gitSyncStatus), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  }
 
  if (url.pathname === '/api/sync/cleanup' && req.method === 'DELETE') {
  cleanupObsoleteItems();
  return new Response(JSON.stringify({ success: true }), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  }
 
@@ -30,7 +30,7 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  const errText = await new Response(proc.stderr).text();
  const outText = await new Response(proc.stdout).text();
  const fullError = (errText + "\n" + outText).trim();
- return new Response(JSON.stringify({ error: "Git pull failed:\n" + fullError }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: "Git pull failed:\n" + fullError }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  
  await syncGitToDatabase(repo);
@@ -38,10 +38,10 @@ export async function handleSyncRoute(req: Request, url: URL): Promise<Response 
  await initProxy(data.requests, data.environments);
 
  return new Response(JSON.stringify({ success: true }), {
- headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+ headers: { "Content-Type": "application/json" }
  });
  } catch (err: unknown) {
- return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } });
+ return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { "Content-Type": "application/json" } });
  }
  }
  return null;

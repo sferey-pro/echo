@@ -24,6 +24,7 @@ const PORT = process.env.PORT || 3000;
 
 const server = serve({
  port: PORT,
+ hostname: "127.0.0.1",
  routes: {
  "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
  "/": index,
@@ -36,7 +37,6 @@ const server = serve({
  if (req.method === 'OPTIONS') {
  return new Response(null, {
  headers: {
- "Access-Control-Allow-Origin": "*",
  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
  "Access-Control-Allow-Headers": "*"
  }

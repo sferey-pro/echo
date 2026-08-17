@@ -14,6 +14,12 @@ import {
  AlertDialogTitle,
  AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
+import {
+ Dialog,
+ DialogContent,
+ DialogHeader,
+ DialogTitle,
+} from "@/client/components/ui/dialog";
 
 interface SettingsModalProps {
  isOpen: boolean;
@@ -33,15 +39,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  }
  }, [isOpen]);
 
- useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen) {
-  onClose();
-  }
-  };
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
- }, [isOpen, onClose]);
+ // Removed manual ESC handler as Dialog handles it natively
 
  const handleSave = async (e: React.FormEvent) => {
  e.preventDefault();
@@ -71,15 +69,12 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  }
  };
 
- if (!isOpen) return null;
-
  return (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
- <div className="bg-background border border-border rounded-xl shadow-lg w-full max-w-md p-6">
- <div className="flex items-center justify-between mb-6">
- <h2 className="text-xl font-semibold text-foreground">Paramètres de l'Application Echo</h2>
- <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
- </div>
+ <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+ <DialogContent className="sm:max-w-md p-6">
+ <DialogHeader className="mb-6">
+ <DialogTitle className="text-xl font-semibold text-foreground">Paramètres de l'Application Echo</DialogTitle>
+ </DialogHeader>
 
  <form onSubmit={handleSave} className="space-y-4">
  <div className="space-y-6">
@@ -149,7 +144,7 @@ export function SettingsModal({ isOpen, onClose, onSaved }: SettingsModalProps) 
  </Button>
  </div>
  </form>
- </div>
- </div>
+ </DialogContent>
+ </Dialog>
  );
 }

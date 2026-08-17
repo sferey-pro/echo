@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import type { ApiRequest, BrunoFolder } from '../../../shared/lib/parser';
-import type { MockVariantDef } from '../../lib/db';
+import type { MockVariantDef } from '../../../server/lib/db';
 import { cn } from '@/client/lib/utils';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { CaretRight, Folder, FolderOpen, Star, ArrowsClockwise, Books, Gear, Lightning } from '@phosphor-icons/react';
@@ -111,7 +111,9 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={(e) => toggleFolder('__starred__', e)}
- className="flex items-center px-2 hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder('__starred__', e as any); }}
+ tabIndex={0}
+ className="flex items-center px-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
  >
  <CaretRight 
  className={cn("w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200", item.isExpanded && "rotate-90")} 
@@ -132,8 +134,10 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={(e) => toggleFolder(item.folder.id, e)}
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleFolder(item.folder.id, e as any); }}
+ tabIndex={0}
  className={cn(
- "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative",
+ "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
  selectedFolderId === item.folder.id ? "/20 bg-primary/10 text-foreground font-bold" : "hover:bg-accent text-foreground/80 active:scale-[0.99]"
  )}
  >
@@ -168,8 +172,10 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={() => setSelectedRequestId(req.id)}
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
+ tabIndex={0}
  className={cn(
- "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2",
+ "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
  selectedRequestId === req.id 
  ? "/30 bg-primary/20 text-foreground font-bold" 
  : "hover:bg-slate-100 :bg-slate-800 text-foreground border-transparent"
@@ -205,7 +211,9 @@ export function RequestList({ onOpenSettings, onOpenCollections }: RequestListPr
  key={virtualItem.key}
  style={style}
  onClick={() => setSelectedRequestId(req.id)}
- className="flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative hover:bg-slate-100 :bg-slate-800 text-foreground"
+ onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
+ tabIndex={0}
+ className="flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative hover:bg-slate-100 :bg-slate-800 text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
  >
  <div style={{ paddingLeft }} className="flex items-center w-full h-full relative">
  {Array.from({ length: item.depth }).map((_, i) => (

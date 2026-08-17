@@ -268,7 +268,9 @@ export function DashboardLayout() {
             <div 
               key={req.id} 
               onClick={() => setSelectedRequestId(req.id)}
-              className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedRequestId(req.id); }}
+              tabIndex={0}
+              className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? 'bg-primary/5 border-l-4 border-l-primary border-b-border' : 'bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border'}`}
             >
               <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">{index + 1}</span>
               <MethodBadge method={req.method} className="mr-3" />

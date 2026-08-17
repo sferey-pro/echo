@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import type { ApiRequest } from './parser';
+import type { ApiRequest } from '../../shared/lib/parser';
 import type { MockVariantDef } from './db';
 
 export const mockVariants = new Map<string, MockVariantDef[]>();
@@ -56,15 +56,17 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  if (variant.pathParamsOverrides) {
  for (const [key, value] of Object.entries(variant.pathParamsOverrides)) {
  if (!value) continue;
- mswPath = mswPath.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
- mswPath = mswPath.replace(new RegExp(`:${key}\\b`, 'g'), value);
+ const safeKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+ mswPath = mswPath.replace(new RegExp(`\\{\\{${safeKey}\\}\\}`, 'g'), value);
+ mswPath = mswPath.replace(new RegExp(`:${safeKey}\\b`, 'g'), value);
  }
  }
 
  // 2. Remplacer les variables d'environnement actives
  if (activeEnv) {
  for (const v of activeEnv.variables) {
- mswPath = mswPath.replace(new RegExp(`\\{\\{${v.name}\\}\\}`, 'g'), v.value);
+ const safeName = v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+ mswPath = mswPath.replace(new RegExp(`\\{\\{${safeName}\\}\\}`, 'g'), v.value);
  }
  }
  // Fallback baseUrl si non défini
@@ -87,7 +89,7 @@ export async function initProxy(requests: ApiRequest[], environments: { name: st
  console.log(`[MSW] Intercepted & Mocked: ${mswPath} (Status: ${variant.statusCode}, Latency: ${variant.latencyMs}ms)`);
  
  const corsHeaders = {
- "Access-Control-Allow-Origin": "*",
+ 
  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
  "Access-Control-Allow-Headers": "*",
  "Access-Control-Expose-Headers": "*"
@@ -139,7 +141,7 @@ export async function handleProxyRequest(req: Request): Promise<Response> {
  const proxyHeaders = new Headers();
  
  // Copy only safe headers
- const unsafeHeaders = ['host', 'origin', 'referer', 'connection', 'accept-encoding', 'content-length'];
+ const unsafeHeaders = ['host', 'origin', 'referer', 'connection', 'accept-encoding', 'content-length', 'authorization', 'cookie'];
  req.headers.forEach((value, key) => {
  if (!unsafeHeaders.includes(key.toLowerCase()) && !key.startsWith(':')) {
  proxyHeaders.set(key, value);

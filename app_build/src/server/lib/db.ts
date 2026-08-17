@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { join } from "path";
-import type { ScenarioAction } from "./api";
-import type { ApiRequest, BrunoFolder, BrunoEnvironment } from "./parser";
+import type { ScenarioAction } from "../../client/lib/api";
+import type { ApiRequest, BrunoFolder, BrunoEnvironment } from "../../shared/lib/parser";
 
 // Initialize the SQLite database
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -153,7 +153,17 @@ export const createMockVariant = (id: string, requestId: string, name: string, i
 export const updateMockVariant = (id: string, updates: Partial<MockVariantDef>) => {
  const currentQuery = db.query("SELECT * FROM mock_variants WHERE id = $id");
  const current = currentQuery.get({ $id: id }) as DBMockVariant;
- if (!current) return;
+ if (!current) {
+ if (id.endsWith('-default')) {
+ const requestId = id.replace(/-default$/, '');
+ createMockVariant(
+ id, requestId, updates.name || 'Default', updates.isMocked || false,
+ updates.payload || '{}', updates.selectedExample || null,
+ updates.statusCode || 200, updates.latencyMs || 0, updates.pathParamsOverrides || null
+ );
+ }
+ return;
+ }
 
  const query = db.query(`
  UPDATE mock_variants SET 
