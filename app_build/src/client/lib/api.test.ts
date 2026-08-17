@@ -1,18 +1,26 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-import { fetchWithConfig, loadCollection } from './api';
+import { describe, it, expect, mock, beforeEach } from "bun:test";
+import { fetchWithConfig, loadCollection } from "./api";
 
-describe('Frontend API', () => {
+describe("Frontend API", () => {
   beforeEach(() => {
-    global.fetch = mock(() => Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))) as any;
+    global.fetch = mock(() =>
+      Promise.resolve(new Response(JSON.stringify({}), { status: 200 })),
+    ) as any;
   });
 
-  it('fetchWithConfig should prepend BASE_API_URL', async () => {
-    await fetchWithConfig('/test');
-    expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/test', expect.anything());
+  it("fetchWithConfig should prepend BASE_API_URL", async () => {
+    await fetchWithConfig("/test");
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:3000/test",
+      expect.anything(),
+    );
   });
 
-  it('loadCollection should fetch from /api/collection', async () => {
+  it("loadCollection should fetch from /api/collection", async () => {
     await loadCollection();
-    expect(global.fetch).toHaveBeenCalledWith('http://localhost:3000/api/collection', expect.anything());
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/collection",
+      expect.anything(),
+    );
   });
 });

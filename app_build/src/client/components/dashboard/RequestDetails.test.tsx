@@ -1,113 +1,148 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from "bun:test";
 
-mock.module('../../../client/lib/api', () => ({
+mock.module("../../../client/lib/api", () => ({
   updateMockVariant: async () => ({}),
   saveRequestPayload: async () => ({}),
 }));
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { RequestDetails } from './RequestDetails';
-import { useStore } from '../../store/useStore';
-import type { ApiRequest } from '../../../shared/lib/parser';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { RequestDetails } from "./RequestDetails";
+import { useStore } from "../../store/useStore";
+import type { ApiRequest } from "../../../shared/lib/parser";
 
-mock.module('@monaco-editor/react', () => {
+mock.module("@monaco-editor/react", () => {
   return {
-    default: () => <div>MonacoEditorMock</div>
+    default: () => <div>MonacoEditorMock</div>,
   };
 });
 
-describe('Component: RequestDetails', () => {
+describe("Component: RequestDetails", () => {
   beforeEach(() => {
     useStore.setState({
       requests: [],
       environments: [],
       activeEnvironment: undefined,
-      selectedRequestId: undefined
+      selectedRequestId: undefined,
     });
   });
 
-  it('renders empty state when no request is selected', () => {
+  it("renders empty state when no request is selected", () => {
     render(<RequestDetails />);
-    expect(screen.getByText('Sélectionnez une requête pour voir les détails')).toBeTruthy();
+    expect(
+      screen.getByText("Sélectionnez une requête pour voir les détails"),
+    ).toBeTruthy();
   });
 
-  it('renders request details correctly', async () => {
+  it("renders request details correctly", async () => {
     const req: any = {
-      id: 'r1',
-      folderId: 'f1',
-      name: 'Get User',
-      method: 'GET',
-      url: '/users/:id',
+      id: "r1",
+      folderId: "f1",
+      name: "Get User",
+      method: "GET",
+      url: "/users/:id",
       examples: [],
-      variants: [{ id: 'v1', name: 'Success', isMocked: true, payload: '{"ok":true}', statusCode: 200, latencyMs: 0, selectedExample: null, pathParamsOverrides: {} }]
+      variants: [
+        {
+          id: "v1",
+          name: "Success",
+          isMocked: true,
+          payload: '{"ok":true}',
+          statusCode: 200,
+          latencyMs: 0,
+          selectedExample: null,
+          pathParamsOverrides: {},
+        },
+      ],
     };
-    
+
     useStore.setState({
       requests: [req],
-      selectedRequestId: 'r1'
+      selectedRequestId: "r1",
     });
 
     render(<RequestDetails />);
     screen.debug();
-    expect(screen.getByText('Get User')).toBeTruthy();
-    expect(screen.getByText('/users/:id')).toBeTruthy();
-    expect(screen.getAllByText('GET').length).toBeGreaterThan(0);
-    
+    expect(screen.getByText("Get User")).toBeTruthy();
+    expect(screen.getByText("/users/:id")).toBeTruthy();
+    expect(screen.getAllByText("GET").length).toBeGreaterThan(0);
+
     // Test default variant is displayed
-    expect(screen.getByText('Success')).toBeTruthy();
+    expect(screen.getByText("Success")).toBeTruthy();
   });
 
-  it('handles mock toggle', async () => {
+  it("handles mock toggle", async () => {
     const req: any = {
-      id: 'r1',
-      folderId: 'f1',
-      name: 'Get User',
-      method: 'GET',
-      url: '/users/:id',
+      id: "r1",
+      folderId: "f1",
+      name: "Get User",
+      method: "GET",
+      url: "/users/:id",
       examples: [],
-      variants: [{ id: 'v1', name: 'Success', isMocked: true, payload: '{"ok":true}', statusCode: 200, latencyMs: 0, selectedExample: null, pathParamsOverrides: {} }]
+      variants: [
+        {
+          id: "v1",
+          name: "Success",
+          isMocked: true,
+          payload: '{"ok":true}',
+          statusCode: 200,
+          latencyMs: 0,
+          selectedExample: null,
+          pathParamsOverrides: {},
+        },
+      ],
     };
-    
+
     useStore.setState({
       requests: [req],
-      selectedRequestId: 'r1'
+      selectedRequestId: "r1",
     });
 
     render(<RequestDetails />);
-    
-    const toggleBtn = screen.getByText('Mock Actif pour cette Variante');
+
+    const toggleBtn = screen.getByText("Mock Actif pour cette Variante");
     expect(toggleBtn).toBeTruthy();
     fireEvent.click(toggleBtn);
     await waitFor(() => {
-      expect(screen.getByText('Activer le Mock (Pass-through)')).toBeTruthy();
+      expect(screen.getByText("Activer le Mock (Pass-through)")).toBeTruthy();
     });
   });
 
-  it('handles editing request payload', async () => {
+  it("handles editing request payload", async () => {
     const req: any = {
-      id: 'r1',
-      folderId: 'f1',
-      name: 'Get User',
-      method: 'GET',
-      url: '/users/:id',
+      id: "r1",
+      folderId: "f1",
+      name: "Get User",
+      method: "GET",
+      url: "/users/:id",
       examples: [],
-      variants: [{ id: 'v1', name: 'Success', isMocked: true, payload: '{"ok":true}', statusCode: 200, latencyMs: 0, selectedExample: null, pathParamsOverrides: {} }]
+      variants: [
+        {
+          id: "v1",
+          name: "Success",
+          isMocked: true,
+          payload: '{"ok":true}',
+          statusCode: 200,
+          latencyMs: 0,
+          selectedExample: null,
+          pathParamsOverrides: {},
+        },
+      ],
     };
-    
+
     useStore.setState({
       requests: [req],
-      selectedRequestId: 'r1'
+      selectedRequestId: "r1",
     });
 
     render(<RequestDetails />);
-    
+
     // Test saving
-    const saveBtn = screen.getByText('Sauvegarder les modifications');
+    const saveBtn = screen.getByText("Sauvegarder les modifications");
     expect(saveBtn).toBeTruthy();
     fireEvent.click(saveBtn);
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Sauvegarder les modifications')).toBeTruthy();
+      expect(screen.getByText("Sauvegarder les modifications")).toBeTruthy();
     });
   });
 });
