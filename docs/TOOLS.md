@@ -72,3 +72,11 @@ Lefthook est un gestionnaire de hooks Git rapide (écrit en Go), utilisé ici co
 
 **Astuces d'utilisation :**
 La configuration se trouve dans le fichier `lefthook.yml` à la racine et `.lintstagedrc.json` dans le dossier de l'application.
+
+### Zod
+
+Zod est utilisé pour la validation des données à l'exécution et le typage strict des structures manipulées par l'application.
+
+- **Usage** : Validation des charges utiles (payloads) d'API côté serveur, validation des données récupérées depuis la base de données, et validation des réponses de fetch côté client.
+- **Fichiers clés** : Les schémas centraux sont définis dans `src/shared/schemas.ts`.
+- **Règle stricte** : L'utilisation de `any` ou `unknown` doit être évitée. Zod permet d'inférer les types TypeScript (`z.infer`) qui sont ensuite partagés entre le serveur et le client.
