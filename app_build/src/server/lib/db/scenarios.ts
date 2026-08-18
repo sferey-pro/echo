@@ -1,4 +1,6 @@
-import type { ScenarioAction } from "../../../client/lib/api";
+import { z } from "zod";
+import type { ScenarioAction } from "../../../shared/schemas";
+import { scenarioActionSchema } from "../../../shared/schemas";
 import { db, safeJsonParse } from "./connection";
 import { getActiveCollection } from "./settings";
 
@@ -22,7 +24,11 @@ export const getScenarios = (): {
   return results.map((row) => ({
     id: row.id,
     name: row.name,
-    actions: safeJsonParse<ScenarioAction[]>(row.actions, []),
+    actions: safeJsonParse<ScenarioAction[]>(
+      row.actions,
+      [],
+      z.array(scenarioActionSchema),
+    ),
   }));
 };
 

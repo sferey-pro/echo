@@ -1,3 +1,5 @@
+import type { MockVariantDef } from "../../../shared/schemas";
+import { pathParamsOverridesSchema } from "../../../shared/schemas";
 import { db, safeJsonParse } from "./connection";
 import { getActiveCollection } from "./settings";
 
@@ -11,17 +13,6 @@ interface DBMockVariant {
   status_code: number;
   latency_ms: number;
   path_params_overrides: string | null;
-}
-
-export interface MockVariantDef {
-  id: string;
-  name: string;
-  isMocked: boolean;
-  payload: string;
-  selectedExample: string | null;
-  statusCode: number;
-  latencyMs: number;
-  pathParamsOverrides: Record<string, string>;
 }
 
 export const getMockVariants = (): Record<string, MockVariantDef[]> => {
@@ -45,6 +36,7 @@ export const getMockVariants = (): Record<string, MockVariantDef[]> => {
       pathParamsOverrides: safeJsonParse<Record<string, string>>(
         row.path_params_overrides,
         {},
+        pathParamsOverridesSchema,
       ),
     });
   }

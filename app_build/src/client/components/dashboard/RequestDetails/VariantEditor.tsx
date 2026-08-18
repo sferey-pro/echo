@@ -1,5 +1,5 @@
 import { Editor } from "@monaco-editor/react";
-import type { MockVariantDef } from "../../../../server/lib/db";
+import type { MockVariantDef } from "@/shared/schemas";
 import type { ApiRequest } from "../../../../shared/lib/parser";
 import { Button } from "../../ui/button";
 import {

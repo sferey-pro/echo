@@ -1,4 +1,4 @@
-import type { MockVariantDef } from "../../server/lib/db";
+import type { MockVariantDef } from "@/shared/schemas";
 import type { ParserResult } from "../../shared/lib/parser";
 
 export async function fetchCollection(): Promise<ParserResult> {

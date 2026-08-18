@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { MockVariantDef } from "../../server/lib/db";
+import type { MockVariantDef } from "@/shared/schemas";
 import type {
   ApiRequest,
   BrunoEnvironment,

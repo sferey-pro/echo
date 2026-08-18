@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
 import type { SetupServer } from "msw/node";
 import type { ApiRequest } from "../../shared/lib/parser";
-import type { MockVariantDef } from "./db/index";
+import type { MockVariantDef } from "../../shared/schemas";
 
 export const mockVariants = new Map<string, MockVariantDef[]>();
 export const requestMeta = new Map<string, { isStarred: boolean }>();
@@ -87,12 +87,16 @@ export async function initProxy(
           variant.pathParamsOverrides,
         )) {
           if (!value) continue;
+          const strValue = value as string;
           const safeKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           mswPath = mswPath.replace(
             new RegExp(`\\{\\{${safeKey}\\}\\}`, "g"),
-            value,
+            strValue,
           );
-          mswPath = mswPath.replace(new RegExp(`:${safeKey}\\b`, "g"), value);
+          mswPath = mswPath.replace(
+            new RegExp(`:${safeKey}\\b`, "g"),
+            strValue,
+          );
         }
       }
 

@@ -12,13 +12,25 @@ const dbPath = isTestEnv
 export const db = new Database(dbPath);
 db.exec("PRAGMA journal_mode = WAL;");
 
+import type { z } from "zod";
+
 export function safeJsonParse<T>(
   data: string | null | undefined,
   fallback: T,
+  schema?: z.ZodType<T>,
 ): T {
   if (!data) return fallback;
   try {
-    return JSON.parse(data) as T;
+    const parsed = JSON.parse(data);
+    if (schema) {
+      const result = schema.safeParse(parsed);
+      if (!result.success) {
+        console.error("Zod parse error on DB read:", result.error);
+        return fallback;
+      }
+      return result.data;
+    }
+    return parsed as T;
   } catch (err) {
     console.error("JSON parse error on DB read:", err);
     return fallback;

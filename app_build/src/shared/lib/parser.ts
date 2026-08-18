@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { parse as parseYaml } from "yaml";
-import type { MockVariantDef } from "../../server/lib/db";
 import { syncBrunoItemsToDb } from "../../server/lib/db";
+import type { MockVariantDef } from "../schemas";
 
 export interface BrunoFolder {
   id: string;

@@ -13,7 +13,7 @@ import type React from "react";
 import { useMemo, useRef, useState } from "react";
 import { Button } from "@/client/components/ui/button";
 import { cn } from "@/client/lib/utils";
-import type { MockVariantDef } from "../../../server/lib/db";
+import type { MockVariantDef } from "@/shared/schemas";
 import type { ApiRequest, BrunoFolder } from "../../../shared/lib/parser";
 import { useStore } from "../../store/useStore";
 import { MethodBadge } from "../ui/method-badge";

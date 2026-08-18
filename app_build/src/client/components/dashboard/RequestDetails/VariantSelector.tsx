@@ -1,6 +1,6 @@
 import { PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
-import type { MockVariantDef } from "../../../../server/lib/db";
+import type { MockVariantDef } from "@/shared/schemas";
 import {
   AlertDialog,
   AlertDialogAction,
