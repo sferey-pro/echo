@@ -24,8 +24,9 @@ export function ImportCollectionModal({
   onClose,
   onImportSuccess,
 }: ImportCollectionModalProps) {
-  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-  const [fileContent, setFileContent] = useState<any>(null);
+  const [fileContent, setFileContent] = useState<{
+    repository?: { url?: string; commitSha?: string };
+  } | null>(null);
   const [targetName, setTargetName] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,11 +129,11 @@ export function ImportCollectionModal({
             <div className="p-3 bg-muted rounded-lg text-sm flex flex-col gap-1">
               <div>
                 <span className="font-bold">Repository :</span>{" "}
-                {fileContent.repository.url}
+                {fileContent?.repository?.url}
               </div>
               <div>
                 <span className="font-bold">Commit :</span>{" "}
-                {fileContent.repository.commitSha || "latest"}
+                {fileContent?.repository?.commitSha || "latest"}
               </div>
             </div>
 

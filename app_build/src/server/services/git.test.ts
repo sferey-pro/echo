@@ -30,20 +30,15 @@ describe("Service: git", () => {
 import { gitSyncStatus, runSync, updateBackgroundTasks } from "./git";
 
 describe("Service: git (operations)", () => {
-  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   let originalSpawn: any;
-  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   let existsSyncMock: any;
-  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   let watchMock: any;
 
-  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   let watcherCallback: any;
 
   beforeEach(() => {
     originalSpawn = Bun.spawn;
     existsSyncMock = mock(() => true);
-    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     watchMock = mock((_p: any, _opts: any, cb: any) => {
       watcherCallback = cb;
       return { close: mock(() => {}) };
@@ -61,7 +56,6 @@ describe("Service: git (operations)", () => {
       exitCode: 0,
       stdout: new Blob(["0"]), // 0 commits behind
       stderr: new Blob([]),
-      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     })) as any;
 
     await runSync();

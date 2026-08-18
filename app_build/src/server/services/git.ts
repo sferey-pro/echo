@@ -33,13 +33,9 @@ export function getRepoPath() {
   return getSafeRepoPath(".empty");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-let currentWatcher: any = null;
+let currentWatcher: { close: () => void } | null = null;
 let currentWatchPath: string | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-let syncTimer: any = null;
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
 
 export async function runSync() {
   const repo = getRepoPath();

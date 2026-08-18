@@ -90,8 +90,16 @@ export async function handleImportRoute(
               request_id=excluded.request_id, name=excluded.name, is_mocked=excluded.is_mocked, payload=excluded.payload, selected_example=excluded.selected_example, status_code=excluded.status_code, latency_ms=excluded.latency_ms, path_params_overrides=excluded.path_params_overrides
           `);
           for (const [reqId, variants] of Object.entries(state.mockVariants)) {
-            // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-            for (const variant of variants as any[]) {
+            for (const variant of variants as {
+              id: string;
+              name: string;
+              isMocked: boolean;
+              payload: string;
+              selectedExample?: string;
+              statusCode?: number;
+              latencyMs?: number;
+              pathParamsOverrides?: unknown;
+            }[]) {
               insertVariant.run({
                 $id: variant.id,
                 $col: targetName,
@@ -118,8 +126,11 @@ export async function handleImportRoute(
             ON CONFLICT(id, collection_name) DO UPDATE SET
               name=excluded.name, actions=excluded.actions
           `);
-          // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-          for (const scenario of state.scenarios as any[]) {
+          for (const scenario of (state.scenarios as {
+            id: string;
+            name: string;
+            actions?: unknown;
+          }[]) || []) {
             insertScenario.run({
               $id: scenario.id,
               $col: targetName,
@@ -141,8 +152,7 @@ export async function handleImportRoute(
             insertMeta.run({
               $id: reqId,
               $col: targetName,
-              // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-              $isStarred: (meta as any).isStarred ? 1 : 0,
+              $isStarred: (meta as { isStarred?: boolean }).isStarred ? 1 : 0,
             });
           }
         }

@@ -30,7 +30,6 @@ describe("Database - Scenarios", () => {
     expect(scenarios[0]?.id).toBe("sc1");
     expect(scenarios[0]?.name).toBe("My Scenario");
     expect(scenarios[0]?.actions.length).toBe(1);
-    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     expect((scenarios[0]?.actions[0] as any)?.requestId).toBe("req-1");
   });
 

@@ -292,8 +292,9 @@ export function RequestDetails() {
     const newPayload = getPayloadString(ex.response?.body?.data);
     setPayload(newPayload);
     const newStatus =
-      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
-      ex.response?.status || (ex as any).res?.status || statusCode;
+      ex.response?.status ||
+      (ex as { res?: { status: number } }).res?.status ||
+      statusCode;
     setStatusCode(newStatus);
     setIsSaving(true);
     try {

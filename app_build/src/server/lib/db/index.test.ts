@@ -41,9 +41,7 @@ describe("Database Complex operations", () => {
         payload: '{"ok":true}',
         statusCode: 200,
         latencyMs: 100,
-        // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
       } as any,
-      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
       { requestId: "req1", payload: '{"ok":false}', statusCode: 400 } as any,
     ]);
     const variantsMap = getMockVariants();
