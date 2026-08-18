@@ -16,7 +16,6 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@monaco-editor/react": "4.7.0",
     "@phosphor-icons/react": "2.1.10",
     "@radix-ui/react-dialog": "1.1.23",
     "@radix-ui/react-select": "2.2.6",
@@ -26,7 +25,6 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
-    "monaco-editor": "0.56.0",
     "msw": "2.15.0",
     "radix-ui": "1.6.7",
     "react": "19.0.0",

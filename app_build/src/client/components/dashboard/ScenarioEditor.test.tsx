@@ -27,10 +27,6 @@ mock.module("../../lib/api", () => ({
   updateScenario: mock(() => Promise.resolve()),
 }));
 
-// Mock @monaco-editor/react to prevent happy-dom issues
-mock.module("@monaco-editor/react", () => ({
-  Editor: () => <textarea data-testid="monaco-mock" />,
-}));
 
 describe("Component: ScenarioEditor", () => {
   const mockRequests: ApiRequest[] = [

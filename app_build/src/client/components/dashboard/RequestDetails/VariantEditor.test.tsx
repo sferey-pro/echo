@@ -3,20 +3,6 @@ import type { ApiRequest } from "../../../../shared/lib/parser";
 import { fireEvent, render, screen } from "../../../test-utils";
 import { VariantEditor } from "./VariantEditor";
 
-// Mock Monaco Editor since it doesn't work well in happy-dom
-mock.module("@monaco-editor/react", () => {
-  const MockEditor = ({ value, onChange }: any) => (
-    <textarea
-      data-testid="monaco-editor-mock"
-      value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-    />
-  );
-  return {
-    default: MockEditor,
-    Editor: MockEditor,
-  };
-});
 
 describe("Component: VariantEditor", () => {
   const mockRequest = {

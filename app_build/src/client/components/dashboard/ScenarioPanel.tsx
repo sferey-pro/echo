@@ -195,125 +195,109 @@ export function ScenarioPanel() {
             <p className="text-xs">Aucun scénario sauvegardé.</p>
           </div>
         ) : (
-          scenarios.map((scenario) => (
-            <div
-              key={scenario.id}
-              className={`group flex flex-col hover:bg-accent/50 border rounded-lg p-3 transition-colors w-full text-left bg-transparent ${
-                selectedScenarioId === scenario.id
-                  ? "bg-accent border-primary/50 shadow-sm"
-                  : "bg-card border-border"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedScenarioId(scenario.id)}
-                  className="flex-1 text-sm font-bold text-foreground flex flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      if (!scenario.icon) {
-                        return (
-                          <MaskHappy
-                            className={`w-5 h-5 shrink-0 transition-colors ${
-                              selectedScenarioId === scenario.id
-                                ? "text-primary"
-                                : "text-muted-foreground group-hover:text-primary/70"
-                            }`}
-                            weight={
-                              selectedScenarioId === scenario.id
-                                ? "fill"
-                                : "duotone"
-                            }
-                          />
-                        );
-                      }
+          scenarios.map((scenario) => {
+            let emoji = scenario.icon;
+            let colorClass = "";
+            if (scenario.icon && scenario.icon.startsWith("{")) {
+              try {
+                const parsed = JSON.parse(scenario.icon);
+                emoji = parsed.emoji || "🚀";
+                colorClass = parsed.color || "";
+              } catch (_e) {}
+            }
 
-                      let emoji = scenario.icon;
-                      let colorClass = "";
-                      if (scenario.icon.startsWith("{")) {
-                        try {
-                          const parsed = JSON.parse(scenario.icon);
-                          emoji = parsed.emoji || "🚀";
-                          colorClass = parsed.color || "";
-                        } catch (e) {}
-                      }
+            const isSelected = selectedScenarioId === scenario.id;
+            const containerClass = colorClass
+              ? `${colorClass} ${isSelected ? "ring-2 ring-primary/40 shadow-sm border-transparent" : ""}`
+              : `hover:bg-accent/50 bg-card border-border ${isSelected ? "bg-accent border-primary/50 shadow-sm" : ""}`;
 
-                      if (colorClass) {
-                        return (
-                          <div
-                            className={`w-6 h-6 rounded-md flex items-center justify-center text-sm shadow-sm ${colorClass}`}
-                          >
-                            {emoji}
-                          </div>
-                        );
-                      }
-                      return (
+            return (
+              <div
+                key={scenario.id}
+                className={`group flex flex-col border rounded-lg p-3 transition-all w-full text-left ${containerClass}`}
+              >
+                <div className="flex items-center justify-between mb-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedScenarioId(scenario.id)}
+                    className="flex-1 text-sm font-bold text-foreground flex flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      {!scenario.icon ? (
+                        <MaskHappy
+                          className={`w-5 h-5 shrink-0 transition-colors ${
+                            isSelected
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-primary/70"
+                          }`}
+                          weight={isSelected ? "fill" : "duotone"}
+                        />
+                      ) : (
                         <span className="text-lg leading-none">{emoji}</span>
-                      );
-                    })()}
-                    <span className="truncate">{scenario.name}</span>
-                  </div>
-                  {scenario.description && (
-                    <span className="text-xs text-muted-foreground font-normal line-clamp-1">
-                      {scenario.description}
+                      )}
+                      <span className="truncate">{scenario.name}</span>
+                    </div>
+                    {scenario.description && (
+                      <span className="text-xs text-muted-foreground font-normal line-clamp-1">
+                        {scenario.description}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">
+                      {scenario.actions?.length || 0} requête
+                      {scenario.actions?.length !== 1 ? "s" : ""}
                     </span>
-                  )}
-                  <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">
-                    {scenario.actions?.length || 0} requête
-                    {scenario.actions?.length !== 1 ? "s" : ""}
-                  </span>
-                </button>
-              </div>
+                  </button>
+                </div>
 
-              <div className="flex gap-2 items-center">
-                <Button
-                  onClick={() => handleApply(scenario.id)}
-                  className="flex-1 h-8 text-xs shadow-sm font-semibold"
-                  size="sm"
-                >
-                  <Play weight="fill" className="w-3.5 h-3.5 mr-1.5" />{" "}
-                  Appliquer
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      title="Supprimer"
-                    >
-                      <Trash className="w-4 h-4" weight="bold" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="shadow-lg rounded-xl">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="font-bold text-xl text-red-600">
-                        Supprimer ce scénario ?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="text-muted-foreground">
-                        Cette action supprimera définitivement le scénario "
-                        {scenario.name}". Cela n'affectera pas les requêtes de
-                        votre collection.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(scenario.id);
-                        }}
-                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                <div className="flex gap-2 items-center">
+                  <Button
+                    onClick={() => handleApply(scenario.id)}
+                    className="flex-1 h-8 text-xs shadow-sm font-semibold"
+                    size="sm"
+                  >
+                    <Play weight="fill" className="w-3.5 h-3.5 mr-1.5" />{" "}
+                    Appliquer
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                        title="Supprimer"
                       >
-                        Supprimer
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        <Trash className="w-4 h-4" weight="bold" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="shadow-lg rounded-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="font-bold text-xl text-red-600">
+                          Supprimer ce scénario ?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground">
+                          Cette action supprimera définitivement le scénario "
+                          {scenario.name}". Cela n'affectera pas les requêtes de
+                          votre collection.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(scenario.id);
+                          }}
+                          className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

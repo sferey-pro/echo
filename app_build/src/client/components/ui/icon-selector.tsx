@@ -8,20 +8,20 @@ interface IconSelectorProps {
 
 const EMOJIS = ["🚀", "🧪", "🐛", "📦", "⚡️", "🔒", "🌐", "📱", "💻", "🔥", "✨", "🎯", "🛠", "🎨", "📝", "⚙️"];
 const COLORS = [
-  { name: "Gris", class: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
-  { name: "Rouge", class: "bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400" },
-  { name: "Orange", class: "bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400" },
-  { name: "Ambre", class: "bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400" },
-  { name: "Vert", class: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400" },
-  { name: "Bleu", class: "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400" },
-  { name: "Violet", class: "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400" },
-  { name: "Rose", class: "bg-pink-100 text-pink-600 dark:bg-pink-900/50 dark:text-pink-400" },
+  { name: "Gris", class: "bg-slate-500/15 hover:bg-slate-500/25 border-slate-500/20" },
+  { name: "Rouge", class: "bg-red-500/15 hover:bg-red-500/25 border-red-500/20" },
+  { name: "Orange", class: "bg-orange-500/15 hover:bg-orange-500/25 border-orange-500/20" },
+  { name: "Ambre", class: "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/20" },
+  { name: "Vert", class: "bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/20" },
+  { name: "Bleu", class: "bg-blue-500/15 hover:bg-blue-500/25 border-blue-500/20" },
+  { name: "Violet", class: "bg-purple-500/15 hover:bg-purple-500/25 border-purple-500/20" },
+  { name: "Rose", class: "bg-pink-500/15 hover:bg-pink-500/25 border-pink-500/20" },
 ];
 
 export function IconSelector({ value, onChange }: IconSelectorProps) {
   // Parse existing value
   let currentEmoji = "🚀";
-  let currentColor = COLORS[0]?.class || "bg-slate-100 text-slate-600";
+  let currentColor = COLORS[0]?.class || "";
   
   if (value) {
     if (value.startsWith("{")) {
@@ -47,14 +47,6 @@ export function IconSelector({ value, onChange }: IconSelectorProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Aperçu */}
-      <div className="flex items-center gap-3 mb-1">
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm border border-border/50", currentColor)}>
-          {currentEmoji}
-        </div>
-        <span className="text-xs text-muted-foreground">Aperçu de l'icône</span>
-      </div>
-
       {/* Sélection d'Emoji */}
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-muted-foreground">Choisir un emoji</label>

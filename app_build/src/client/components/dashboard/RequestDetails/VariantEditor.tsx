@@ -1,4 +1,4 @@
-import { Editor } from "@monaco-editor/react";
+
 import type { MockVariantDef } from "@/shared/schemas";
 import type { ApiRequest } from "../../../../shared/lib/parser";
 import { Button } from "../../ui/button";
@@ -180,26 +180,12 @@ export function VariantEditor({
                 Payload Modifié (Surcharge Locale)
               </div>
             )}
-            <Editor
-              height="100%"
-              defaultLanguage="json"
-              theme="vs-dark"
+            <textarea
+              data-testid="monaco-editor-mock"
+              className="w-full h-full p-4 pt-8 font-mono text-sm bg-transparent text-white resize-none focus:outline-none"
               value={payload}
-              onChange={onPayloadChange}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                fontFamily:
-                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                wordWrap: "on",
-                formatOnPaste: true,
-                padding: { top: 32, bottom: 8 },
-                lineNumbersMinChars: 3,
-                renderLineHighlight: "none",
-                overviewRulerBorder: false,
-                hideCursorInOverviewRuler: true,
-              }}
+              onChange={(e) => onPayloadChange(e.target.value)}
+              spellCheck={false}
             />
           </div>
 

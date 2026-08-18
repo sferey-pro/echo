@@ -1,4 +1,4 @@
-import { Editor } from "@monaco-editor/react";
+
 import { MethodBadge } from "@/client/components/ui/method-badge";
 import {
   Select,
@@ -9,6 +9,7 @@ import {
 } from "@/client/components/ui/select";
 import type { ApiRequest } from "../../../shared/lib/parser";
 import type { ScenarioAction } from "../../lib/api";
+import { useState, useEffect } from "react";
 
 interface ScenarioRequestDetailProps {
   action: ScenarioAction;
@@ -21,9 +22,24 @@ export function ScenarioRequestDetail({
   request,
   onUpdate,
 }: ScenarioRequestDetailProps) {
+  const [localPayload, setLocalPayload] = useState<string>(() => {
+    return typeof action.payload === "string"
+      ? action.payload
+      : JSON.stringify(action.payload || {}, null, 2);
+  });
+
+  useEffect(() => {
+    const extStr = typeof action.payload === "string" 
+      ? action.payload 
+      : JSON.stringify(action.payload || {}, null, 2);
+    if (extStr !== localPayload) {
+      setLocalPayload(extStr);
+    }
+  }, [action.payload, localPayload]);
+
   if (!request) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background text-muted-foreground p-8">
+      <div className="flex-1 flex flex-col items-center justify-center bg-muted/10 text-muted-foreground p-8 text-center h-full">
         Sélectionnez une requête pour l'éditer.
       </div>
     );
@@ -200,34 +216,19 @@ export function ScenarioRequestDetail({
             )}
           </h3>
           <div className="flex-1 border border-border rounded-xl overflow-hidden shadow-sm">
-            <Editor
-              height="100%"
-              defaultLanguage="json"
-              value={
-                typeof action.payload === "string"
-                  ? action.payload
-                  : JSON.stringify(action.payload, null, 2)
-              }
-              onChange={(value) =>
+            <textarea
+              data-testid="monaco-mock"
+              className="w-full h-full p-4 font-mono text-sm bg-transparent resize-none focus:outline-none"
+              value={localPayload}
+              onChange={(e) => {
+                const newVal = e.target.value;
+                setLocalPayload(newVal);
                 onUpdate({
-                  payload: value || "",
+                  payload: newVal,
                   selectedExample: "custom",
-                })
-              }
-              theme="vs-light" // Peut-être lié au thème plus tard
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 13,
-                fontFamily: "var(--font-mono)",
-                lineNumbersMinChars: 3,
-                formatOnPaste: true,
-                padding: { top: 16, bottom: 16 },
-                scrollbar: {
-                  verticalScrollbarSize: 8,
-                  horizontalScrollbarSize: 8,
-                },
+                });
               }}
+              spellCheck={false}
             />
           </div>
         </section>

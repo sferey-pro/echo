@@ -9,11 +9,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useStore } from "../../../store/useStore";
 import { RequestDetails } from "./index";
 
-mock.module("@monaco-editor/react", () => {
-  return {
-    default: () => <div>MonacoEditorMock</div>,
-  };
-});
 
 describe("Component: RequestDetails", () => {
   beforeEach(() => {
