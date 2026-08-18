@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { RequestList } from "./RequestList";
-import { useStore } from "../../store/useStore";
-import React from "react";
-
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 // Setup happy-dom globally for React components in Bun
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useStore } from "../../store/useStore";
+import { RequestList } from "./RequestList";
+
 try {
   GlobalRegistrator.register();
-} catch (e) {
+} catch (_e) {
   /* already registered */
 }
 
 mock.module("@tanstack/react-virtual", () => ({
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   useVirtualizer: (options: any) => {
     return {
       getVirtualItems: () => {
@@ -79,6 +79,7 @@ describe("Component: RequestList", () => {
           url: "/users",
           examples: [],
           isStarred: true,
+          // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
           variants: [{ id: "v1", name: "Var1", isMocked: true } as any],
         },
         {
@@ -93,6 +94,7 @@ describe("Component: RequestList", () => {
       ],
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: Kept for future use or API matching
     const { container } = render(
       <RequestList onOpenSettings={() => {}} onOpenCollections={() => {}} />,
     );

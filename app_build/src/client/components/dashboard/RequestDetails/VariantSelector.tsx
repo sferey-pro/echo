@@ -1,14 +1,6 @@
+import { PencilSimple, Plus, Trash } from "@phosphor-icons/react";
 import { useState } from "react";
-import { Plus, Trash, PencilSimple } from "@phosphor-icons/react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "../../ui/dialog";
+import type { MockVariantDef } from "../../../../server/lib/db";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +13,15 @@ import {
   AlertDialogTrigger,
 } from "../../ui/alert-dialog";
 import { Button } from "../../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../ui/dialog";
 import { Input } from "../../ui/input";
 import {
   Select,
@@ -29,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import type { MockVariantDef } from "../../../../server/lib/db";
 
 interface VariantSelectorProps {
   variants: MockVariantDef[];

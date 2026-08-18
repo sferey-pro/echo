@@ -1,10 +1,7 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { handleSettingsRoute } from "./settings";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { resetDatabase } from "../lib/db/index";
-import { spyOn } from "bun:test";
-
-import { mock } from "bun:test";
 import * as gitServices from "../services/git";
+import { handleSettingsRoute } from "./settings";
 
 describe("API Route: /api/settings", () => {
   beforeEach(() => {
@@ -39,7 +36,7 @@ describe("API Route: /api/settings", () => {
     });
     const getRes = await handleSettingsRoute(getReq, new URL(getReq.url));
     const getData = await getRes?.json();
-    expect(getData?.["TARGET_API_URL"]).toBe("http://test.com");
+    expect(getData?.TARGET_API_URL).toBe("http://test.com");
   });
 
   it("should return 400 for an invalid setting key", async () => {
@@ -53,7 +50,7 @@ describe("API Route: /api/settings", () => {
   });
 
   it("should trigger updateBackgroundTasks for REPO_PATH and return 400 for bad request", async () => {
-    const spy = spyOn(gitServices, "updateBackgroundTasks").mockImplementation(
+    const _spy = spyOn(gitServices, "updateBackgroundTasks").mockImplementation(
       () => {},
     );
     const req = new Request("http://localhost/api/settings", {

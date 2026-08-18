@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, mock, spyOn } from "bun:test";
-import { handleRepositoriesRoute } from "./repositories";
-import { resetDatabase, setSetting } from "../lib/db/index";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import * as fs from "node:fs";
 import * as fsPromises from "node:fs/promises";
+import { resetDatabase, setSetting } from "../lib/db/index";
+import { handleRepositoriesRoute } from "./repositories";
 
 describe("API Route: /api/repositories", () => {
   beforeEach(() => {
@@ -16,6 +16,7 @@ describe("API Route: /api/repositories", () => {
       { name: "repo1", isDirectory: () => true },
       { name: "repo2", isDirectory: () => true },
       { name: "file.txt", isDirectory: () => false },
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     ] as any);
 
     setSetting("ACTIVE_COLLECTION_NAME", "repo1");
@@ -44,11 +45,12 @@ describe("API Route: /api/repositories", () => {
 
   it("should handle activation POST", async () => {
     // Setup mocks to prevent actual side effects
-    const mockBunSpawn = spyOn(Bun, "spawn").mockImplementation(
+    const _mockBunSpawn = spyOn(Bun, "spawn").mockImplementation(
       () =>
         ({
           exited: Promise.resolve(),
           exitCode: 0,
+          // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
         }) as any,
     );
 

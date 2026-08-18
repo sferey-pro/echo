@@ -1,4 +1,4 @@
-import { resolve, sep } from "path";
+import { resolve, sep } from "node:path";
 
 export function getSafeRepoPath(
   collectionName: string | undefined | null,

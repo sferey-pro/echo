@@ -10,7 +10,8 @@
     "dev": "bun --hot src/server/index.ts",
     "start": "NODE_ENV=production bun src/server/index.ts",
     "build": "bun run build.ts",
-    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint": "biome check ./src",
+    "format": "biome format --write ./src",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
@@ -37,6 +38,7 @@
     "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.9",
     "@eslint/js": "10.0.1",
     "@happy-dom/global-registrator": "20.11.2",
     "@testing-library/dom": "10.4.1",

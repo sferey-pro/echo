@@ -1,7 +1,7 @@
+import type { Dirent } from "node:fs";
 import { existsSync } from "node:fs";
 import { readdir, rm } from "node:fs/promises";
-import type { Dirent } from "node:fs";
-import { resolve } from "path";
+import { resolve } from "node:path";
 import { getSafeRepoPath } from "../../shared/lib/paths";
 
 export async function handleRepositoriesRoute(
@@ -12,21 +12,27 @@ export async function handleRepositoriesRoute(
     try {
       const collDir = resolve(process.cwd(), "collection");
       if (!existsSync(collDir)) {
-        return new Response(JSON.stringify({ repositories: [], activeRepository: "" }), {
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ repositories: [], activeRepository: "" }),
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
       const entries = await readdir(collDir, { withFileTypes: true });
       const repos = entries
         .filter((e: Dirent) => e.isDirectory())
         .map((e: Dirent) => e.name);
-      
+
       const { getSetting } = await import("../lib/db/index");
       const activeRepo = getSetting("ACTIVE_COLLECTION_NAME") || "";
 
-      return new Response(JSON.stringify({ repositories: repos, activeRepository: activeRepo }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ repositories: repos, activeRepository: activeRepo }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     } catch (err: unknown) {
       return new Response(JSON.stringify({ error: (err as Error).message }), {
         status: 500,
@@ -40,8 +46,15 @@ export async function handleRepositoriesRoute(
       const body = await req.json();
       const repoUrl = body.repoUrl;
       const force = body.force;
-      if (!repoUrl || typeof repoUrl !== "string" || !repoUrl.startsWith("http")) {
-        return new Response("Bad Request: Invalid URL", { status: 400, headers: {} });
+      if (
+        !repoUrl ||
+        typeof repoUrl !== "string" ||
+        !repoUrl.startsWith("http")
+      ) {
+        return new Response("Bad Request: Invalid URL", {
+          status: 400,
+          headers: {},
+        });
       }
 
       let repoName = `repo-${Date.now()}`;
@@ -102,7 +115,7 @@ export async function handleRepositoriesRoute(
       if (!name || typeof name !== "string") {
         return new Response("Bad Request", { status: 400 });
       }
-      
+
       const { setSetting } = await import("../lib/db/index");
       const { updateBackgroundTasks } = await import("../services/git");
       const { syncGitToDatabase } = await import("../../shared/lib/parser");
@@ -117,12 +130,12 @@ export async function handleRepositoriesRoute(
       await initProxy(data.requests, data.environments);
 
       return new Response(JSON.stringify({ success: true }), {
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     } catch (err: unknown) {
       return new Response(JSON.stringify({ error: (err as Error).message }), {
         status: 500,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
     }
   }
@@ -149,7 +162,7 @@ export async function handleRepositoriesRoute(
       } catch (err: unknown) {
         return new Response(
           JSON.stringify({
-            error: "Failed to delete: " + (err as Error).message,
+            error: `Failed to delete: ${(err as Error).message}`,
           }),
           { status: 500, headers: { "Content-Type": "application/json" } },
         );

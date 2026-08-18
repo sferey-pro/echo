@@ -1,4 +1,6 @@
 import { Editor } from "@monaco-editor/react";
+import type { MockVariantDef } from "../../../../server/lib/db";
+import type { ApiRequest } from "../../../../shared/lib/parser";
 import { Button } from "../../ui/button";
 import {
   Select,
@@ -7,8 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import type { ApiRequest } from "../../../../shared/lib/parser";
-import type { MockVariantDef } from "../../../../server/lib/db";
 
 interface VariantEditorProps {
   request: ApiRequest;
@@ -91,7 +91,7 @@ export function VariantEditor({
               <span className="text-sm font-black uppercase">Statut :</span>
               <Select
                 value={statusCode.toString()}
-                onValueChange={(v) => onStatusChange(parseInt(v))}
+                onValueChange={(v) => onStatusChange(parseInt(v, 10))}
               >
                 <SelectTrigger className="w-[160px] h-10 font-bold bg-white text-black">
                   <SelectValue />
@@ -124,14 +124,17 @@ export function VariantEditor({
                 max="5000"
                 step="50"
                 value={latencyMs}
-                onChange={(e) => onLatencyChange(parseInt(e.target.value))}
+                onChange={(e) => onLatencyChange(parseInt(e.target.value, 10))}
                 onMouseUp={() => onLatencyChange(latencyMs)}
                 onTouchEnd={() => onLatencyChange(latencyMs)}
                 onKeyUp={(e) => {
                   if (
-                    ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
-                      e.key,
-                    )
+                    [
+                      "ArrowLeft",
+                      "ArrowRight",
+                      "ArrowUp",
+                      "ArrowDown",
+                    ].includes(e.key)
                   )
                     onLatencyChange(latencyMs);
                 }}

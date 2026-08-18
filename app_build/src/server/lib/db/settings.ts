@@ -1,12 +1,23 @@
 import { db } from "./connection";
 
-export const getSetting = (key: string, collectionName: string = "global"): string | null => {
-  const query = db.query("SELECT value FROM settings WHERE key = $key AND collection_name = $col");
-  const result = query.get({ $key: key, $col: collectionName }) as { value: string } | null;
+export const getSetting = (
+  key: string,
+  collectionName: string = "global",
+): string | null => {
+  const query = db.query(
+    "SELECT value FROM settings WHERE key = $key AND collection_name = $col",
+  );
+  const result = query.get({ $key: key, $col: collectionName }) as {
+    value: string;
+  } | null;
   return result ? result.value : null;
 };
 
-export const setSetting = (key: string, value: string, collectionName: string = "global") => {
+export const setSetting = (
+  key: string,
+  value: string,
+  collectionName: string = "global",
+) => {
   const query = db.query(`
  INSERT INTO settings (key, collection_name, value) 
  VALUES ($key, $col, $value) 
@@ -16,9 +27,14 @@ export const setSetting = (key: string, value: string, collectionName: string = 
   query.run({ $key: key, $col: collectionName, $value: value });
 };
 
-export const getAllSettings = (collectionName: string = "global"): Record<string, string> => {
+export const getAllSettings = (
+  collectionName: string = "global",
+): Record<string, string> => {
   const query = db.query("SELECT * FROM settings WHERE collection_name = $col");
-  const results = query.all({ $col: collectionName }) as { key: string; value: string }[];
+  const results = query.all({ $col: collectionName }) as {
+    key: string;
+    value: string;
+  }[];
 
   const settings: Record<string, string> = {};
   for (const row of results) {

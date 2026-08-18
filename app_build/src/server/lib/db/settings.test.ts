@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { getSetting, setSetting, getAllSettings } from "./settings";
-import { resetDatabase } from "./settings";
+import { beforeEach, describe, expect, it } from "bun:test";
+import {
+  getAllSettings,
+  getSetting,
+  resetDatabase,
+  setSetting,
+} from "./settings";
 
 describe("Database - Settings", () => {
   beforeEach(() => {
@@ -17,7 +21,7 @@ describe("Database - Settings", () => {
     setSetting("KEY1", "VAL1");
     setSetting("KEY2", "VAL2");
     const all = getAllSettings();
-    expect(all["KEY1"]).toBe("VAL1");
-    expect(all["KEY2"]).toBe("VAL2");
+    expect(all.KEY1).toBe("VAL1");
+    expect(all.KEY2).toBe("VAL2");
   });
 });

@@ -1,5 +1,5 @@
-import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { Toaster } from "sonner";
+import { DashboardLayout } from "./components/layout/DashboardLayout";
 import "./index.css";
 
 function App() {

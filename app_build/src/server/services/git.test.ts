@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
-import { getRepoPath } from "./git";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { resetDatabase, setSetting } from "../lib/db/index";
+import { getRepoPath } from "./git";
 
 describe("Service: git", () => {
   beforeEach(() => {
@@ -27,20 +27,24 @@ describe("Service: git", () => {
   });
 });
 
-import { runSync, updateBackgroundTasks, gitSyncStatus } from "./git";
-import fs from "fs";
+import { gitSyncStatus, runSync, updateBackgroundTasks } from "./git";
 
 describe("Service: git (operations)", () => {
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   let originalSpawn: any;
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   let existsSyncMock: any;
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   let watchMock: any;
 
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   let watcherCallback: any;
 
   beforeEach(() => {
     originalSpawn = Bun.spawn;
     existsSyncMock = mock(() => true);
-    watchMock = mock((p: any, opts: any, cb: any) => {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    watchMock = mock((_p: any, _opts: any, cb: any) => {
       watcherCallback = cb;
       return { close: mock(() => {}) };
     });
@@ -57,6 +61,7 @@ describe("Service: git (operations)", () => {
       exitCode: 0,
       stdout: new Blob(["0"]), // 0 commits behind
       stderr: new Blob([]),
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     })) as any;
 
     await runSync();

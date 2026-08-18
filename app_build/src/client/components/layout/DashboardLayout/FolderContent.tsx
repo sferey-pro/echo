@@ -1,9 +1,9 @@
-import React, { useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { FolderDashed } from "@phosphor-icons/react";
-import { MethodBadge } from "../../ui/method-badge";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef } from "react";
 import type { ApiRequest } from "../../../../shared/lib/parser";
 import { useStore } from "../../../store/useStore";
+import { MethodBadge } from "../../ui/method-badge";
 
 interface FolderContentProps {
   selectedFolderName: string;
@@ -70,7 +70,9 @@ export function FolderContent({
               const req = requestsInSelectedFolder[virtualRow.index];
               if (!req) return null;
               return (
+                // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
                 <div
+                  role="button"
                   key={virtualRow.key}
                   style={{
                     position: "absolute",

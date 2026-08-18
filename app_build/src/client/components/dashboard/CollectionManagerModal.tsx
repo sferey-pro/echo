@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { Books } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Input } from "@/client/components/ui/input";
-import { Button } from "@/client/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,15 +11,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/client/components/ui/alert-dialog";
+import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
-
-import { ImportCollectionModal } from "./ImportCollectionModal";
+import { Input } from "@/client/components/ui/input";
 import { exportCollection } from "@/client/lib/api";
+import { ImportCollectionModal } from "./ImportCollectionModal";
 
 interface CollectionManagerModalProps {
   isOpen: boolean;
@@ -70,7 +69,8 @@ export function CollectionManagerModal({
     if (isOpen) {
       fetchCollections();
     }
-  }, [isOpen]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional omission to avoid infinite renders
+  }, [isOpen, fetchCollections]);
 
   const handleClone = async (force: boolean = false) => {
     setCloning(true);

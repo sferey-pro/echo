@@ -1,6 +1,6 @@
-import { expect, test, describe } from "bun:test";
-import { YamlParser } from "./YamlParser";
+import { describe, expect, test } from "bun:test";
 import { BruParser } from "./BruParser";
+import { YamlParser } from "./YamlParser";
 
 describe("Parser Strategies", () => {
   test("YamlParser should parse valid YML content", () => {

@@ -1,8 +1,8 @@
-import { readdir, readFile } from "fs/promises";
-import { join, basename } from "path";
+import { existsSync } from "node:fs";
+import { readdir, readFile } from "node:fs/promises";
+import { basename, join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import type { MockVariantDef } from "../../server/lib/db";
-import { existsSync } from "fs";
 import { syncBrunoItemsToDb } from "../../server/lib/db";
 
 export interface BrunoFolder {
@@ -53,8 +53,8 @@ export interface ParserResult {
 }
 
 import { BruParser } from "./parsers/BruParser";
-import { YamlParser } from "./parsers/YamlParser";
 import type { IParserStrategy } from "./parsers/types";
+import { YamlParser } from "./parsers/YamlParser";
 
 export function clearParserCache() {
   // Plus besoin de cache, tout est dans SQLite !
@@ -112,13 +112,13 @@ export async function parseFile(
   return null;
 }
 
-export function removeFileFromCache(basePath: string, fullPath: string) {
+export function removeFileFromCache(_basePath: string, _fullPath: string) {
   // Plus besoin
 }
 
 export async function parseCollection(
   basePath: string,
-  forceFull: boolean = false,
+  _forceFull: boolean = false,
 ): Promise<ParserResult> {
   if (!existsSync(basePath)) {
     return { folders: [], requests: [], environments: [] };
@@ -202,7 +202,7 @@ export async function parseCollection(
       }
     }
   } catch (e) {
-    console.error("Error reading basePath: " + basePath, e);
+    console.error(`Error reading basePath: ${basePath}`, e);
   }
 
   async function loadEnvironmentsFromDir(

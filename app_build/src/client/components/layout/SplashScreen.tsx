@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const loadingTexts = [
   "Initialisation du moteur Bun...",
@@ -26,7 +26,7 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
       // Mettre à jour le texte en fonction de la progression
       const nextIndex = Math.min(
         Math.floor((nextProgress / 100) * loadingTexts.length),
-        loadingTexts.length - 1
+        loadingTexts.length - 1,
       );
       setTextIndex(nextIndex);
 

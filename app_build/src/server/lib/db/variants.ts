@@ -26,13 +26,15 @@ export interface MockVariantDef {
 
 export const getMockVariants = (): Record<string, MockVariantDef[]> => {
   const collectionName = getActiveCollection();
-  const query = db.query("SELECT * FROM mock_variants WHERE collection_name = $col");
+  const query = db.query(
+    "SELECT * FROM mock_variants WHERE collection_name = $col",
+  );
   const results = query.all({ $col: collectionName }) as DBMockVariant[];
 
   const variants: Record<string, MockVariantDef[]> = {};
   for (const row of results) {
     if (!variants[row.request_id]) variants[row.request_id] = [];
-    variants[row.request_id]!.push({
+    variants[row.request_id]?.push({
       id: row.id,
       name: row.name,
       isMocked: row.is_mocked === 1,
@@ -86,8 +88,13 @@ export const updateMockVariant = (
   updates: Partial<MockVariantDef>,
 ) => {
   const collectionName = getActiveCollection();
-  const currentQuery = db.query("SELECT * FROM mock_variants WHERE id = $id AND collection_name = $col");
-  const current = currentQuery.get({ $id: id, $col: collectionName }) as DBMockVariant;
+  const currentQuery = db.query(
+    "SELECT * FROM mock_variants WHERE id = $id AND collection_name = $col",
+  );
+  const current = currentQuery.get({
+    $id: id,
+    $col: collectionName,
+  }) as DBMockVariant;
   if (!current) {
     if (id.endsWith("-default")) {
       const requestId = id.replace(/-default$/, "");
@@ -116,9 +123,7 @@ export const updateMockVariant = (
       ? updates.selectedExample
       : current.selected_example;
   const newStatusCode =
-    updates.statusCode !== undefined
-      ? updates.statusCode
-      : current.status_code;
+    updates.statusCode !== undefined ? updates.statusCode : current.status_code;
   const newLatencyMs =
     updates.latencyMs !== undefined ? updates.latencyMs : current.latency_ms;
   const newPathParamsOverrides =
@@ -155,6 +160,8 @@ export const updateMockVariant = (
 
 export const deleteMockVariant = (id: string) => {
   const collectionName = getActiveCollection();
-  const query = db.query("DELETE FROM mock_variants WHERE id = $id AND collection_name = $col");
+  const query = db.query(
+    "DELETE FROM mock_variants WHERE id = $id AND collection_name = $col",
+  );
   query.run({ $id: id, $col: collectionName });
 };

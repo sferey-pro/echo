@@ -1,15 +1,18 @@
 import { existsSync, watch } from "node:fs";
-import { resolve } from "path";
-import { getSetting } from "../lib/db/index";
+import { resolve } from "node:path";
 import {
-  syncGitToDatabase,
+  clearParserCache,
   parseFile,
   removeFileFromCache,
-  clearParserCache,
+  syncGitToDatabase,
 } from "../../shared/lib/parser";
-import { initProxy } from "../lib/proxy";
-import { getCollectionFromDb, clearBrunoTables } from "../lib/db/index";
 import { getSafeRepoPath } from "../../shared/lib/paths";
+import {
+  clearBrunoTables,
+  getCollectionFromDb,
+  getSetting,
+} from "../lib/db/index";
+import { initProxy } from "../lib/proxy";
 
 export const gitSyncStatus = {
   isSynced: true,
@@ -31,9 +34,11 @@ export function getRepoPath() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
 let currentWatcher: any = null;
 let currentWatchPath: string | null = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
 let syncTimer: any = null;
 
 export async function runSync() {
@@ -60,7 +65,7 @@ export async function runSync() {
         if (revProc.exitCode === 0) {
           const countStr = await new Response(revProc.stdout).text();
           const count = parseInt(countStr.trim(), 10);
-          if (!isNaN(count)) {
+          if (!Number.isNaN(count)) {
             gitSyncStatus.commitsBehind = count;
             gitSyncStatus.isSynced = count === 0;
             gitSyncStatus.error = "";
@@ -112,7 +117,7 @@ export function updateBackgroundTasks(force = false) {
       currentWatcher = watch(
         repo,
         { recursive: true },
-        async (event, filename) => {
+        async (_event, filename) => {
           if (
             !filename ||
             filename.startsWith(".git") ||

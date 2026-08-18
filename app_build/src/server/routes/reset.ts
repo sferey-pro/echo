@@ -1,9 +1,9 @@
-import { resetDatabase, getCollectionFromDb } from "../lib/db/index";
-import { mockVariants, initProxy } from "../lib/proxy";
-import { updateBackgroundTasks, getRepoPath } from "../services/git";
+import { readdirSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { syncGitToDatabase } from "../../shared/lib/parser";
-import { readdirSync, rmSync } from "fs";
-import { resolve } from "path";
+import { getCollectionFromDb, resetDatabase } from "../lib/db/index";
+import { initProxy, mockVariants } from "../lib/proxy";
+import { getRepoPath, updateBackgroundTasks } from "../services/git";
 
 export async function handleResetRoute(
   req: Request,

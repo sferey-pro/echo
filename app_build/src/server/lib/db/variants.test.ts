@@ -1,6 +1,11 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { createMockVariant, getMockVariants, deleteMockVariant, updateMockVariant } from "./variants";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { resetDatabase } from "./settings";
+import {
+  createMockVariant,
+  deleteMockVariant,
+  getMockVariants,
+  updateMockVariant,
+} from "./variants";
 
 describe("Database - Mock Variants", () => {
   beforeEach(() => {
@@ -21,10 +26,10 @@ describe("Database - Mock Variants", () => {
     );
 
     const variants = getMockVariants();
-    expect(variants["req1"]).toBeDefined();
-    expect(variants["req1"]?.length).toBe(1);
+    expect(variants.req1).toBeDefined();
+    expect(variants.req1?.length).toBe(1);
 
-    const v = variants["req1"]?.[0];
+    const v = variants.req1?.[0];
     expect(v?.id).toBe("v1");
     expect(v?.name).toBe("My Variant");
     expect(v?.isMocked).toBe(true);
@@ -33,17 +38,7 @@ describe("Database - Mock Variants", () => {
   });
 
   it("should update a mock variant", () => {
-    createMockVariant(
-      "v2",
-      "req2",
-      "Old Name",
-      false,
-      "",
-      null,
-      500,
-      0,
-      null,
-    );
+    createMockVariant("v2", "req2", "Old Name", false, "", null, 500, 0, null);
     updateMockVariant("v2", {
       name: "New Name",
       isMocked: true,
@@ -51,27 +46,17 @@ describe("Database - Mock Variants", () => {
     });
 
     const variants = getMockVariants();
-    const v = variants["req2"]?.[0];
+    const v = variants.req2?.[0];
     expect(v?.name).toBe("New Name");
     expect(v?.isMocked).toBe(true);
     expect(v?.statusCode).toBe(201);
   });
 
   it("should delete a mock variant", () => {
-    createMockVariant(
-      "v3",
-      "req3",
-      "To Delete",
-      false,
-      "",
-      null,
-      200,
-      0,
-      null,
-    );
+    createMockVariant("v3", "req3", "To Delete", false, "", null, 200, 0, null);
     deleteMockVariant("v3");
 
     const variants = getMockVariants();
-    expect(variants["req3"]).toBeUndefined();
+    expect(variants.req3).toBeUndefined();
   });
 });

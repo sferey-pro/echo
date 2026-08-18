@@ -1,5 +1,5 @@
-import { test, expect, mock, beforeAll, afterAll } from "bun:test";
-import { render, act } from "@testing-library/react";
+import { afterAll, beforeAll, expect, mock, test } from "bun:test";
+import { act, render } from "@testing-library/react";
 import App from "./App";
 
 const originalFetch = global.fetch;

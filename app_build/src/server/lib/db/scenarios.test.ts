@@ -1,5 +1,10 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { createScenario, getScenarios, updateScenario, deleteScenario } from "./scenarios";
+import { beforeEach, describe, expect, it } from "bun:test";
+import {
+  createScenario,
+  deleteScenario,
+  getScenarios,
+  updateScenario,
+} from "./scenarios";
 import { resetDatabase } from "./settings";
 
 describe("Database - Scenarios", () => {
@@ -23,6 +28,7 @@ describe("Database - Scenarios", () => {
     expect(scenarios[0]?.id).toBe("sc1");
     expect(scenarios[0]?.name).toBe("My Scenario");
     expect(scenarios[0]?.actions.length).toBe(1);
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     expect((scenarios[0]?.actions[0] as any)?.requestId).toBe("req-1");
   });
 

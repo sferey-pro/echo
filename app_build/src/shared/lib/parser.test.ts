@@ -1,8 +1,8 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import {
-  parseFile,
-  parseCollection,
   clearParserCache,
+  parseCollection,
+  parseFile,
   removeFileFromCache,
 } from "./parser";
 
@@ -11,7 +11,9 @@ const mockFs = {
 };
 
 const mockFsPromises = {
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   readdir: mock<any>(async () => []),
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   readFile: mock<any>(async () => ""),
 };
 

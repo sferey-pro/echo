@@ -1,19 +1,21 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { initProxy, mockVariants, requestMeta } from "./proxy";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import * as db from "./db/index";
-import * as mswNode from "msw/node";
-import { http, HttpResponse } from "msw";
+import { initProxy, mockVariants, requestMeta } from "./proxy";
 
+// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
 let capturedHandler: any = null;
 mock.module("msw", () => ({
   http: {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     get: (path: string, handler: any) => {
       capturedHandler = handler;
       return { path, handler };
     },
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     all: (path: string, handler: any) => ({ path, handler }),
   },
   HttpResponse: class extends Response {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     static override json(data: any, options: any) {
       return new Response(JSON.stringify(data), options);
     }
@@ -33,7 +35,8 @@ describe("Service: proxy", () => {
     const resetHandlersMock = mock(() => {});
     const listenMock = mock(() => {});
     const closeMock = mock(() => {});
-    const setupServerMock = mock((...handlers: any[]) => ({
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    const setupServerMock = mock((..._handlers: any[]) => ({
       use: useMock,
       resetHandlers: resetHandlersMock,
       listen: listenMock,
@@ -67,7 +70,8 @@ describe("Service: proxy", () => {
     const resetHandlersMock = mock(() => {});
     const listenMock = mock(() => {});
     const closeMock = mock(() => {});
-    const setupServerMock = mock((...handlers: any[]) => ({
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    const setupServerMock = mock((..._handlers: any[]) => ({
       use: useMock,
       resetHandlers: resetHandlersMock,
       listen: listenMock,
@@ -157,8 +161,9 @@ describe("Service: proxy", () => {
     const { handleProxyRequest } = await import("./proxy");
     const req = new Request("http://localhost:8080/my/api/call");
     req.headers.set("host", "localhost:8080");
-    global.fetch = mock(() =>
-      Promise.resolve(new Response("passed-through")),
+    global.fetch = mock(
+      () => Promise.resolve(new Response("passed-through")),
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     ) as any;
     const res = await handleProxyRequest(req);
     expect(res.status).toBe(200);

@@ -1,11 +1,11 @@
 import { create } from "zustand";
+import type { MockVariantDef } from "../../server/lib/db";
 import type {
-  BrunoFolder,
   ApiRequest,
   BrunoEnvironment,
+  BrunoFolder,
 } from "../../shared/lib/parser";
 import { fetchCollection, getSettings, updateSetting } from "../lib/api";
-import type { MockVariantDef } from "../../server/lib/db";
 
 interface AppState {
   // Data
@@ -106,7 +106,7 @@ export const useStore = create<AppState>((set, get) => ({
         folders: data.folders,
         requests: data.requests,
         environments: data.environments || [],
-        activeEnvironment: settings["ACTIVE_ENVIRONMENT"] || "",
+        activeEnvironment: settings.ACTIVE_ENVIRONMENT || "",
         isLoading: false,
         isError: false,
         errorMessage: null,

@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach } from "bun:test";
-import { applyScenarioActions, syncBrunoItemsToDb, getCollectionFromDb } from "./index";
-import { getMockVariants } from "./variants";
+import { beforeEach, describe, expect, it } from "bun:test";
+import {
+  applyScenarioActions,
+  getCollectionFromDb,
+  syncBrunoItemsToDb,
+} from "./index";
 import { resetDatabase } from "./settings";
+import { getMockVariants } from "./variants";
 
 describe("Database Complex operations", () => {
   beforeEach(() => {
@@ -37,11 +41,13 @@ describe("Database Complex operations", () => {
         payload: '{"ok":true}',
         statusCode: 200,
         latencyMs: 100,
+        // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
       } as any,
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
       { requestId: "req1", payload: '{"ok":false}', statusCode: 400 } as any,
     ]);
     const variantsMap = getMockVariants();
-    const variants = variantsMap["req1"] || [];
+    const variants = variantsMap.req1 || [];
     expect(variants.length).toBe(1);
     expect(variants[0]?.name).toBe("Scenario");
     expect(variants[0]?.payload).toBe('{"ok":false}');

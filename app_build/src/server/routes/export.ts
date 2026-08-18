@@ -1,10 +1,10 @@
-import { getRepoPath } from "../services/git";
 import {
   getAllSettings,
   getMockVariants,
-  getScenarios,
   getRequestMeta,
+  getScenarios,
 } from "../lib/db/index";
+import { getRepoPath } from "../services/git";
 
 export async function handleExportRoute(
   req: Request,
@@ -50,7 +50,10 @@ export async function handleExportRoute(
       };
 
       const repoName =
-        remoteUrl.split("/").pop()?.replace(/\.git$/, "") || "collection";
+        remoteUrl
+          .split("/")
+          .pop()
+          ?.replace(/\.git$/, "") || "collection";
 
       return new Response(JSON.stringify(exportData, null, 2), {
         headers: {

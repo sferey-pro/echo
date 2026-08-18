@@ -1,11 +1,11 @@
-import { mockVariants } from "../lib/proxy";
+import { randomUUID } from "node:crypto";
 import {
-  updateRequestMeta,
   createMockVariant,
-  updateMockVariant,
   deleteMockVariant,
+  updateMockVariant,
+  updateRequestMeta,
 } from "../lib/db/index";
-import { randomUUID } from "crypto";
+import { mockVariants } from "../lib/proxy";
 
 export async function handleMocksRoute(
   req: Request,
@@ -54,7 +54,7 @@ export async function handleMocksRoute(
       // Update memory cache
       if (!mockVariants.has(body.requestId))
         mockVariants.set(body.requestId, []);
-      mockVariants.get(body.requestId)!.push({
+      mockVariants.get(body.requestId)?.push({
         id: variantId,
         name: body.name,
         isMocked: false,
@@ -76,6 +76,7 @@ export async function handleMocksRoute(
   // Mettre à jour une variante existante
   if (url.pathname.startsWith("/api/mocks/variants/") && req.method === "PUT") {
     try {
+      // biome-ignore lint/style/noNonNullAssertion: DOM element is guaranteed to exist
       const id = url.pathname.split("/").pop()!;
       const body = await req.json();
       updateMockVariant(id, body);
@@ -112,6 +113,7 @@ export async function handleMocksRoute(
     req.method === "DELETE"
   ) {
     try {
+      // biome-ignore lint/style/noNonNullAssertion: DOM element is guaranteed to exist
       const id = url.pathname.split("/").pop()!;
 
       if (id.endsWith("-default")) {

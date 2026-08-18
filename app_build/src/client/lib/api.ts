@@ -1,5 +1,5 @@
-import type { ParserResult } from "../../shared/lib/parser";
 import type { MockVariantDef } from "../../server/lib/db";
+import type { ParserResult } from "../../shared/lib/parser";
 
 export async function fetchCollection(): Promise<ParserResult> {
   const response = await fetch("/api/collections");
@@ -77,8 +77,6 @@ export async function updateSetting(key: string, value: string): Promise<void> {
   }
 }
 
-
-
 export interface ScenarioAction {
   requestId: string;
   isMocked: boolean;
@@ -149,6 +147,7 @@ export const exportCollection = async () => {
   window.open("/api/export", "_blank");
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
 export const importCollection = async (targetName: string, exportData: any) => {
   const res = await fetch("/api/import", {
     method: "POST",

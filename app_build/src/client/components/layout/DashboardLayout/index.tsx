@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { SplashScreen } from "../SplashScreen";
-import { RequestDetails } from "../../dashboard/RequestDetails";
+import React, { useCallback, useEffect, useState } from "react";
 import type { BrunoFolder } from "../../../../shared/lib/parser";
-import { ScenarioEditor } from "../../dashboard/ScenarioEditor";
-import { SettingsModal } from "../../dashboard/SettingsModal";
-import { CollectionSettingsModal } from "../../dashboard/CollectionSettingsModal";
+import { useStore } from "../../../store/useStore";
 import { CollectionManagerModal } from "../../dashboard/CollectionManagerModal";
+import { CollectionSettingsModal } from "../../dashboard/CollectionSettingsModal";
 import { CommandPalette } from "../../dashboard/CommandPalette";
 import { EnvironmentViewerModal } from "../../dashboard/EnvironmentViewerModal";
-import { useStore } from "../../../store/useStore";
+import { RequestDetails } from "../../dashboard/RequestDetails";
+import { ScenarioEditor } from "../../dashboard/ScenarioEditor";
+import { SettingsModal } from "../../dashboard/SettingsModal";
 import { Button } from "../../ui/button";
-
+import { SplashScreen } from "../SplashScreen";
+import { FolderContent } from "./FolderContent";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
-import { FolderContent } from "./FolderContent";
 
 export function DashboardLayout() {
   const {
@@ -51,10 +50,7 @@ export function DashboardLayout() {
   }, [loadCollection]);
 
   useEffect(() => {
-    if (
-      selectedRequestId &&
-      requests.length > 0
-    ) {
+    if (selectedRequestId && requests.length > 0) {
       const selectedRequest = requests.find((r) => r.id === selectedRequestId);
       if (
         selectedRequest &&

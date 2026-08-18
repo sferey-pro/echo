@@ -56,3 +56,19 @@ Biome est un outil extrêmement rapide écrit en Rust qui remplace conjointement
 
 **Astuces d'utilisation :**
 L'initialisation se fait via `bunx @biomejs/biome init`. Il est recommandé de le mettre en place au début d'un projet avant que la base de code ne devienne trop volumineuse pour éviter de générer un énorme diff Git lors du premier formatage global.
+
+## Git Hooks et Automatisation
+
+### [Lefthook](https://github.com/evilmartians/lefthook) & [lint-staged](https://github.com/lint-staged/lint-staged)
+**Usage :** Automatique lors des commits (via `lefthook.yml`).
+
+**Description :**
+Lefthook est un gestionnaire de hooks Git rapide (écrit en Go), utilisé ici conjointement avec `lint-staged` pour s'assurer que seuls les fichiers modifiés (`staged`) passent par le linter et le formateur avant chaque commit.
+
+**Fonctionnalités clés :**
+- Empêche le commit de code non formaté ou contenant des erreurs de linting.
+- Vitesse optimisée (Lefthook exécute les commandes en parallèle).
+- Ne ralentit pas les commits en se concentrant uniquement sur les fichiers modifiés (grâce à `lint-staged`).
+
+**Astuces d'utilisation :**
+La configuration se trouve dans le fichier `lefthook.yml` à la racine et `.lintstagedrc.json` dans le dossier de l'application.

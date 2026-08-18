@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { getSettings, updateSetting } from "../../lib/api";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Input } from "@/client/components/ui/input";
-import { Button } from "@/client/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,12 +12,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
+import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
+import { Input } from "@/client/components/ui/input";
+import { getSettings, updateSetting } from "../../lib/api";
 
 interface CollectionSettingsModalProps {
   isOpen: boolean;
@@ -106,7 +107,10 @@ export function CollectionSettingsModal({
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                <label
+                  htmlFor="collection-name"
+                  className="block text-sm font-medium text-foreground/80 mb-1"
+                >
                   Intervalle de Synchronisation Git (ms)
                 </label>
                 <Input

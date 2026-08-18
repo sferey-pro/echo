@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
-import { handleScenariosRoute } from "./scenarios";
+import { beforeEach, describe, expect, it } from "bun:test";
 import { resetDatabase } from "../lib/db/index";
+import { handleScenariosRoute } from "./scenarios";
 
 describe("API Route: /api/scenarios", () => {
   beforeEach(() => {
@@ -24,6 +24,7 @@ describe("API Route: /api/scenarios", () => {
     });
     const res = await handleScenariosRoute(req, new URL(req.url));
     expect(res?.status).toBe(200);
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const data = (await res?.json()) as any;
     expect(data.success).toBe(true);
     expect(data.id).toContain("scenario-");
@@ -49,11 +50,13 @@ describe("API Route: /api/scenarios", () => {
       body: JSON.stringify({ name: "Auto Scenario" }), // no actions array
     });
     const res = await handleScenariosRoute(req, new URL(req.url));
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const data = (await res?.json()) as any;
     expect(data.success).toBe(true);
 
     const { getScenarios } = require("../lib/db/index");
     const scenarios = getScenarios();
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const created = scenarios.find((s: any) => s.id === data.id);
     expect(created.actions.length).toBe(1);
     expect(created.actions[0].requestId).toBe("req1");
@@ -69,7 +72,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    const { id } = (await createRes!.json()) as any;
+    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    const { id } = (await createRes?.json()) as any;
 
     const updateReq = new Request(`http://localhost/api/scenarios/${id}`, {
       method: "PUT",
@@ -91,7 +96,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    const { id } = (await createRes!.json()) as any;
+    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    const { id } = (await createRes?.json()) as any;
 
     const delReq = new Request(`http://localhost/api/scenarios/${id}`, {
       method: "DELETE",
@@ -109,7 +116,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    const { id } = (await createRes!.json()) as any;
+    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    const { id } = (await createRes?.json()) as any;
 
     const applyReq = new Request(`http://localhost/api/scenarios/apply`, {
       method: "POST",

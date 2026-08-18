@@ -1,5 +1,5 @@
-import { serve } from "bun";
 import path from "node:path";
+import { serve } from "bun";
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("[Global] Unhandled Rejection at:", promise, "reason:", reason);
@@ -10,21 +10,20 @@ process.on("uncaughtException", (err) => {
 
 import index from "../client/index.html";
 import { handleProxyRequest } from "./lib/proxy";
-import { getRepoPath, runSync, updateBackgroundTasks } from "./services/git";
-
 // Routes
 import { handleCollectionsRoute } from "./routes/collections";
-import { handleMocksRoute } from "./routes/mocks";
-import { handleSettingsRoute } from "./routes/settings";
-import { handleSyncRoute } from "./routes/sync";
-import { handleRepositoriesRoute } from "./routes/repositories";
-import { handleScenariosRoute } from "./routes/scenarios";
-import { handleResetRoute } from "./routes/reset";
 import { handleExportRoute } from "./routes/export";
 import { handleImportRoute } from "./routes/import";
+import { handleMocksRoute } from "./routes/mocks";
+import { handleRepositoriesRoute } from "./routes/repositories";
+import { handleResetRoute } from "./routes/reset";
+import { handleScenariosRoute } from "./routes/scenarios";
+import { handleSettingsRoute } from "./routes/settings";
+import { handleSyncRoute } from "./routes/sync";
+import { getRepoPath, runSync, updateBackgroundTasks } from "./services/git";
 
 let PORT = parseInt(process.env.PORT || "3000", 10);
-let server: ReturnType<typeof serve> | undefined = undefined;
+let server: ReturnType<typeof serve> | undefined;
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -143,6 +142,7 @@ const startServer = () => {
     );
     console.log(`📂 Using Repo Path: ${getRepoPath()}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   } catch (err: any) {
     if (err.code === "EADDRINUSE") {
       console.warn(`⚠️ Port ${PORT} in use, trying ${PORT + 1}...`);

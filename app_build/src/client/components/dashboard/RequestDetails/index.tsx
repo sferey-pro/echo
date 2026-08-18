@@ -1,17 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
-import { useStore } from "../../../store/useStore";
+import { MagnifyingGlass } from "@phosphor-icons/react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import type { ApiRequest } from "../../../../shared/lib/parser";
 import {
   createMockVariant,
-  updateMockVariant,
   deleteMockVariant,
+  updateMockVariant,
   updateRequestMeta,
 } from "../../../lib/api";
-import type { ApiRequest } from "../../../../shared/lib/parser";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { useStore } from "../../../store/useStore";
 import { RequestHeader } from "./RequestHeader";
-import { VariantSelector } from "./VariantSelector";
 import { VariantEditor } from "./VariantEditor";
+import { VariantSelector } from "./VariantSelector";
 
 export function RequestDetails() {
   const {
@@ -26,20 +26,19 @@ export function RequestDetails() {
   const request = requests.find((r) => r.id === selectedRequestId) || null;
   const variants = request?.variants || [];
   const [activeVariantId, setActiveVariantId] = useState<string | null>(
-    variants.length > 0 ? (variants[0]?.id || null) : null
+    variants.length > 0 ? variants[0]?.id || null : null,
   );
 
   // If active variant doesn't match selected request, select the default one
   useEffect(() => {
     if (
       request &&
-      (!activeVariantId ||
-        !variants.find((v) => v.id === activeVariantId)) &&
+      (!activeVariantId || !variants.find((v) => v.id === activeVariantId)) &&
       variants.length > 0
     ) {
       setActiveVariantId(variants[0]?.id || null);
     }
-  }, [request, activeVariantId, variants, setActiveVariantId]);
+  }, [request, activeVariantId, variants]);
 
   const activeVariant = variants.find((v) => v.id === activeVariantId) || null;
 
@@ -88,7 +87,8 @@ export function RequestDetails() {
       setLatencyMs(activeVariant.latencyMs ?? 0);
       setPathParamsOverrides(activeVariant.pathParamsOverrides || {});
     }
-  }, [activeVariantId, request, activeVariant]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional omission to avoid infinite renders
+  }, [request, activeVariant, getPayloadString]);
 
   const urlParams = useMemo(() => {
     if (!request?.url) return { variables: [], pathParams: [] };
@@ -107,7 +107,7 @@ export function RequestDetails() {
   }, [request]);
 
   const currentEnv = environments.find((e) => e.name === activeEnvironment);
-  const getEnvValue = (key: string) => {
+  const _getEnvValue = (key: string) => {
     return (
       currentEnv?.variables.find((v) => v.name === key)?.value || "Non défini"
     );
@@ -119,7 +119,10 @@ export function RequestDetails() {
   ) => {
     if (!request || !targetIsMocked) return;
 
-    const isSameOverrides = (a: Record<string, string>, b: Record<string, string>) => {
+    const isSameOverrides = (
+      a: Record<string, string>,
+      b: Record<string, string>,
+    ) => {
       const keysA = Object.keys(a || {}).filter((k) => a[k]);
       const keysB = Object.keys(b || {}).filter((k) => b[k]);
       if (keysA.length !== keysB.length) return false;
@@ -175,7 +178,10 @@ export function RequestDetails() {
     if (!activeVariant || !request) return;
     setIsSaving(true);
     try {
-      await checkAndResolveConflicts(activeVariant.isMocked, pathParamsOverrides);
+      await checkAndResolveConflicts(
+        activeVariant.isMocked,
+        pathParamsOverrides,
+      );
 
       const updates = {
         payload,
@@ -201,7 +207,10 @@ export function RequestDetails() {
     setStatusCode(newCode);
     setIsSaving(true);
     try {
-      await checkAndResolveConflicts(activeVariant.isMocked, pathParamsOverrides);
+      await checkAndResolveConflicts(
+        activeVariant.isMocked,
+        pathParamsOverrides,
+      );
 
       const updates = {
         statusCode: newCode,
@@ -247,7 +256,7 @@ export function RequestDetails() {
     }
   };
 
-  const handleParamChange = async (key: string, value: string) => {
+  const _handleParamChange = async (key: string, value: string) => {
     if (!activeVariant || !request) return;
     const newOverrides = { ...pathParamsOverrides, [key]: value };
     if (!value) delete newOverrides[key];
@@ -283,6 +292,7 @@ export function RequestDetails() {
     const newPayload = getPayloadString(ex.response?.body?.data);
     setPayload(newPayload);
     const newStatus =
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
       ex.response?.status || (ex as any).res?.status || statusCode;
     setStatusCode(newStatus);
     setIsSaving(true);
@@ -297,7 +307,7 @@ export function RequestDetails() {
       await updateMockVariant(activeVariant.id, updates);
       updateLocalVariant(request.id, activeVariant.id, updates);
     } catch (e: unknown) {
-      toast.error("Erreur: " + (e instanceof Error ? e.message : String(e)));
+      toast.error(`Erreur: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setIsSaving(false);
     }
@@ -377,6 +387,7 @@ export function RequestDetails() {
             strokeLinejoin="round"
             className="opacity-40"
           >
+            <title>File Icon</title>
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
             <line x1="16" y1="13" x2="8" y2="13"></line>

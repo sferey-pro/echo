@@ -1,10 +1,10 @@
-import { getCollectionFromDb } from "../lib/db/index";
 import { syncGitToDatabase } from "../../shared/lib/parser";
+import { getCollectionFromDb } from "../lib/db/index";
 import { initProxy, mockVariants, requestMeta } from "../lib/proxy";
 import { getRepoPath } from "../services/git";
 
 export async function handleCollectionsRoute(
-  req: Request,
+  _req: Request,
   url: URL,
 ): Promise<Response | null> {
   if (url.pathname === "/api/collections") {

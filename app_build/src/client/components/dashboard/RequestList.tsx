@@ -1,22 +1,22 @@
-import React, { useState, useMemo, useRef } from "react";
-import type { ApiRequest, BrunoFolder } from "../../../shared/lib/parser";
-import type { MockVariantDef } from "../../../server/lib/db";
-import { cn } from "@/client/lib/utils";
-import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import {
+  ArrowsClockwise,
+  Books,
   CaretRight,
   Folder,
   FolderOpen,
-  Star,
-  ArrowsClockwise,
-  Books,
   Gear,
   Lightning,
+  Star,
 } from "@phosphor-icons/react";
-import { MethodBadge } from "../ui/method-badge";
+import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
+import type React from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/client/components/ui/button";
-
+import { cn } from "@/client/lib/utils";
+import type { MockVariantDef } from "../../../server/lib/db";
+import type { ApiRequest, BrunoFolder } from "../../../shared/lib/parser";
 import { useStore } from "../../store/useStore";
+import { MethodBadge } from "../ui/method-badge";
 
 interface RequestListProps {
   onOpenSettings: () => void;
@@ -142,7 +142,9 @@ export function RequestList({
 
     if (item.type === "starred-header") {
       return (
+        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
         <div
+          role="button"
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder("__starred__", e)}
@@ -176,7 +178,9 @@ export function RequestList({
       const paddingLeft = `${item.depth * 1.1 + 0.5}rem`;
 
       return (
+        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
         <div
+          role="button"
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
@@ -199,6 +203,7 @@ export function RequestList({
             {/* Indentation guide lines */}
             {Array.from({ length: item.depth }).map((_, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
                 key={i}
                 className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
                 style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}
@@ -249,7 +254,9 @@ export function RequestList({
       const paddingLeft = `${depth * 1.1 + 1.25}rem`;
 
       return (
+        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
         <div
+          role="button"
           key={virtualItem.key}
           style={style}
           onClick={() => setSelectedRequestId(req.id)}
@@ -276,6 +283,7 @@ export function RequestList({
             {/* Indentation guide lines */}
             {Array.from({ length: depth }).map((_, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
                 key={i}
                 className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
                 style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}
@@ -321,7 +329,9 @@ export function RequestList({
       const paddingLeft = `${item.depth * 1.1 + 1.25}rem`;
 
       return (
+        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
         <div
+          role="button"
           key={virtualItem.key}
           style={style}
           onClick={() => setSelectedRequestId(req.id)}
@@ -338,6 +348,7 @@ export function RequestList({
           >
             {Array.from({ length: item.depth }).map((_, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
                 key={i}
                 className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
                 style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}

@@ -1,8 +1,7 @@
-import { runSync, gitSyncStatus, getRepoPath } from "../services/git";
 import { syncGitToDatabase } from "../../shared/lib/parser";
-import { getCollectionFromDb } from "../lib/db/index";
+import { cleanupObsoleteItems, getCollectionFromDb } from "../lib/db/index";
 import { initProxy } from "../lib/proxy";
-import { cleanupObsoleteItems } from "../lib/db/index";
+import { getRepoPath, gitSyncStatus, runSync } from "../services/git";
 
 export async function handleSyncRoute(
   req: Request,
@@ -36,8 +35,8 @@ export async function handleSyncRoute(
       if (proc.exitCode !== 0) {
         const errText = await new Response(proc.stderr).text();
         const outText = await new Response(proc.stdout).text();
-        const fullError = (errText + "\n" + outText).trim();
-        console.error("Git pull failed:\n" + fullError);
+        const fullError = `${errText}\n${outText}`.trim();
+        console.error(`Git pull failed:\n${fullError}`);
         return new Response(
           JSON.stringify({ error: "Git pull failed. Check server logs." }),
           { status: 500, headers: { "Content-Type": "application/json" } },

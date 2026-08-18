@@ -1,7 +1,7 @@
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
+import type { SetupServer } from "msw/node";
 import type { ApiRequest } from "../../shared/lib/parser";
 import type { MockVariantDef } from "./db/index";
-import type { SetupServer } from "msw/node";
 
 export const mockVariants = new Map<string, MockVariantDef[]>();
 export const requestMeta = new Map<string, { isStarred: boolean }>();
@@ -41,7 +41,9 @@ export async function initProxy(
 
   const handlerDefs: Array<{
     mswPath: string;
+    // biome-ignore lint/complexity/noBannedTypes: Specific type required by external API
     mswMethod: Function;
+    // biome-ignore lint/complexity/noBannedTypes: Specific type required by external API
     handler: Function;
   }> = [];
 
@@ -53,7 +55,7 @@ export async function initProxy(
     }
 
     // S'assurer qu'il y a toujours la variante Default
-    if (!variants.some(v => v.id === `${req.id}-default`)) {
+    if (!variants.some((v) => v.id === `${req.id}-default`)) {
       const data = req.examples?.[0]?.response?.body?.data;
       const payloadStr =
         typeof data === "string"

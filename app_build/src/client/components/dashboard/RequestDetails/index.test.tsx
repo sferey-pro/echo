@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
 mock.module("../../../client/lib/api", () => ({
   updateMockVariant: async () => ({}),
   saveRequestPayload: async () => ({}),
 }));
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { RequestDetails } from "./index";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useStore } from "../../../store/useStore";
-import type { ApiRequest } from "../../../../shared/lib/parser";
+import { RequestDetails } from "./index";
 
 mock.module("@monaco-editor/react", () => {
   return {
@@ -34,6 +33,7 @@ describe("Component: RequestDetails", () => {
   });
 
   it("renders request details correctly", async () => {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const req: any = {
       id: "r1",
       folderId: "f1",
@@ -71,6 +71,7 @@ describe("Component: RequestDetails", () => {
   });
 
   it("handles mock toggle", async () => {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const req: any = {
       id: "r1",
       folderId: "f1",
@@ -108,6 +109,7 @@ describe("Component: RequestDetails", () => {
   });
 
   it("handles editing request payload", async () => {
+    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     const req: any = {
       id: "r1",
       folderId: "f1",

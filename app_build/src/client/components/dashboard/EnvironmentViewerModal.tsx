@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
-import type { BrunoEnvironment } from "../../../shared/lib/parser";
-import { GlobeHemisphereWest, Question, Tray } from "@phosphor-icons/react";
+import { Tray } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
+import type { BrunoEnvironment } from "../../../shared/lib/parser";
 
 interface EnvironmentViewerModalProps {
   isOpen: boolean;
@@ -94,6 +93,7 @@ export function EnvironmentViewerModal({
                   <tbody>
                     {activeEnv.variables.map((v, i) => (
                       <tr
+                        // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
                         key={i}
                         className="border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors"
                       >

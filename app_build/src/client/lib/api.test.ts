@@ -1,10 +1,11 @@
-import { describe, it, expect, mock, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import { fetchWithConfig, loadCollection } from "./api";
 
 describe("Frontend API", () => {
   beforeEach(() => {
-    global.fetch = mock(() =>
-      Promise.resolve(new Response(JSON.stringify({}), { status: 200 })),
+    global.fetch = mock(
+      () => Promise.resolve(new Response(JSON.stringify({}), { status: 200 })),
+      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
     ) as any;
   });
 

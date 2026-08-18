@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
+import {
+  getMockVariants,
+  getRequestMeta,
+  resetDatabase,
+} from "../lib/db/index";
 import { handleMocksRoute } from "./mocks";
-import { resetDatabase, getRequestMeta, getMockVariants } from "../lib/db/index";
 
 describe("API Route: /api/mocks/*", () => {
   beforeEach(() => {
@@ -17,8 +21,8 @@ describe("API Route: /api/mocks/*", () => {
     expect(res?.status).toBe(200);
 
     const meta = getRequestMeta();
-    expect(meta["req1"]).toBeDefined();
-    expect(meta["req1"]?.isStarred).toBe(true);
+    expect(meta.req1).toBeDefined();
+    expect(meta.req1?.isStarred).toBe(true);
   });
 
   it("should create a new variant", async () => {
@@ -31,8 +35,8 @@ describe("API Route: /api/mocks/*", () => {
     expect(res?.status).toBe(200);
 
     const variants = getMockVariants();
-    expect(variants["req2"]?.length).toBe(1);
-    expect(variants["req2"]?.[0]?.name).toBe("My Test Variant");
+    expect(variants.req2?.length).toBe(1);
+    expect(variants.req2?.[0]?.name).toBe("My Test Variant");
   });
 
   it("should reject invalid variant creation body", async () => {
@@ -51,7 +55,8 @@ describe("API Route: /api/mocks/*", () => {
       body: JSON.stringify({ requestId: "req1", name: "To Update" }),
     });
     const createRes = await handleMocksRoute(createReq, new URL(createReq.url));
-    const { id } = (await createRes!.json()) as { id: string };
+    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
+    const { id } = (await createRes?.json()) as { id: string };
 
     const updateReq = new Request(`http://localhost/api/mocks/variants/${id}`, {
       method: "PUT",
@@ -65,7 +70,7 @@ describe("API Route: /api/mocks/*", () => {
     expect(updateRes?.status).toBe(200);
 
     const variantsMap = getMockVariants();
-    const variants = variantsMap["req1"] || [];
+    const variants = variantsMap.req1 || [];
     const updated = variants.find((v) => v.id === id);
     expect(updated?.name).toBe("Updated Name");
     expect(updated?.statusCode).toBe(204);
@@ -77,7 +82,8 @@ describe("API Route: /api/mocks/*", () => {
       body: JSON.stringify({ requestId: "req2", name: "To Delete" }),
     });
     const createRes = await handleMocksRoute(createReq, new URL(createReq.url));
-    const { id } = (await createRes!.json()) as { id: string };
+    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
+    const { id } = (await createRes?.json()) as { id: string };
 
     const delReq = new Request(`http://localhost/api/mocks/variants/${id}`, {
       method: "DELETE",
@@ -86,7 +92,7 @@ describe("API Route: /api/mocks/*", () => {
     expect(delRes?.status).toBe(200);
 
     const variantsMap = getMockVariants();
-    const variants = variantsMap["req2"] || [];
+    const variants = variantsMap.req2 || [];
     const deleted = variants.find((v) => v.id === id);
     expect(deleted).toBeUndefined();
   });

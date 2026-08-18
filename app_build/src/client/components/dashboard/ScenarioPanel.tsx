@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "@/client/components/ui/button";
-import { Input } from "@/client/components/ui/input";
-import {
-  fetchScenarios,
-  createScenario,
-  applyScenario,
-  deleteScenario,
-} from "../../lib/api";
+import { MaskHappy } from "@phosphor-icons/react";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { Scenario } from "../../lib/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +13,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
-
+import { Button } from "@/client/components/ui/button";
+import { Input } from "@/client/components/ui/input";
+import type { Scenario } from "../../lib/api";
+import {
+  applyScenario,
+  createScenario,
+  deleteScenario,
+  fetchScenarios,
+} from "../../lib/api";
 import { useStore } from "../../store/useStore";
-import { MaskHappy } from "@phosphor-icons/react";
 
 export function ScenarioPanel() {
   const { selectedScenarioId, setSelectedScenarioId, loadCollection } =
@@ -33,7 +33,7 @@ export function ScenarioPanel() {
   const [newScenarioName, setNewScenarioName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
-  const loadScenarios = async () => {
+  const loadScenarios = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchScenarios();
@@ -42,12 +42,11 @@ export function ScenarioPanel() {
       console.error(err);
     }
     setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadScenarios();
-  }, []);
+  }, [loadScenarios]);
 
   const handleSaveCurrent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,8 +150,15 @@ export function ScenarioPanel() {
           </div>
         ) : (
           scenarios.map((scenario) => (
+            // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
             <div
               key={scenario.id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setSelectedScenarioId(scenario.id);
+              }}
               className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? "bg-accent border-primary/50" : "bg-card border-border"}`}
               onClick={() => setSelectedScenarioId(scenario.id)}
             >

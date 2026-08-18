@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
-import type { ApiRequest } from "../../../shared/lib/parser";
+import { useEffect, useState } from "react";
 import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
 import { Input } from "@/client/components/ui/input";
 import { MethodBadge } from "@/client/components/ui/method-badge";
-import { fetchScenarios, updateScenario } from "../../lib/api";
-import type { Scenario, ScenarioAction } from "../../lib/api";
 import {
   Select,
   SelectContent,
@@ -12,13 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/client/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/client/components/ui/dialog";
+import type { ApiRequest } from "../../../shared/lib/parser";
+import type { Scenario, ScenarioAction } from "../../lib/api";
+import { fetchScenarios, updateScenario } from "../../lib/api";
 
 interface ScenarioEditorProps {
   scenarioId: string;
@@ -193,6 +193,7 @@ export function ScenarioEditor({
               <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
                 {filteredRequests.map((req) => (
                   <button
+                    type="button"
                     key={req.id}
                     onClick={() => addAction(req)}
                     className="flex flex-col items-start p-2 hover:bg-primary/10 rounded transition-colors text-left"
@@ -233,6 +234,7 @@ export function ScenarioEditor({
                 const req = requests.find((r) => r.id === action.requestId);
                 return (
                   <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
                     key={index}
                     className="bg-card border border-border rounded-xl overflow-hidden flex flex-col"
                   >
@@ -270,7 +272,7 @@ export function ScenarioEditor({
                         <Select
                           value={action.statusCode.toString()}
                           onValueChange={(v) =>
-                            updateAction(index, { statusCode: parseInt(v) })
+                            updateAction(index, { statusCode: parseInt(v, 10) })
                           }
                         >
                           <SelectTrigger className="w-full h-8 bg-background border-border text-xs font-medium text-foreground focus:ring-1 focus:ring-primary/50">
@@ -314,7 +316,7 @@ export function ScenarioEditor({
                             value={action.latencyMs}
                             onChange={(e) =>
                               updateAction(index, {
-                                latencyMs: parseInt(e.target.value),
+                                latencyMs: parseInt(e.target.value, 10),
                               })
                             }
                             className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
@@ -336,6 +338,7 @@ export function ScenarioEditor({
                           <div className="flex flex-wrap gap-1">
                             {req.variants.map((variant) => (
                               <button
+                                type="button"
                                 key={variant.id}
                                 onClick={() =>
                                   updateAction(index, {
@@ -363,6 +366,7 @@ export function ScenarioEditor({
                           <div className="flex flex-wrap gap-1">
                             {req.examples.map((ex) => (
                               <button
+                                type="button"
                                 key={ex.name}
                                 onClick={() =>
                                   updateAction(index, {
@@ -376,6 +380,7 @@ export function ScenarioEditor({
                               </button>
                             ))}
                             <button
+                              type="button"
                               onClick={() =>
                                 updateAction(index, {
                                   selectedExample: "custom",

@@ -1,13 +1,13 @@
+import type { ScenarioAction } from "../../client/lib/api";
 import {
-  getScenarios,
-  createScenario,
-  updateScenario,
-  deleteScenario,
   applyScenarioActions,
+  createScenario,
+  deleteScenario,
   getCollectionFromDb,
+  getScenarios,
+  updateScenario,
 } from "../lib/db/index";
 import { initProxy, mockVariants } from "../lib/proxy";
-import type { ScenarioAction } from "../../client/lib/api";
 
 export async function handleScenariosRoute(
   req: Request,

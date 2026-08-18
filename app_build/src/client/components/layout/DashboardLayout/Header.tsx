@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "../../ui/button";
-import { Gear, CloudArrowDown, Spinner } from "@phosphor-icons/react";
+import { CloudArrowDown, Gear, Spinner } from "@phosphor-icons/react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useStore } from "../../../store/useStore";
+import { Button } from "../../ui/button";
 
 interface HeaderProps {
   onOpenSettings: () => void;

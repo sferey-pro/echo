@@ -1,6 +1,5 @@
-import { db, safeJsonParse } from "./connection";
 import type { ScenarioAction } from "../../../client/lib/api";
-import { randomUUID } from "crypto";
+import { db, safeJsonParse } from "./connection";
 import { getActiveCollection } from "./settings";
 
 interface DBScenario {
@@ -15,7 +14,9 @@ export const getScenarios = (): {
   actions: ScenarioAction[];
 }[] => {
   const collectionName = getActiveCollection();
-  const query = db.query("SELECT * FROM scenarios WHERE collection_name = $col");
+  const query = db.query(
+    "SELECT * FROM scenarios WHERE collection_name = $col",
+  );
   const results = query.all({ $col: collectionName }) as DBScenario[];
 
   return results.map((row) => ({
@@ -35,7 +36,12 @@ export const createScenario = (
  INSERT INTO scenarios (id, collection_name, name, actions) 
  VALUES ($id, $col, $name, $actions)
  `);
-  query.run({ $id: id, $col: collectionName, $name: name, $actions: JSON.stringify(actions) });
+  query.run({
+    $id: id,
+    $col: collectionName,
+    $name: name,
+    $actions: JSON.stringify(actions),
+  });
 };
 
 export const updateScenario = (
@@ -47,12 +53,19 @@ export const updateScenario = (
   const query = db.query(`
  UPDATE scenarios SET name = $name, actions = $actions WHERE id = $id AND collection_name = $col
  `);
-  query.run({ $id: id, $col: collectionName, $name: name, $actions: JSON.stringify(actions) });
+  query.run({
+    $id: id,
+    $col: collectionName,
+    $name: name,
+    $actions: JSON.stringify(actions),
+  });
 };
 
 export const deleteScenario = (id: string) => {
   const collectionName = getActiveCollection();
-  const query = db.query("DELETE FROM scenarios WHERE id = $id AND collection_name = $col");
+  const query = db.query(
+    "DELETE FROM scenarios WHERE id = $id AND collection_name = $col",
+  );
   query.run({ $id: id, $col: collectionName });
 };
 
@@ -91,6 +104,10 @@ export const applyScenarioActions = (actions: ScenarioAction[]) => {
       SET is_mocked = 0 
       WHERE request_id = $reqId AND id != $id AND collection_name = $col
     `);
-    updateQuery.run({ $reqId: action.requestId, $id: variantId, $col: collectionName });
+    updateQuery.run({
+      $reqId: action.requestId,
+      $id: variantId,
+      $col: collectionName,
+    });
   }
 };

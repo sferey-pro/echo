@@ -1,14 +1,15 @@
-import React, { useState, useRef } from "react";
 import { DownloadSimple } from "@phosphor-icons/react";
+import type React from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/client/components/ui/dialog";
-import { Button } from "@/client/components/ui/button";
 import { Input } from "@/client/components/ui/input";
 import { importCollection } from "@/client/lib/api";
 
@@ -23,6 +24,7 @@ export function ImportCollectionModal({
   onClose,
   onImportSuccess,
 }: ImportCollectionModalProps) {
+  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
   const [fileContent, setFileContent] = useState<any>(null);
   const [targetName, setTargetName] = useState("");
   const [isImporting, setIsImporting] = useState(false);
@@ -37,7 +39,9 @@ export function ImportCollectionModal({
       try {
         const json = JSON.parse(event.target?.result as string);
         if (!json.repository || !json.echoState) {
-          throw new Error("Le fichier ne semble pas être un export Echo valide.");
+          throw new Error(
+            "Le fichier ne semble pas être un export Echo valide.",
+          );
         }
         setFileContent(json);
         // Pre-fill target name from original repo URL
@@ -50,7 +54,9 @@ export function ImportCollectionModal({
         }
       } catch (err: unknown) {
         toast.error(
-          err instanceof Error ? err.message : "Erreur de lecture du fichier JSON."
+          err instanceof Error
+            ? err.message
+            : "Erreur de lecture du fichier JSON.",
         );
       }
     };
@@ -69,7 +75,7 @@ export function ImportCollectionModal({
       await onImportSuccess();
     } catch (e: unknown) {
       toast.error(
-        e instanceof Error ? e.message : "Erreur lors de l'importation."
+        e instanceof Error ? e.message : "Erreur lors de l'importation.",
       );
     } finally {
       setIsImporting(false);
@@ -96,7 +102,8 @@ export function ImportCollectionModal({
             Importer une Collection
           </DialogTitle>
           <DialogDescription>
-            Importez un fichier de configuration Echo pour cloner et restaurer une collection complète.
+            Importez un fichier de configuration Echo pour cloner et restaurer
+            une collection complète.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,7 +137,7 @@ export function ImportCollectionModal({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold">
+              <label htmlFor="import-name" className="text-sm font-semibold">
                 Nom du dossier local (doit être unique)
               </label>
               <Input
@@ -141,7 +148,11 @@ export function ImportCollectionModal({
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <Button variant="ghost" onClick={handleReset} disabled={isImporting}>
+              <Button
+                variant="ghost"
+                onClick={handleReset}
+                disabled={isImporting}
+              >
                 Annuler
               </Button>
               <Button

@@ -1,6 +1,8 @@
-import React from "react";
-import { Button } from "../../ui/button";
 import { Eye } from "@phosphor-icons/react";
+import { useStore } from "../../../store/useStore";
+import { RequestList } from "../../dashboard/RequestList";
+import { ScenarioPanel } from "../../dashboard/ScenarioPanel";
+import { Button } from "../../ui/button";
 import {
   Select,
   SelectContent,
@@ -8,9 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import { RequestList } from "../../dashboard/RequestList";
-import { ScenarioPanel } from "../../dashboard/ScenarioPanel";
-import { useStore } from "../../../store/useStore";
 
 interface SidebarProps {
   onOpenEnvViewer: () => void;
@@ -54,7 +53,11 @@ export function Sidebar({
                   Aucun env.
                 </SelectItem>
                 {environments.map((env) => (
-                  <SelectItem key={env.name} value={env.name} className="text-xs">
+                  <SelectItem
+                    key={env.name}
+                    value={env.name}
+                    className="text-xs"
+                  >
                     {env.name}
                   </SelectItem>
                 ))}

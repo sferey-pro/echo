@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
-import { Command } from "cmdk";
-import type { ApiRequest } from "../../../shared/lib/parser";
 import {
-  MagnifyingGlass,
   Folder,
-  Lightning,
   Gear,
+  Lightning,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
+import { Command } from "cmdk";
+import { useEffect } from "react";
+import type { ApiRequest } from "../../../shared/lib/parser";
 import { MethodBadge } from "../ui/method-badge";
 
 interface CommandPaletteProps {
@@ -44,10 +44,14 @@ export function CommandPalette({
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Backdrop click handler
+    // biome-ignore lint/a11y/noStaticElementInteractions: Backdrop click handler
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
       onClick={() => setOpen(false)}
     >
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Stop propagation for modal content */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: Stop propagation for modal content */}
       <div
         className="w-full max-w-2xl bg-background border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}

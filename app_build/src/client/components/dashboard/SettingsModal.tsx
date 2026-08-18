@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { getSettings, updateSetting } from "../../lib/api";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/client/components/ui/button";
-import { Input } from "@/client/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,12 +12,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
+import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
+import { Input } from "@/client/components/ui/input";
+import { getSettings, updateSetting } from "../../lib/api";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -102,7 +103,10 @@ export function SettingsModal({
           <div className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground/80 mb-1">
+                <label
+                  htmlFor="settings-name"
+                  className="block text-sm font-medium text-foreground/80 mb-1"
+                >
                   Target API URL
                 </label>
                 <Input
