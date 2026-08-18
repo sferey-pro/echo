@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
+import { IconSelector } from "@/client/components/ui/icon-selector";
 import { Input } from "@/client/components/ui/input";
 import type { Scenario } from "../../lib/api";
 import {
@@ -144,15 +145,10 @@ export function ScenarioPanel() {
                 onChange={(e) => setNewScenarioName(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
-                Icône (emoji)
-              </label>
-              <Input
-                type="text"
-                placeholder="Ex: 👻"
+            <div className="space-y-2 mt-2">
+              <IconSelector
                 value={newScenarioIcon}
-                onChange={(e) => setNewScenarioIcon(e.target.value)}
+                onChange={setNewScenarioIcon}
               />
             </div>
             <div className="space-y-2">
@@ -215,24 +211,47 @@ export function ScenarioPanel() {
                   className="flex-1 text-sm font-bold text-foreground flex flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                 >
                   <div className="flex items-center gap-2">
-                    {scenario.icon ? (
-                      <span className="text-lg leading-none">
-                        {scenario.icon}
-                      </span>
-                    ) : (
-                      <MaskHappy
-                        className={`w-5 h-5 shrink-0 transition-colors ${
-                          selectedScenarioId === scenario.id
-                            ? "text-primary"
-                            : "text-muted-foreground group-hover:text-primary/70"
-                        }`}
-                        weight={
-                          selectedScenarioId === scenario.id
-                            ? "fill"
-                            : "duotone"
-                        }
-                      />
-                    )}
+                    {(() => {
+                      if (!scenario.icon) {
+                        return (
+                          <MaskHappy
+                            className={`w-5 h-5 shrink-0 transition-colors ${
+                              selectedScenarioId === scenario.id
+                                ? "text-primary"
+                                : "text-muted-foreground group-hover:text-primary/70"
+                            }`}
+                            weight={
+                              selectedScenarioId === scenario.id
+                                ? "fill"
+                                : "duotone"
+                            }
+                          />
+                        );
+                      }
+
+                      let emoji = scenario.icon;
+                      let colorClass = "";
+                      if (scenario.icon.startsWith("{")) {
+                        try {
+                          const parsed = JSON.parse(scenario.icon);
+                          emoji = parsed.emoji || "🚀";
+                          colorClass = parsed.color || "";
+                        } catch (e) {}
+                      }
+
+                      if (colorClass) {
+                        return (
+                          <div
+                            className={`w-6 h-6 rounded-md flex items-center justify-center text-sm shadow-sm ${colorClass}`}
+                          >
+                            {emoji}
+                          </div>
+                        );
+                      }
+                      return (
+                        <span className="text-lg leading-none">{emoji}</span>
+                      );
+                    })()}
                     <span className="truncate">{scenario.name}</span>
                   </div>
                   {scenario.description && (

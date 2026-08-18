@@ -84,11 +84,11 @@ export function FolderContent({
                   onClick={() => setSelectedRequestId(req.id)}
                   className={`flex items-center w-full px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? "bg-primary/5 border-l-4 border-l-primary border-b-border" : "bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border"}`}
                 >
-                  <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">
+                  <span className="font-semibold text-muted-foreground mr-4 text-sm w-5 text-right shrink-0">
                     {virtualRow.index + 1}
                   </span>
-                  <MethodBadge method={req.method} className="mr-3" />
-                  <span className="font-medium flex-1 truncate text-sm">
+                  <MethodBadge method={req.method} className="mr-4" />
+                  <span className="font-medium flex-1 truncate text-sm text-left">
                     {req.name}
                   </span>
                   {isPayloadModified(req) && (
@@ -98,7 +98,7 @@ export function FolderContent({
                   )}
                   {req.variants?.some((v) => v.isMocked) &&
                     !isPayloadModified(req) && (
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium ml-2 shadow-sm">
+                      <span className="text-xs bg-emerald-500/10 text-emerald-700 px-2.5 py-1 rounded-md font-semibold ml-2">
                         Mock Actif
                       </span>
                     )}
