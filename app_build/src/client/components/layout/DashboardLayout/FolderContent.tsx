@@ -70,9 +70,8 @@ export function FolderContent({
               const req = requestsInSelectedFolder[virtualRow.index];
               if (!req) return null;
               return (
-                // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-                <div
-                  role="button"
+                <button
+                  type="button"
                   key={virtualRow.key}
                   style={{
                     position: "absolute",
@@ -83,12 +82,7 @@ export function FolderContent({
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                   onClick={() => setSelectedRequestId(req.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      setSelectedRequestId(req.id);
-                  }}
-                  tabIndex={0}
-                  className={`flex items-center px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? "bg-primary/5 border-l-4 border-l-primary border-b-border" : "bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border"}`}
+                  className={`flex items-center w-full px-4 py-3 cursor-pointer border-b last:border-b-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${selectedRequestId === req.id ? "bg-primary/5 border-l-4 border-l-primary border-b-border" : "bg-transparent hover:bg-muted/30 border-l-4 border-l-transparent border-b-border"}`}
                 >
                   <span className="font-semibold text-muted-foreground mr-3 text-sm w-4">
                     {virtualRow.index + 1}
@@ -108,7 +102,7 @@ export function FolderContent({
                         Mock Actif
                       </span>
                     )}
-                </div>
+                </button>
               );
             })}
           </div>

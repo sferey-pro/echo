@@ -150,17 +150,11 @@ export function ScenarioPanel() {
           </div>
         ) : (
           scenarios.map((scenario) => (
-            // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-            <div
+            <button
+              type="button"
               key={scenario.id}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ")
-                  setSelectedScenarioId(scenario.id);
-              }}
-              className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer ${selectedScenarioId === scenario.id ? "bg-accent border-primary/50" : "bg-card border-border"}`}
               onClick={() => setSelectedScenarioId(scenario.id)}
+              className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer w-full text-left bg-transparent ${selectedScenarioId === scenario.id ? "bg-accent border-primary/50" : "bg-card border-border"}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-black text-foreground flex items-center gap-2">
@@ -223,7 +217,7 @@ export function ScenarioPanel() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-            </div>
+            </button>
           ))
         )}
       </div>

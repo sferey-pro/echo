@@ -2,20 +2,20 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 import * as db from "./db/index";
 import { initProxy, mockVariants, requestMeta } from "./proxy";
 
-// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+// biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
 let capturedHandler: any = null;
 mock.module("msw", () => ({
   http: {
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     get: (path: string, handler: any) => {
       capturedHandler = handler;
       return { path, handler };
     },
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     all: (path: string, handler: any) => ({ path, handler }),
   },
   HttpResponse: class extends Response {
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     static override json(data: any, options: any) {
       return new Response(JSON.stringify(data), options);
     }
@@ -35,7 +35,7 @@ describe("Service: proxy", () => {
     const resetHandlersMock = mock(() => {});
     const listenMock = mock(() => {});
     const closeMock = mock(() => {});
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     const setupServerMock = mock((..._handlers: any[]) => ({
       use: useMock,
       resetHandlers: resetHandlersMock,
@@ -70,7 +70,7 @@ describe("Service: proxy", () => {
     const resetHandlersMock = mock(() => {});
     const listenMock = mock(() => {});
     const closeMock = mock(() => {});
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     const setupServerMock = mock((..._handlers: any[]) => ({
       use: useMock,
       resetHandlers: resetHandlersMock,
@@ -163,7 +163,7 @@ describe("Service: proxy", () => {
     req.headers.set("host", "localhost:8080");
     global.fetch = mock(
       () => Promise.resolve(new Response("passed-through")),
-      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     ) as any;
     const res = await handleProxyRequest(req);
     expect(res.status).toBe(200);

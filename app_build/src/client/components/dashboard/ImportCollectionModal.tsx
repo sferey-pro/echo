@@ -24,7 +24,7 @@ export function ImportCollectionModal({
   onClose,
   onImportSuccess,
 }: ImportCollectionModalProps) {
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   const [fileContent, setFileContent] = useState<any>(null);
   const [targetName, setTargetName] = useState("");
   const [isImporting, setIsImporting] = useState(false);

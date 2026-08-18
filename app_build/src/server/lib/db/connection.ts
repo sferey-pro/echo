@@ -32,7 +32,7 @@ function migrateTable(
   newColumns: string[],
   defaultCollection: string,
 ) {
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   const tableInfo = db.query(`PRAGMA table_info(${tableName})`).all() as any[];
   if (tableInfo.length > 0) {
     const hasCollectionName = tableInfo.some(

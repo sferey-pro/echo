@@ -15,11 +15,13 @@ describe("Database - Scenarios", () => {
   it("should create and get scenarios", () => {
     createScenario("sc1", "My Scenario", [
       {
-        type: "MOCK_VARIANT",
         requestId: "req-1",
-        variantId: "v1",
-        delayMs: 100,
-        overridePayload: "hello",
+        isMocked: true,
+        statusCode: 200,
+        latencyMs: 100,
+        payload: "hello",
+        selectedExample: null,
+        pathParamsOverrides: {},
       },
     ]);
 
@@ -28,7 +30,7 @@ describe("Database - Scenarios", () => {
     expect(scenarios[0]?.id).toBe("sc1");
     expect(scenarios[0]?.name).toBe("My Scenario");
     expect(scenarios[0]?.actions.length).toBe(1);
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     expect((scenarios[0]?.actions[0] as any)?.requestId).toBe("req-1");
   });
 

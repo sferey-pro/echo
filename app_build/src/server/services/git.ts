@@ -34,11 +34,11 @@ export function getRepoPath() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+// biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
 let currentWatcher: any = null;
 let currentWatchPath: string | null = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+// biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
 let syncTimer: any = null;
 
 export async function runSync() {

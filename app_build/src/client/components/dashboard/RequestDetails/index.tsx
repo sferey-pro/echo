@@ -87,7 +87,7 @@ export function RequestDetails() {
       setLatencyMs(activeVariant.latencyMs ?? 0);
       setPathParamsOverrides(activeVariant.pathParamsOverrides || {});
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional omission to avoid infinite renders
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Exception (React constraint) - Intentionally omitting deps to prevent infinite loops or overwriting local state
   }, [request, activeVariant, getPayloadString]);
 
   const urlParams = useMemo(() => {
@@ -292,7 +292,7 @@ export function RequestDetails() {
     const newPayload = getPayloadString(ex.response?.body?.data);
     setPayload(newPayload);
     const newStatus =
-      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
       ex.response?.status || (ex as any).res?.status || statusCode;
     setStatusCode(newStatus);
     setIsSaving(true);

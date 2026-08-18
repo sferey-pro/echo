@@ -142,18 +142,12 @@ export function RequestList({
 
     if (item.type === "starred-header") {
       return (
-        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-        <div
-          role="button"
+        <button
+          type="button"
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder("__starred__", e)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              toggleFolder("__starred__", e as unknown as React.MouseEvent);
-          }}
-          tabIndex={0}
-          className="flex items-center px-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group"
+          className="flex items-center px-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent active:scale-[0.99] cursor-pointer text-xs text-foreground transition-colors font-semibold select-none group w-full text-left bg-transparent border-none"
         >
           <CaretRight
             className={cn(
@@ -169,7 +163,7 @@ export function RequestList({
           >
             Mes Favoris
           </span>
-        </div>
+        </button>
       );
     }
 
@@ -178,19 +172,13 @@ export function RequestList({
       const paddingLeft = `${item.depth * 1.1 + 0.5}rem`;
 
       return (
-        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-        <div
-          role="button"
+        <button
+          type="button"
           key={virtualItem.key}
           style={style}
           onClick={(e) => toggleFolder(item.folder.id, e)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              toggleFolder(item.folder.id, e as unknown as React.MouseEvent);
-          }}
-          tabIndex={0}
           className={cn(
-            "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+            "flex items-center pr-2 cursor-pointer text-xs transition-colors font-medium select-none group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary w-full text-left bg-transparent border-none",
             selectedFolderId === item.folder.id
               ? "border-l-primary bg-primary/10 text-foreground font-bold"
               : "hover:bg-accent text-foreground/80 active:scale-[0.99]",
@@ -201,14 +189,15 @@ export function RequestList({
             className="flex items-center w-full h-full relative"
           >
             {/* Indentation guide lines */}
-            {Array.from({ length: item.depth }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
-                key={i}
-                className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
-                style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}
-              />
-            ))}
+            {Array.from({ length: item.depth }, (_, i) => String(i)).map(
+              (indentVal) => (
+                <div
+                  key={`indent-${indentVal}`}
+                  className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
+                  style={{ left: `${(Number(indentVal) + 1) * 1.1 - 0.15}rem` }}
+                />
+              ),
+            )}
             <CaretRight
               className={cn(
                 "w-3.5 h-3.5 mr-1 text-muted-foreground transition-transform duration-200 z-10",
@@ -241,7 +230,7 @@ export function RequestList({
               </span>
             )}
           </div>
-        </div>
+        </button>
       );
     }
 
@@ -254,19 +243,13 @@ export function RequestList({
       const paddingLeft = `${depth * 1.1 + 1.25}rem`;
 
       return (
-        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-        <div
-          role="button"
+        <button
+          type="button"
           key={virtualItem.key}
           style={style}
           onClick={() => setSelectedRequestId(req.id)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              setSelectedRequestId(req.id);
-          }}
-          tabIndex={0}
           className={cn(
-            "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+            "flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative border-l-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary w-full text-left bg-transparent",
             selectedRequestId === req.id
               ? req.variants?.some((v) => v.isMocked)
                 ? "border-green-500 bg-green-500/30 text-foreground font-bold"
@@ -281,14 +264,15 @@ export function RequestList({
             className="flex items-center w-full h-full relative"
           >
             {/* Indentation guide lines */}
-            {Array.from({ length: depth }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
-                key={i}
-                className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
-                style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}
-              />
-            ))}
+            {Array.from({ length: depth }, (_, i) => String(i)).map(
+              (indentVal) => (
+                <div
+                  key={`indent-${indentVal}`}
+                  className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
+                  style={{ left: `${(Number(indentVal) + 1) * 1.1 - 0.15}rem` }}
+                />
+              ),
+            )}
 
             <MethodBadge method={req.method} className="z-10 mr-2" />
             <span
@@ -319,7 +303,7 @@ export function RequestList({
               )}
             </span>
           </div>
-        </div>
+        </button>
       );
     }
 
@@ -329,31 +313,26 @@ export function RequestList({
       const paddingLeft = `${item.depth * 1.1 + 1.25}rem`;
 
       return (
-        // biome-ignore lint/a11y/useSemanticElements: Tailwind styling constraints require div with role button
-        <div
-          role="button"
+        <button
+          type="button"
           key={virtualItem.key}
           style={style}
           onClick={() => setSelectedRequestId(req.id)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              setSelectedRequestId(req.id);
-          }}
-          tabIndex={0}
-          className="flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative hover:bg-slate-100 :bg-slate-800 text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+          className="flex items-center pr-2 cursor-pointer text-xs transition-colors select-none group relative hover:bg-slate-100 :bg-slate-800 text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary w-full text-left bg-transparent border-none"
         >
           <div
             style={{ paddingLeft }}
             className="flex items-center w-full h-full relative"
           >
-            {Array.from({ length: item.depth }).map((_, i) => (
-              <div
-                // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
-                key={i}
-                className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
-                style={{ left: `${(i + 1) * 1.1 - 0.15}rem` }}
-              />
-            ))}
+            {Array.from({ length: item.depth }, (_, i) => String(i)).map(
+              (indentVal) => (
+                <div
+                  key={`indent-${indentVal}`}
+                  className="absolute top-0 bottom-0 w-px bg-border/50 group-hover:bg-border transition-colors"
+                  style={{ left: `${(Number(indentVal) + 1) * 1.1 - 0.15}rem` }}
+                />
+              ),
+            )}
             <Lightning
               className="w-3.5 h-3.5 text-green-500 mr-2 z-10"
               weight="fill"
@@ -362,7 +341,7 @@ export function RequestList({
               {v.name} ({v.statusCode})
             </span>
           </div>
-        </div>
+        </button>
       );
     }
 

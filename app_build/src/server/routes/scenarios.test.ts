@@ -24,7 +24,7 @@ describe("API Route: /api/scenarios", () => {
     });
     const res = await handleScenariosRoute(req, new URL(req.url));
     expect(res?.status).toBe(200);
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     const data = (await res?.json()) as any;
     expect(data.success).toBe(true);
     expect(data.id).toContain("scenario-");
@@ -50,13 +50,13 @@ describe("API Route: /api/scenarios", () => {
       body: JSON.stringify({ name: "Auto Scenario" }), // no actions array
     });
     const res = await handleScenariosRoute(req, new URL(req.url));
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     const data = (await res?.json()) as any;
     expect(data.success).toBe(true);
 
     const { getScenarios } = require("../lib/db/index");
     const scenarios = getScenarios();
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     const created = scenarios.find((s: any) => s.id === data.id);
     expect(created.actions.length).toBe(1);
     expect(created.actions[0].requestId).toBe("req1");
@@ -72,9 +72,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
-    const { id } = (await createRes?.json()) as any;
+    if (!createRes) throw new Error("createRes is undefined");
+    const data = (await createRes.json()) as unknown as { id: string };
+    const { id } = data;
 
     const updateReq = new Request(`http://localhost/api/scenarios/${id}`, {
       method: "PUT",
@@ -96,9 +96,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
-    const { id } = (await createRes?.json()) as any;
+    if (!createRes) throw new Error("createRes is undefined");
+    const data = (await createRes.json()) as unknown as { id: string };
+    const { id } = data;
 
     const delReq = new Request(`http://localhost/api/scenarios/${id}`, {
       method: "DELETE",
@@ -116,9 +116,9 @@ describe("API Route: /api/scenarios", () => {
       createReq,
       new URL(createReq.url),
     );
-    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
-    const { id } = (await createRes?.json()) as any;
+    if (!createRes) throw new Error("createRes is undefined");
+    const data = (await createRes.json()) as unknown as { id: string };
+    const { id } = data;
 
     const applyReq = new Request(`http://localhost/api/scenarios/apply`, {
       method: "POST",

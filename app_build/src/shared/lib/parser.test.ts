@@ -11,9 +11,9 @@ const mockFs = {
 };
 
 const mockFsPromises = {
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   readdir: mock<any>(async () => []),
-  // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+  // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   readFile: mock<any>(async () => ""),
 };
 

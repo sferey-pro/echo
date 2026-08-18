@@ -41,9 +41,9 @@ export async function initProxy(
 
   const handlerDefs: Array<{
     mswPath: string;
-    // biome-ignore lint/complexity/noBannedTypes: Specific type required by external API
+    // biome-ignore lint/complexity/noBannedTypes: Exception (Type constraint) - Specific type required by external API
     mswMethod: Function;
-    // biome-ignore lint/complexity/noBannedTypes: Specific type required by external API
+    // biome-ignore lint/complexity/noBannedTypes: Exception (Type constraint) - Specific type required by external API
     handler: Function;
   }> = [];
 

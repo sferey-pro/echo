@@ -55,8 +55,8 @@ describe("API Route: /api/mocks/*", () => {
       body: JSON.stringify({ requestId: "req1", name: "To Update" }),
     });
     const createRes = await handleMocksRoute(createReq, new URL(createReq.url));
-    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
-    const { id } = (await createRes?.json()) as { id: string };
+    if (!createRes) throw new Error("createRes is undefined");
+    const { id } = (await createRes.json()) as { id: string };
 
     const updateReq = new Request(`http://localhost/api/mocks/variants/${id}`, {
       method: "PUT",
@@ -82,8 +82,8 @@ describe("API Route: /api/mocks/*", () => {
       body: JSON.stringify({ requestId: "req2", name: "To Delete" }),
     });
     const createRes = await handleMocksRoute(createReq, new URL(createReq.url));
-    // biome-ignore lint/correctness/noUnsafeOptionalChaining: Value is checked beforehand or safe in this context
-    const { id } = (await createRes?.json()) as { id: string };
+    if (!createRes) throw new Error("createRes is undefined");
+    const { id } = (await createRes.json()) as { id: string };
 
     const delReq = new Request(`http://localhost/api/mocks/variants/${id}`, {
       method: "DELETE",

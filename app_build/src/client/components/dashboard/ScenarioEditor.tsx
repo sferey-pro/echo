@@ -231,11 +231,11 @@ export function ScenarioEditor({
               </div>
             ) : (
               actions.map((action, index) => {
+                const indexStr = String(index);
                 const req = requests.find((r) => r.id === action.requestId);
                 return (
                   <div
-                    // biome-ignore lint/suspicious/noArrayIndexKey: Visual indent array or stable order
-                    key={index}
+                    key={`action-${indexStr}`}
                     className="bg-card border border-border rounded-xl overflow-hidden flex flex-col"
                   >
                     {/* Header de l'action */}

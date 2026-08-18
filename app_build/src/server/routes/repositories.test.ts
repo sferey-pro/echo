@@ -16,7 +16,7 @@ describe("API Route: /api/repositories", () => {
       { name: "repo1", isDirectory: () => true },
       { name: "repo2", isDirectory: () => true },
       { name: "file.txt", isDirectory: () => false },
-      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
     ] as any);
 
     setSetting("ACTIVE_COLLECTION_NAME", "repo1");
@@ -50,7 +50,7 @@ describe("API Route: /api/repositories", () => {
         ({
           exited: Promise.resolve(),
           exitCode: 0,
-          // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+          // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
         }) as any,
     );
 

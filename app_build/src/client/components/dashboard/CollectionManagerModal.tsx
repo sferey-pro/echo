@@ -1,5 +1,5 @@
 import { Books } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -46,7 +46,8 @@ export function CollectionManagerModal({
   } | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-  const fetchCollections = async () => {
+  const fetchCollections = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/repositories");
       if (res.ok) {
@@ -63,13 +64,12 @@ export function CollectionManagerModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       fetchCollections();
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Intentional omission to avoid infinite renders
   }, [isOpen, fetchCollections]);
 
   const handleClone = async (force: boolean = false) => {

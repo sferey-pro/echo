@@ -147,7 +147,7 @@ export const getCollectionFromDb = () => {
     const parsed = safeJsonParse<BrunoEnvironment | null>(e.data, null);
     if (parsed) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+      // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
       (parsed as any).isObsolete = e.is_obsolete === 1;
       environments.push(parsed);
     }

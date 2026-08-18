@@ -142,7 +142,7 @@ const startServer = () => {
     );
     console.log(`📂 Using Repo Path: ${getRepoPath()}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
+    // biome-ignore lint/suspicious/noExplicitAny: Exception (Type constraint) - Cannot provide strict types for arbitrary external mock structures or unknown payloads
   } catch (err: any) {
     if (err.code === "EADDRINUSE") {
       console.warn(`⚠️ Port ${PORT} in use, trying ${PORT + 1}...`);

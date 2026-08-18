@@ -147,8 +147,10 @@ export const exportCollection = async () => {
   window.open("/api/export", "_blank");
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: FIXME - needs proper typing
-export const importCollection = async (targetName: string, exportData: any) => {
+export const importCollection = async (
+  targetName: string,
+  exportData: unknown,
+) => {
   const res = await fetch("/api/import", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

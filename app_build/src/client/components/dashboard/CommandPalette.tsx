@@ -44,14 +44,14 @@ export function CommandPalette({
   if (!open) return null;
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Backdrop click handler
-    // biome-ignore lint/a11y/noStaticElementInteractions: Backdrop click handler
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Exception (Design) - UI component library constraint requires static elements for backdrop
+    // biome-ignore lint/a11y/noStaticElementInteractions: Exception (Design) - UI component library constraint requires static elements for backdrop
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
       onClick={() => setOpen(false)}
     >
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Stop propagation for modal content */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: Stop propagation for modal content */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Exception (Design) - Stop propagation constraint */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: Exception (Design) - Stop propagation constraint */}
       <div
         className="w-full max-w-2xl bg-background border border-border rounded-xl shadow-2xl overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
