@@ -1,7 +1,7 @@
 import { db, safeJsonParse } from "./connection";
 import { getActiveCollection } from "./settings";
 
-export interface DBMockVariant {
+interface DBMockVariant {
   id: string;
   request_id: string;
   name: string;

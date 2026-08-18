@@ -2,7 +2,7 @@ import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { Toaster } from "sonner";
 import "./index.css";
 
-export function App() {
+function App() {
   return (
     <>
       <DashboardLayout />

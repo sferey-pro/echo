@@ -77,25 +77,7 @@ export async function updateSetting(key: string, value: string): Promise<void> {
   }
 }
 
-export async function cloneCollection(
-  repoUrl: string,
-  force: boolean = false,
-): Promise<string> {
-  const response = await fetch("/api/repositories/clone", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ repoUrl, force }),
-  });
-  if (response.status === 409) {
-    throw new Error("EXISTS");
-  }
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Erreur lors du clonage du dépôt");
-  }
-  const data = await response.json();
-  return data.name;
-}
+
 
 export interface ScenarioAction {
   requestId: string;

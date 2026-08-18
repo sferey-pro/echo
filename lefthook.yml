@@ -1,0 +1,7 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      root: "app_build"
+      glob: "*.{js,ts,jsx,tsx}"
+      run: bunx lint-staged

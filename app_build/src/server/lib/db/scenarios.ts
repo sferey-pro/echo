@@ -3,7 +3,7 @@ import type { ScenarioAction } from "../../../client/lib/api";
 import { randomUUID } from "crypto";
 import { getActiveCollection } from "./settings";
 
-export interface DBScenario {
+interface DBScenario {
   id: string;
   name: string;
   actions: string; // JSON

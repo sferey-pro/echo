@@ -36,7 +36,7 @@ export interface ApiRequest {
   variants?: MockVariantDef[];
 }
 
-export interface BrunoVariable {
+interface BrunoVariable {
   name: string;
   value: string;
 }
