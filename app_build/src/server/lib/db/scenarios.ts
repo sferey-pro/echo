@@ -7,12 +7,16 @@ import { getActiveCollection } from "./settings";
 interface DBScenario {
   id: string;
   name: string;
+  description: string | null;
+  icon: string | null;
   actions: string; // JSON
 }
 
 export const getScenarios = (): {
   id: string;
   name: string;
+  description?: string;
+  icon?: string;
   actions: ScenarioAction[];
 }[] => {
   const collectionName = getActiveCollection();
@@ -24,6 +28,8 @@ export const getScenarios = (): {
   return results.map((row) => ({
     id: row.id,
     name: row.name,
+    description: row.description || undefined,
+    icon: row.icon || undefined,
     actions: safeJsonParse<ScenarioAction[]>(
       row.actions,
       [],
@@ -35,17 +41,21 @@ export const getScenarios = (): {
 export const createScenario = (
   id: string,
   name: string,
+  description: string | undefined,
+  icon: string | undefined,
   actions: ScenarioAction[],
 ) => {
   const collectionName = getActiveCollection();
   const query = db.query(`
- INSERT INTO scenarios (id, collection_name, name, actions) 
- VALUES ($id, $col, $name, $actions)
+ INSERT INTO scenarios (id, collection_name, name, description, icon, actions) 
+ VALUES ($id, $col, $name, $description, $icon, $actions)
  `);
   query.run({
     $id: id,
     $col: collectionName,
     $name: name,
+    $description: description || null,
+    $icon: icon || null,
     $actions: JSON.stringify(actions),
   });
 };
@@ -53,16 +63,20 @@ export const createScenario = (
 export const updateScenario = (
   id: string,
   name: string,
+  description: string | undefined,
+  icon: string | undefined,
   actions: ScenarioAction[],
 ) => {
   const collectionName = getActiveCollection();
   const query = db.query(`
- UPDATE scenarios SET name = $name, actions = $actions WHERE id = $id AND collection_name = $col
+ UPDATE scenarios SET name = $name, description = $description, icon = $icon, actions = $actions WHERE id = $id AND collection_name = $col
  `);
   query.run({
     $id: id,
     $col: collectionName,
     $name: name,
+    $description: description || null,
+    $icon: icon || null,
     $actions: JSON.stringify(actions),
   });
 };

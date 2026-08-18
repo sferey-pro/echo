@@ -8,6 +8,7 @@ Il permet d'importer une collection Bruno, de simuler les réponses de l'API (av
 - **Tableau de bord complet** : Interface React + Tailwind CSS + Shadcn UI pour gérer les requêtes.
 - **Support natif des collections Bruno** : L'application parse directement le dossier de votre collection Bruno et synchronise les changements dans une base de données locale SQLite.
 - **Mock Avancé** : Permet de définir plusieurs "variants" pour une même requête, d'ajouter de la latence, ou d'écraser des paramètres de route.
+- **Scénarios de test** : Interface Master-Detail complète avec éditeur Monaco intégré pour configurer rapidement des suites de réponses d'API (nom, icône, description, payloads personnalisés).
 - **Gestion Multi-Collections** : Permet de gérer plusieurs collections, de basculer d'une collection à l'autre via l'UI et d'exporter/importer une collection et son état de mock.
 - **Synchronisation Git** : Synchronise automatiquement votre collection Bruno depuis un dépôt Git.
 

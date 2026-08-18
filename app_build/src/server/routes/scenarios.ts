@@ -57,7 +57,7 @@ export async function handleScenariosRoute(
       }
 
       const id = `scenario-${crypto.randomUUID()}`;
-      createScenario(id, body.name, actionsToSave);
+      createScenario(id, body.name, body.description, body.icon, actionsToSave);
 
       return new Response(JSON.stringify({ success: true, id }), {
         headers: { "Content-Type": "application/json" },
@@ -129,7 +129,7 @@ export async function handleScenariosRoute(
           headers: {},
         });
 
-      updateScenario(id, body.name, body.actions);
+      updateScenario(id, body.name, body.description, body.icon, body.actions);
       return new Response(JSON.stringify({ success: true }), {
         headers: { "Content-Type": "application/json" },
       });

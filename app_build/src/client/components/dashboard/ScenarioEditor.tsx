@@ -1,24 +1,19 @@
+import { ArrowLeft, CheckCircle } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/client/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/client/components/ui/dialog";
 import { Input } from "@/client/components/ui/input";
 import { MethodBadge } from "@/client/components/ui/method-badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/client/components/ui/select";
 import type { ApiRequest } from "../../../shared/lib/parser";
 import type { Scenario, ScenarioAction } from "../../lib/api";
 import { fetchScenarios, updateScenario } from "../../lib/api";
+import { ScenarioRequestDetail } from "./ScenarioRequestDetail";
+import { ScenarioRequestList } from "./ScenarioRequestList";
 
 interface ScenarioEditorProps {
   scenarioId: string;
@@ -35,11 +30,16 @@ export function ScenarioEditor({
 }: ScenarioEditorProps) {
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState<string | undefined>("");
+  const [icon, setIcon] = useState<string | undefined>("");
   const [actions, setActions] = useState<ScenarioAction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -50,7 +50,12 @@ export function ScenarioEditor({
         if (sc) {
           setScenario(sc);
           setName(sc.name);
+          setDescription(sc.description);
+          setIcon(sc.icon);
           setActions(sc.actions);
+          if (sc.actions.length > 0) {
+            setSelectedIndex(0);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -62,9 +67,12 @@ export function ScenarioEditor({
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveSuccess(false);
     try {
-      await updateScenario(scenarioId, name, actions);
+      await updateScenario(scenarioId, name, description, icon, actions);
       onUpdate?.();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
       console.error(err);
     }
@@ -72,17 +80,26 @@ export function ScenarioEditor({
   };
 
   const addAction = (req: ApiRequest) => {
-    if (actions.find((a) => a.requestId === req.id)) return; // Already exists
+    if (actions.find((a) => a.requestId === req.id)) return;
     const newAction = {
       requestId: req.id,
       isMocked: true,
       statusCode: 200,
       latencyMs: 0,
-      payload: req.examples?.[0]?.response?.body?.data || "",
+      payload:
+        typeof req.examples?.[0]?.response?.body?.data === "string"
+          ? req.examples?.[0]?.response?.body?.data
+          : JSON.stringify(
+              req.examples?.[0]?.response?.body?.data || {},
+              null,
+              2,
+            ),
       selectedExample: req.examples?.[0]?.name || null,
       pathParamsOverrides: {},
     };
-    setActions([...actions, newAction]);
+    const newActions = [...actions, newAction];
+    setActions(newActions);
+    setSelectedIndex(newActions.length - 1);
     setSearchQuery("");
     setIsAdding(false);
   };
@@ -97,6 +114,11 @@ export function ScenarioEditor({
     const newActions = [...actions];
     newActions.splice(index, 1);
     setActions(newActions);
+    if (selectedIndex === index) {
+      setSelectedIndex(newActions.length > 0 ? 0 : null);
+    } else if (selectedIndex !== null && selectedIndex > index) {
+      setSelectedIndex(selectedIndex - 1);
+    }
   };
 
   const filteredRequests = requests
@@ -106,318 +128,146 @@ export function ScenarioEditor({
         (r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.url.toLowerCase().includes(searchQuery.toLowerCase())),
     )
-    .slice(0, 10);
+    .slice(0, 20);
 
   if (isLoading) {
     return (
-      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-5xl h-[85vh] p-0 flex items-center justify-center">
-          <p className="text-muted-foreground">Chargement...</p>
-        </DialogContent>
-      </Dialog>
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center">
+        <p className="text-muted-foreground">Chargement du scénario...</p>
+      </div>
     );
   }
 
   if (!scenario) {
     return (
-      <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-5xl h-[85vh] p-0 flex items-center justify-center">
-          <p className="text-muted-foreground">Scénario introuvable</p>
-        </DialogContent>
-      </Dialog>
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center">
+        <p className="text-muted-foreground mb-4">Scénario introuvable</p>
+        <Button onClick={onClose} variant="outline">
+          Retour
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl h-[85vh] p-0 flex flex-col overflow-hidden bg-background gap-0">
-        <DialogHeader className="p-4 border-b border-border bg-card/50 backdrop-blur-2xl z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 m-0 shrink-0">
-          <div className="flex-1 w-full text-left">
-            <DialogTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-              Éditer le scénario
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              Éditeur de scénario
-            </DialogDescription>
+    <div className="fixed inset-0 z-50 bg-background flex flex-col font-sans">
+      {/* Top Navigation Bar */}
+      <div className="h-14 border-b border-border bg-card flex items-center justify-between px-4 shrink-0 shadow-sm z-10">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Édition du scénario
+            </span>
             <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="text-xl font-bold text-foreground tracking-tight bg-transparent border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-primary px-2 py-1 h-9 w-full max-w-md transition-colors shadow-none"
+              className="text-sm font-bold text-foreground h-6 px-1 py-0 border-transparent hover:border-border focus-visible:ring-0 focus-visible:border-primary bg-transparent w-[300px] shadow-none -ml-1 transition-colors"
             />
           </div>
-          <div className="flex items-center gap-3 shrink-0 mr-6">
-            <Button
-              onClick={onClose}
-              variant="secondary"
-              size="sm"
-              className="h-8 text-xs px-3"
-            >
-              Fermer
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              size="sm"
-              className="h-8 text-xs px-3"
-            >
-              {isSaving ? "Sauvegarde..." : "Sauvegarder"}
-            </Button>
-          </div>
-        </DialogHeader>
+        </div>
 
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 z-10">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-foreground/80">
-              Requêtes Mockées ({actions.length})
-            </h3>
-            <Button
-              onClick={() => setIsAdding(!isAdding)}
-              variant={isAdding ? "secondary" : "default"}
-              size="sm"
-              className="h-8 text-xs px-3"
-            >
-              {isAdding ? "Annuler" : "+ Ajouter une requête"}
-            </Button>
-          </div>
-
-          {isAdding && (
-            <div className="bg-muted/50 border border-border rounded-lg p-3 flex flex-col gap-2">
-              <Input
-                autoFocus
-                type="text"
-                placeholder="Rechercher une requête (nom, url)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-                {filteredRequests.map((req) => (
-                  <button
-                    type="button"
-                    key={req.id}
-                    onClick={() => addAction(req)}
-                    className="flex flex-col items-start p-2 hover:bg-primary/10 rounded transition-colors text-left"
-                  >
-                    <span className="text-sm text-foreground font-medium">
-                      {req.name}
-                    </span>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <MethodBadge method={req.method} />
-                      <span className="text-xs text-muted-foreground font-mono">
-                        {req.url}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-                {filteredRequests.length === 0 && searchQuery && (
-                  <p className="text-xs text-muted-foreground text-center py-2">
-                    Aucune requête trouvée.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            {actions.length === 0 ? (
-              <div className="p-8 border border-dashed border-border rounded-xl text-center flex flex-col items-center">
-                <span className="text-3xl opacity-50 mb-2">👻</span>
-                <p className="text-sm text-muted-foreground">
-                  Ce scénario est vide.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Ajoutez des requêtes pour configurer leurs réponses.
-                </p>
-              </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            size="sm"
+            className="h-8 gap-2 px-4 shadow-sm"
+          >
+            {isSaving ? (
+              "Sauvegarde..."
+            ) : saveSuccess ? (
+              <>
+                <CheckCircle className="w-4 h-4" weight="bold" /> Sauvegardé
+              </>
             ) : (
-              actions.map((action, index) => {
-                const indexStr = String(index);
-                const req = requests.find((r) => r.id === action.requestId);
-                return (
-                  <div
-                    key={`action-${indexStr}`}
-                    className="bg-card border border-border rounded-xl overflow-hidden flex flex-col"
-                  >
-                    {/* Header de l'action */}
-                    <div className="p-3 bg-muted/30 flex items-center justify-between border-b border-border">
-                      <div className="flex flex-col gap-1 truncate pr-4">
-                        <span className="text-sm font-semibold text-foreground truncate">
-                          {req?.name || "Requête inconnue"}
-                        </span>
-                        {req && (
-                          <div className="flex items-center gap-2">
-                            <MethodBadge method={req.method} />
-                            <span className="text-[10px] text-muted-foreground font-mono truncate">
-                              {req.url}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        onClick={() => removeAction(index)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      >
-                        ×
-                      </Button>
-                    </div>
+              "Sauvegarder"
+            )}
+          </Button>
+        </div>
+      </div>
 
-                    {/* Contrôles Rapides */}
-                    <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold text-muted-foreground w-16">
-                          Statut
-                        </span>
-                        <Select
-                          value={action.statusCode.toString()}
-                          onValueChange={(v) =>
-                            updateAction(index, { statusCode: parseInt(v, 10) })
-                          }
-                        >
-                          <SelectTrigger className="w-full h-8 bg-background border-border text-xs font-medium text-foreground focus:ring-1 focus:ring-primary/50">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="200">🟢 200 OK</SelectItem>
-                            <SelectItem value="201">🟢 201 Created</SelectItem>
-                            <SelectItem value="204">
-                              🟢 204 No Content
-                            </SelectItem>
-                            <SelectItem value="400">
-                              🟠 400 Bad Request
-                            </SelectItem>
-                            <SelectItem value="401">
-                              🟠 401 Unauthorized
-                            </SelectItem>
-                            <SelectItem value="403">
-                              🟠 403 Forbidden
-                            </SelectItem>
-                            <SelectItem value="404">
-                              🟠 404 Not Found
-                            </SelectItem>
-                            <SelectItem value="500">
-                              🔴 500 Internal Error
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+      {/* Main Content: Split Pane */}
+      <div className="flex-1 flex overflow-hidden">
+        <ScenarioRequestList
+          actions={actions}
+          requests={requests}
+          selectedIndex={selectedIndex}
+          onSelect={setSelectedIndex}
+          onRemove={removeAction}
+          onAddClick={() => setIsAdding(true)}
+        />
 
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold text-muted-foreground w-16">
-                          Latence
-                        </span>
-                        <div className="flex-1 flex items-center gap-2">
-                          <input
-                            type="range"
-                            min="0"
-                            max="5000"
-                            step="50"
-                            value={action.latencyMs}
-                            onChange={(e) =>
-                              updateAction(index, {
-                                latencyMs: parseInt(e.target.value, 10),
-                              })
-                            }
-                            className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
-                          />
-                          <span className="text-[10px] font-mono text-primary w-10 text-right">
-                            {action.latencyMs}ms
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+        {selectedIndex !== null && actions[selectedIndex] ? (
+          <ScenarioRequestDetail
+            action={actions[selectedIndex]!}
+            request={requests.find(
+              (r) => r.id === actions[selectedIndex!]?.requestId,
+            )}
+            onUpdate={(updates) => updateAction(selectedIndex!, updates)}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center bg-muted/10 text-muted-foreground flex-col gap-4">
+            <span className="text-4xl opacity-20">👈</span>
+            <p>Sélectionnez ou ajoutez une requête pour commencer l'édition.</p>
+          </div>
+        )}
+      </div>
 
-                    {/* Variantes, Exemples & Payload */}
-                    <div className="p-3 pt-0 flex flex-col gap-2">
-                      {req?.variants && req.variants.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-muted-foreground w-16">
-                            Variante
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {req.variants.map((variant) => (
-                              <button
-                                type="button"
-                                key={variant.id}
-                                onClick={() =>
-                                  updateAction(index, {
-                                    statusCode: variant.statusCode,
-                                    latencyMs: variant.latencyMs,
-                                    selectedExample: variant.selectedExample,
-                                    payload: variant.payload,
-                                  })
-                                }
-                                className="text-[10px] px-2 py-1 rounded-md font-medium transition-all bg-muted text-muted-foreground hover:bg-accent border border-transparent"
-                                title={`Appliquer la variante: ${variant.statusCode} / ${variant.latencyMs}ms`}
-                              >
-                                {variant.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {req?.examples && req.examples.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-muted-foreground w-16">
-                            Exemple
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {req.examples.map((ex) => (
-                              <button
-                                type="button"
-                                key={ex.name}
-                                onClick={() =>
-                                  updateAction(index, {
-                                    selectedExample: ex.name,
-                                    payload: ex.response?.body?.data || "",
-                                  })
-                                }
-                                className={`text-[10px] px-2 py-1 rounded-md font-medium transition-all ${action.selectedExample === ex.name ? "bg-primary/20 text-primary border border-primary/30" : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"}`}
-                              >
-                                {ex.name}
-                              </button>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateAction(index, {
-                                  selectedExample: "custom",
-                                })
-                              }
-                              className={`text-[10px] px-2 py-1 rounded-md font-medium transition-all ${action.selectedExample === "custom" ? "bg-accent text-foreground border border-border" : "bg-muted text-muted-foreground hover:bg-accent border border-dashed border-border"}`}
-                            >
-                              Personnalisé
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-2">
-                        <span className="text-xs font-semibold text-muted-foreground mb-1 block">
-                          Payload (JSON)
-                        </span>
-                        <textarea
-                          value={action.payload}
-                          onChange={(e) =>
-                            updateAction(index, {
-                              payload: e.target.value,
-                              selectedExample: "custom",
-                            })
-                          }
-                          spellCheck={false}
-                          className="w-full h-24 bg-background border border-border rounded-md p-2 text-xs font-mono text-foreground focus:outline-none focus:border-primary/50 resize-y"
-                        />
-                      </div>
-                    </div>
+      {/* Add Request Modal */}
+      <Dialog open={isAdding} onOpenChange={setIsAdding}>
+        <DialogContent className="max-w-xl p-0 gap-0 rounded-xl overflow-hidden shadow-2xl border-border">
+          <DialogHeader className="p-4 border-b border-border bg-card">
+            <DialogTitle>Ajouter une requête au scénario</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 bg-muted/30">
+            <Input
+              autoFocus
+              type="text"
+              placeholder="Rechercher une requête (nom, url)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-background shadow-sm border-border h-10"
+            />
+          </div>
+          <div className="max-h-[400px] overflow-y-auto p-2 flex flex-col gap-1">
+            {filteredRequests.length > 0 ? (
+              filteredRequests.map((req) => (
+                <button
+                  type="button"
+                  key={req.id}
+                  onClick={() => addAction(req)}
+                  className="flex flex-col items-start p-3 hover:bg-primary/10 rounded-lg transition-colors text-left border border-transparent hover:border-primary/20"
+                >
+                  <span className="text-sm font-semibold text-foreground">
+                    {req.name}
+                  </span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <MethodBadge method={req.method} />
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      {req.url}
+                    </span>
                   </div>
-                );
-              })
+                </button>
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                Aucune requête correspondante.
+              </div>
             )}
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

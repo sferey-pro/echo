@@ -90,6 +90,8 @@ export interface ScenarioAction {
 export interface Scenario {
   id: string;
   name: string;
+  description?: string;
+  icon?: string;
   actions: ScenarioAction[];
 }
 
@@ -102,12 +104,14 @@ export async function fetchScenarios(): Promise<Scenario[]> {
 
 export async function createScenario(
   name: string,
+  description?: string,
+  icon?: string,
   actions?: ScenarioAction[],
 ): Promise<void> {
   const response = await fetch("/api/scenarios", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, actions }),
+    body: JSON.stringify({ name, description, icon, actions }),
   });
   if (!response.ok) throw new Error("Erreur lors de la création du scénario");
 }
@@ -124,12 +128,14 @@ export async function applyScenario(id: string): Promise<void> {
 export async function updateScenario(
   id: string,
   name: string,
+  description: string | undefined,
+  icon: string | undefined,
   actions: ScenarioAction[],
 ): Promise<void> {
   const response = await fetch(`/api/scenarios/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, actions }),
+    body: JSON.stringify({ name, description, icon, actions }),
   });
   if (!response.ok)
     throw new Error("Erreur lors de la mise à jour du scénario");

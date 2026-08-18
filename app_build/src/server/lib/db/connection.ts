@@ -158,6 +158,8 @@ migrateTable(
     id TEXT,
     collection_name TEXT,
     name TEXT,
+    description TEXT,
+    icon TEXT,
     actions TEXT,
     PRIMARY KEY (id, collection_name)
   );

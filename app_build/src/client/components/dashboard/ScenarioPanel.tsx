@@ -14,6 +14,13 @@ import {
   AlertDialogTrigger,
 } from "@/client/components/ui/alert-dialog";
 import { Button } from "@/client/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/client/components/ui/dialog";
 import { Input } from "@/client/components/ui/input";
 import type { Scenario } from "../../lib/api";
 import {
@@ -31,6 +38,8 @@ export function ScenarioPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState("");
+  const [newScenarioIcon, setNewScenarioIcon] = useState("");
+  const [newScenarioDescription, setNewScenarioDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
   const loadScenarios = useCallback(async () => {
@@ -53,8 +62,15 @@ export function ScenarioPanel() {
     if (!newScenarioName.trim()) return;
     setIsSaving(true);
     try {
-      await createScenario(newScenarioName.trim(), []);
+      await createScenario(
+        newScenarioName.trim(),
+        newScenarioDescription.trim() || undefined,
+        newScenarioIcon.trim() || undefined,
+        [],
+      );
       setNewScenarioName("");
+      setNewScenarioIcon("");
+      setNewScenarioDescription("");
       setIsCreating(false);
       await loadScenarios();
       toast.success("Scénario créé avec succès");
@@ -107,33 +123,67 @@ export function ScenarioPanel() {
         </Button>
       </div>
 
-      {isCreating && (
-        <form
-          onSubmit={handleSaveCurrent}
-          className="p-3 border-b border-border bg-muted flex flex-col gap-2"
-        >
-          <p className="text-xs text-muted-foreground">
-            Créer un nouveau scénario vide.
-          </p>
-          <div className="flex gap-2">
-            <Input
-              autoFocus
-              type="text"
-              placeholder="Nom du scénario (ex: Parcours 500)"
-              value={newScenarioName}
-              onChange={(e) => setNewScenarioName(e.target.value)}
-            />
-            <Button
-              type="submit"
-              disabled={isSaving || !newScenarioName.trim()}
-              size="sm"
-              className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {isSaving ? "..." : "Save"}
-            </Button>
-          </div>
-        </form>
-      )}
+      <Dialog open={isCreating} onOpenChange={setIsCreating}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouveau Scénario</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={handleSaveCurrent}
+            className="flex flex-col gap-4 mt-2"
+          >
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Nom
+              </label>
+              <Input
+                autoFocus
+                type="text"
+                placeholder="Ex: Parcours 500"
+                value={newScenarioName}
+                onChange={(e) => setNewScenarioName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Icône (emoji)
+              </label>
+              <Input
+                type="text"
+                placeholder="Ex: 👻"
+                value={newScenarioIcon}
+                onChange={(e) => setNewScenarioIcon(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Description
+              </label>
+              <Input
+                type="text"
+                placeholder="Brève description..."
+                value={newScenarioDescription}
+                onChange={(e) => setNewScenarioDescription(e.target.value)}
+              />
+            </div>
+            <DialogFooter className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreating(false)}
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSaving || !newScenarioName.trim()}
+              >
+                {isSaving ? "Création..." : "Créer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {isLoading ? (
@@ -162,19 +212,38 @@ export function ScenarioPanel() {
                 <button
                   type="button"
                   onClick={() => setSelectedScenarioId(scenario.id)}
-                  className="flex-1 text-sm font-bold text-foreground flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                  className="flex-1 text-sm font-bold text-foreground flex flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                 >
-                  <MaskHappy
-                    className={`w-5 h-5 shrink-0 transition-colors ${
-                      selectedScenarioId === scenario.id
-                        ? "text-primary"
-                        : "text-muted-foreground group-hover:text-primary/70"
-                    }`}
-                    weight={
-                      selectedScenarioId === scenario.id ? "fill" : "duotone"
-                    }
-                  />{" "}
-                  <span className="truncate">{scenario.name}</span>
+                  <div className="flex items-center gap-2">
+                    {scenario.icon ? (
+                      <span className="text-lg leading-none">
+                        {scenario.icon}
+                      </span>
+                    ) : (
+                      <MaskHappy
+                        className={`w-5 h-5 shrink-0 transition-colors ${
+                          selectedScenarioId === scenario.id
+                            ? "text-primary"
+                            : "text-muted-foreground group-hover:text-primary/70"
+                        }`}
+                        weight={
+                          selectedScenarioId === scenario.id
+                            ? "fill"
+                            : "duotone"
+                        }
+                      />
+                    )}
+                    <span className="truncate">{scenario.name}</span>
+                  </div>
+                  {scenario.description && (
+                    <span className="text-xs text-muted-foreground font-normal line-clamp-1">
+                      {scenario.description}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">
+                    {scenario.actions?.length || 0} requête
+                    {scenario.actions?.length !== 1 ? "s" : ""}
+                  </span>
                 </button>
               </div>
 

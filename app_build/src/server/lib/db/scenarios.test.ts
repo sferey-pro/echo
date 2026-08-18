@@ -13,7 +13,7 @@ describe("Database - Scenarios", () => {
   });
 
   it("should create and get scenarios", () => {
-    createScenario("sc1", "My Scenario", [
+    createScenario("sc1", "My Scenario", undefined, undefined, [
       {
         requestId: "req-1",
         isMocked: true,
@@ -34,8 +34,8 @@ describe("Database - Scenarios", () => {
   });
 
   it("should update and delete a scenario", () => {
-    createScenario("sc2", "Old", []);
-    updateScenario("sc2", "Updated", []);
+    createScenario("sc2", "Old", undefined, undefined, []);
+    updateScenario("sc2", "Updated", undefined, undefined, []);
 
     let scenarios = getScenarios();
     expect(scenarios[0]?.name).toBe("Updated");
