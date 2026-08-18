@@ -7,6 +7,7 @@ Echo est un **outil de Mocking d'API** performant conçu pour les développeurs 
 *   **Runtime & Package Manager** : [Bun](https://bun.sh/)
 *   **Frontend** : [React 19](https://react.dev/)
 *   **Styling** : [Tailwind CSS](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/) (Design moderne et épuré, liste plate, éditeur Monaco sombre)
+*   **Validation & Typage** : [Zod](https://zod.dev/) et politique "Zéro Warning" (Typage strict bout-en-bout, aucun `any` toléré).
 
 ## 📂 Structure du projet
 *   `app_build/` : Contient le code source de l'application web React et la base de données locale.

@@ -14,6 +14,16 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Configuration de l'environnement de test avec `happy-dom` et `@testing-library/react`.
 - Définition complète de la pipeline Agentic (`.agents/`), incluant l'adaptation à Bun.
 - Création de la documentation principale (README, CONTEXT, ISSUES, CHANGELOG).
+- Intégration de **Zod** pour la validation à l'exécution (runtime validation) et la garantie du typage bout-en-bout.
+
+### Corrigé
+- Bug d'interface (React "Maximum update depth exceeded") résolu.
+- Résolution de la boucle infinie d'appels (GET HTTP) sur l'API des Scénarios.
+
+### Sécurité et Qualité
+- Mise en place d'une politique stricte **"Zéro Warning"**.
+- Éradication totale des types `any` de la base de code (remplacement par des types stricts ou `unknown`).
+- Refonte des configurations de linting (`biome.json`) pour un contrôle rigoureux du code source tout en exemptant intelligemment les fichiers de test.
 
 ### Modifié
 - Refonte ergonomique et visuelle de l'interface : passage d'un style néo-brutaliste à une interface moderne en liste plate.
