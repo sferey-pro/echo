@@ -111,3 +111,18 @@ export const getCollectionFromDb = () => {
 
   return { requests, folders, environments };
 };
+
+export const cleanupObsoleteItems = () => {
+  const collectionName = getActiveCollection();
+  db.query("DELETE FROM bruno_requests WHERE is_obsolete = 1 AND collection_name = $col").run({ $col: collectionName });
+  db.query("DELETE FROM bruno_folders WHERE is_obsolete = 1 AND collection_name = $col").run({ $col: collectionName });
+  db.query("DELETE FROM bruno_environments WHERE is_obsolete = 1 AND collection_name = $col").run({ $col: collectionName });
+  
+  db.query(
+    "DELETE FROM mock_variants WHERE collection_name = $col AND request_id NOT IN (SELECT id FROM bruno_requests WHERE collection_name = $col)"
+  ).run({ $col: collectionName });
+  
+  db.query(
+    "DELETE FROM request_meta WHERE collection_name = $col AND request_id NOT IN (SELECT id FROM bruno_requests WHERE collection_name = $col)"
+  ).run({ $col: collectionName });
+};
