@@ -41,6 +41,15 @@ export function DashboardLayout() {
   const [isEnvViewerOpen, setIsEnvViewerOpen] = useState(false);
   const [splashAnimationDone, setSplashAnimationDone] = useState(false);
 
+  const initialLoadDone = React.useRef(false);
+
+  useEffect(() => {
+    if (!initialLoadDone.current) {
+      loadCollection();
+      initialLoadDone.current = true;
+    }
+  }, [loadCollection]);
+
   useEffect(() => {
     if (
       selectedRequestId &&

@@ -64,7 +64,7 @@ export function SplashScreen({ onComplete }: { onComplete?: () => void }) {
           </div>
           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary transition-all duration-75"
+              className="h-full bg-primary"
               style={{ width: `${progress}%` }}
             />
           </div>
