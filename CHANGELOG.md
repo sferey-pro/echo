@@ -24,6 +24,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Mise en place d'une politique stricte **"Zéro Warning"**.
 - Éradication totale des types `any` de la base de code (remplacement par des types stricts ou `unknown`).
 - Refonte des configurations de linting (`biome.json`) pour un contrôle rigoureux du code source tout en exemptant intelligemment les fichiers de test.
+- Ajout d'une suite exhaustive de tests unitaires et UI pour les composants complexes (Éditeur de scénarios, Variante, Command Palette, Settings) afin de bloquer toute régression visuelle ou logique.
 
 ### Modifié
 - Refonte ergonomique et visuelle de l'interface : passage d'un style néo-brutaliste à une interface moderne en liste plate.

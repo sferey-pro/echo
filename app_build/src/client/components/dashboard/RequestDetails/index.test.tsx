@@ -60,7 +60,7 @@ describe("Component: RequestDetails", () => {
     });
 
     render(<RequestDetails />);
-    screen.debug();
+
     expect(screen.getByText("Get User")).toBeTruthy();
     expect(screen.getByText("/users/:id")).toBeTruthy();
     expect(screen.getAllByText("GET").length).toBeGreaterThan(0);

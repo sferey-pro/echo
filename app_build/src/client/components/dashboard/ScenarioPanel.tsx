@@ -1,4 +1,4 @@
-import { MaskHappy } from "@phosphor-icons/react";
+import { MaskHappy, Play, Trash } from "@phosphor-icons/react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -150,45 +150,52 @@ export function ScenarioPanel() {
           </div>
         ) : (
           scenarios.map((scenario) => (
-            <button
-              type="button"
+            <div
               key={scenario.id}
-              onClick={() => setSelectedScenarioId(scenario.id)}
-              className={`group flex flex-col hover:bg-accent border rounded-lg p-3 transition-colors cursor-pointer w-full text-left bg-transparent ${selectedScenarioId === scenario.id ? "bg-accent border-primary/50" : "bg-card border-border"}`}
+              className={`group flex flex-col hover:bg-accent/50 border rounded-lg p-3 transition-colors w-full text-left bg-transparent ${
+                selectedScenarioId === scenario.id
+                  ? "bg-accent border-primary/50 shadow-sm"
+                  : "bg-card border-border"
+              }`}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-black text-foreground flex items-center gap-2">
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedScenarioId(scenario.id)}
+                  className="flex-1 text-sm font-bold text-foreground flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                >
                   <MaskHappy
-                    className="w-4 h-4 mr-1.5 text-primary"
-                    weight="fill"
+                    className={`w-5 h-5 shrink-0 transition-colors ${
+                      selectedScenarioId === scenario.id
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-primary/70"
+                    }`}
+                    weight={
+                      selectedScenarioId === scenario.id ? "fill" : "duotone"
+                    }
                   />{" "}
-                  {scenario.name}
-                </span>
+                  <span className="truncate">{scenario.name}</span>
+                </button>
               </div>
 
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 items-center">
                 <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleApply(scenario.id);
-                  }}
-                  className="flex-1 h-7 text-xs"
+                  onClick={() => handleApply(scenario.id)}
+                  className="flex-1 h-8 text-xs shadow-sm font-semibold"
                   size="sm"
                 >
-                  ▶ Appliquer
+                  <Play weight="fill" className="w-3.5 h-3.5 mr-1.5" />{" "}
+                  Appliquer
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                       title="Supprimer"
                     >
-                      ×
+                      <Trash className="w-4 h-4" weight="bold" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="shadow-lg rounded-xl">
@@ -217,7 +224,7 @@ export function ScenarioPanel() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-            </button>
+            </div>
           ))
         )}
       </div>
