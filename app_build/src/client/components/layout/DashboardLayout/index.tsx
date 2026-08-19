@@ -8,6 +8,16 @@ import { EnvironmentViewerModal } from "../../dashboard/EnvironmentViewerModal";
 import { RequestDetails } from "../../dashboard/RequestDetails";
 import { ScenarioEditor } from "../../dashboard/ScenarioEditor";
 import { SettingsModal } from "../../dashboard/SettingsModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../ui/alert-dialog";
 import { Button } from "../../ui/button";
 import { SplashScreen } from "../SplashScreen";
 import { FolderContent } from "./FolderContent";
@@ -30,6 +40,9 @@ export function DashboardLayout() {
     setSelectedRequestId,
     setSelectedScenarioId,
     loadCollection,
+    pendingNavigationRequestId,
+    confirmNavigation,
+    cancelNavigation,
   } = useStore();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -219,6 +232,23 @@ export function DashboardLayout() {
         environments={environments}
         activeEnvironmentName={activeEnvironment}
       />
+
+      <AlertDialog open={!!pendingNavigationRequestId} onOpenChange={(open) => !open && cancelNavigation()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Modifications non sauvegardées</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous avez des modifications en cours sur cette requête. Si vous changez de page, elles seront définitivement perdues. Voulez-vous vraiment continuer ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelNavigation}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmNavigation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Quitter sans sauvegarder
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

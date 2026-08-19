@@ -9,7 +9,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useStore } from "../../../store/useStore";
 import { RequestDetails } from "./index";
 
-
 describe("Component: RequestDetails", () => {
   beforeEach(() => {
     useStore.setState({

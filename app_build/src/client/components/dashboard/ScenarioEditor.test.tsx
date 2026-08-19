@@ -27,7 +27,6 @@ mock.module("../../lib/api", () => ({
   updateScenario: mock(() => Promise.resolve()),
 }));
 
-
 describe("Component: ScenarioEditor", () => {
   const mockRequests: ApiRequest[] = [
     {

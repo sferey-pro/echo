@@ -1,5 +1,5 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import type { ApiRequest } from "../../../../shared/lib/parser";
 import {
@@ -9,9 +9,25 @@ import {
   updateRequestMeta,
 } from "../../../lib/api";
 import { useStore } from "../../../store/useStore";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../ui/alert-dialog";
 import { RequestHeader } from "./RequestHeader";
 import { VariantEditor } from "./VariantEditor";
 import { VariantSelector } from "./VariantSelector";
+
+const getPayloadString = (data: unknown) => {
+  if (typeof data === "string") return data;
+  if (data === null || data === undefined) return "";
+  return JSON.stringify(data, null, 2);
+};
 
 export function RequestDetails() {
   const {
@@ -21,6 +37,8 @@ export function RequestDetails() {
     selectedRequestId,
     loadCollection,
     updateLocalVariant,
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
   } = useStore();
 
   const request = requests.find((r) => r.id === selectedRequestId) || null;
@@ -42,12 +60,6 @@ export function RequestDetails() {
 
   const activeVariant = variants.find((v) => v.id === activeVariantId) || null;
 
-  const getPayloadString = (data: unknown) => {
-    if (typeof data === "string") return data;
-    if (data === null || data === undefined) return "";
-    return JSON.stringify(data, null, 2);
-  };
-
   const defaultExamplePayload = getPayloadString(
     request?.examples?.[0]?.response?.body?.data,
   );
@@ -68,12 +80,22 @@ export function RequestDetails() {
   const [pathParamsOverrides, setPathParamsOverrides] = useState<
     Record<string, string>
   >(activeVariant?.pathParamsOverrides || {});
-  const [savingAction, setSavingAction] = useState<"toggle" | "payload" | "status" | "latency" | "pathParams" | "example" | null>(null);
+  const [savingAction, setSavingAction] = useState<
+    | "toggle"
+    | "payload"
+    | "status"
+    | "latency"
+    | "pathParams"
+    | "example"
+    | null
+  >(null);
+  const [pendingVariantId, setPendingVariantId] = useState<string | null>(null);
 
-  // Sync local states when active variant changes
+  // Initialize local states ONLY when active variant ID changes
+  const prevVariantIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (activeVariant) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (activeVariant && activeVariant.id !== prevVariantIdRef.current) {
       setPayload(
         activeVariant.payload ??
           getPayloadString(request?.examples?.[0]?.response?.body?.data),
@@ -86,9 +108,37 @@ export function RequestDetails() {
       setStatusCode(activeVariant.statusCode ?? 200);
       setLatencyMs(activeVariant.latencyMs ?? 0);
       setPathParamsOverrides(activeVariant.pathParamsOverrides || {});
+      prevVariantIdRef.current = activeVariant.id;
+      setHasUnsavedChanges(false);
     }
-    // biome-ignore lint/correctness/useExhaustiveDependencies: Exception (React constraint) - Intentionally omitting deps to prevent infinite loops or overwriting local state
-  }, [request, activeVariant, getPayloadString]);
+  }, [activeVariant, request, setHasUnsavedChanges]);
+
+  // Calculate hasUnsavedChanges dynamically
+  const hasUnsavedChangesLocal = useMemo(() => {
+    if (!activeVariant) return false;
+    const basePayload =
+      activeVariant.payload ??
+      getPayloadString(request?.examples?.[0]?.response?.body?.data);
+    if (payload !== basePayload) return true;
+    if (statusCode !== (activeVariant.statusCode ?? 200)) return true;
+    if (
+      JSON.stringify(pathParamsOverrides) !==
+      JSON.stringify(activeVariant.pathParamsOverrides || {})
+    )
+      return true;
+    return false;
+  }, [
+    activeVariant,
+    payload,
+    statusCode,
+    pathParamsOverrides,
+    request,
+  ]);
+
+  // Sync local unsaved changes with global store
+  useEffect(() => {
+    setHasUnsavedChanges(hasUnsavedChangesLocal);
+  }, [hasUnsavedChangesLocal, setHasUnsavedChanges]);
 
   const urlParams = useMemo(() => {
     if (!request?.url) return { variables: [], pathParams: [] };
@@ -202,86 +252,29 @@ export function RequestDetails() {
     }
   };
 
-  const handleStatusChange = async (newCode: number) => {
+  const handleLatencySave = async (newLatency: number) => {
     if (!activeVariant || !request) return;
+    try {
+      const updates = { latencyMs: newLatency };
+      await updateMockVariant(activeVariant.id, updates);
+      updateLocalVariant(request.id, activeVariant.id, updates);
+    } catch (e: unknown) {
+      toast.error(`Erreur de sauvegarde de latence`);
+    }
+  };
+
+  const handleStatusChange = (newCode: number) => {
     setStatusCode(newCode);
-    setSavingAction("status");
-    try {
-      await checkAndResolveConflicts(
-        activeVariant.isMocked,
-        pathParamsOverrides,
-      );
-
-      const updates = {
-        statusCode: newCode,
-        payload,
-        selectedExample,
-        latencyMs,
-        pathParamsOverrides,
-      };
-      await updateMockVariant(activeVariant.id, updates);
-      updateLocalVariant(request.id, activeVariant.id, updates);
-    } catch (err: unknown) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Erreur lors du changement de statut",
-      );
-    } finally {
-      setSavingAction(null);
-    }
   };
 
-  const handleLatencyChange = async (newLatency: number) => {
-    if (!activeVariant || !request) return;
-    setSavingAction("latency");
-    try {
-      const updates = {
-        latencyMs: newLatency,
-        payload,
-        selectedExample,
-        statusCode,
-        pathParamsOverrides,
-      };
-      await updateMockVariant(activeVariant.id, updates);
-      updateLocalVariant(request.id, activeVariant.id, updates);
-    } catch (err: unknown) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Erreur lors du changement de latence",
-      );
-    } finally {
-      setSavingAction(null);
-    }
+  const handleLatencyChange = (newLatency: number) => {
+    setLatencyMs(newLatency);
   };
 
-  const _handleParamChange = async (key: string, value: string) => {
-    if (!activeVariant || !request) return;
+  const _handleParamChange = (key: string, value: string) => {
     const newOverrides = { ...pathParamsOverrides, [key]: value };
     if (!value) delete newOverrides[key];
     setPathParamsOverrides(newOverrides);
-
-    setSavingAction("pathParams");
-    try {
-      const updates = {
-        pathParamsOverrides: newOverrides,
-        payload,
-        selectedExample,
-        statusCode,
-        latencyMs,
-      };
-      await updateMockVariant(activeVariant.id, updates);
-      updateLocalVariant(request.id, activeVariant.id, updates);
-    } catch (err: unknown) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Erreur lors de la mise à jour des paramètres",
-      );
-    } finally {
-      setSavingAction(null);
-    }
   };
 
   const handleExampleClick = async (
@@ -302,7 +295,6 @@ export function RequestDetails() {
         payload: newPayload,
         selectedExample: ex.name,
         statusCode: newStatus,
-        latencyMs,
         pathParamsOverrides,
       };
       await updateMockVariant(activeVariant.id, updates);
@@ -446,7 +438,13 @@ export function RequestDetails() {
           <VariantSelector
             variants={variants}
             activeVariantId={activeVariant.id}
-            onVariantChange={setActiveVariantId}
+            onVariantChange={(id) => {
+              if (hasUnsavedChangesLocal) {
+                setPendingVariantId(id);
+              } else {
+                setActiveVariantId(id);
+              }
+            }}
             isSaving={savingAction === "toggle"}
             onCreateVariant={submitCreateVariant}
             onDeleteVariant={handleDeleteVariant}
@@ -458,18 +456,23 @@ export function RequestDetails() {
       <VariantEditor
         request={request}
         activeVariant={activeVariant}
+        hasUnsavedChanges={hasUnsavedChangesLocal}
         isTogglingMock={savingAction === "toggle"}
-          isSavingPayload={savingAction === "payload"}
+        isSavingPayload={savingAction === "payload"}
         onToggleMock={handleToggleMock}
         onSavePayload={handleSavePayload}
         statusCode={statusCode}
         onStatusChange={handleStatusChange}
         latencyMs={latencyMs}
         onLatencyChange={handleLatencyChange}
+        onLatencySave={handleLatencySave}
         selectedExample={selectedExample}
         onExampleChange={(exName) => {
           if (exName === "custom") {
             setSelectedExample("custom");
+            setPayload(activeVariant?.payload ?? defaultExamplePayload);
+            setStatusCode(activeVariant?.statusCode ?? 200);
+            // On ne sauvegarde pas, on restaure juste le brouillon depuis la base (ce qui annule les modifications non sauvegardées).
           } else {
             const ex = request.examples?.find((e) => e.name === exName);
             if (ex) handleExampleClick(ex);
@@ -478,11 +481,27 @@ export function RequestDetails() {
         payload={payload}
         onPayloadChange={handlePayloadChange}
         defaultExamplePayload={defaultExamplePayload}
-        onResetPayload={() => {
-          setPayload(defaultExamplePayload);
-          setSelectedExample(request.examples?.[0]?.name || "custom");
-        }}
       />
+
+      <AlertDialog open={!!pendingVariantId} onOpenChange={(open) => !open && setPendingVariantId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Modifications non sauvegardées</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous avez des modifications en cours. Si vous changez de variante, elles seront perdues. Voulez-vous continuer ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingVariantId(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => { setActiveVariantId(pendingVariantId); setPendingVariantId(null); }} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Changer de variante
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

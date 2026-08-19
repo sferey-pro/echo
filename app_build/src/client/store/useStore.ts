@@ -18,6 +18,8 @@ interface AppState {
   selectedFolderId: string | null;
   selectedScenarioId: string | null;
   activeEnvironment: string;
+  hasUnsavedChanges: boolean;
+  pendingNavigationRequestId: string | null;
 
   // Loading State
   isLoading: boolean;
@@ -38,6 +40,10 @@ interface AppState {
   setSelectedFolderId: (id: string | null) => void;
   setSelectedScenarioId: (id: string | null) => void;
   setActiveEnvironment: (env: string) => void;
+  setHasUnsavedChanges: (val: boolean) => void;
+  setPendingNavigationRequestId: (id: string | null) => void;
+  confirmNavigation: () => void;
+  cancelNavigation: () => void;
 
   // Thunks
   loadCollection: (forceLoader?: boolean) => Promise<void>;
@@ -52,6 +58,8 @@ export const useStore = create<AppState>((set, get) => ({
   selectedFolderId: null,
   selectedScenarioId: null,
   activeEnvironment: "",
+  hasUnsavedChanges: false,
+  pendingNavigationRequestId: null,
 
   isLoading: true,
   isError: false,
@@ -83,7 +91,23 @@ export const useStore = create<AppState>((set, get) => ({
       }),
     })),
 
-  setSelectedRequestId: (id) => set({ selectedRequestId: id }),
+  setHasUnsavedChanges: (val) => set({ hasUnsavedChanges: val }),
+  setPendingNavigationRequestId: (id) => set({ pendingNavigationRequestId: id }),
+  confirmNavigation: () => {
+    const state = get();
+    if (state.pendingNavigationRequestId) {
+      set({ selectedRequestId: state.pendingNavigationRequestId, hasUnsavedChanges: false, pendingNavigationRequestId: null });
+    }
+  },
+  cancelNavigation: () => set({ pendingNavigationRequestId: null }),
+  setSelectedRequestId: (id) => {
+    const state = get();
+    if (state.hasUnsavedChanges && state.selectedRequestId !== id && id !== null) {
+      set({ pendingNavigationRequestId: id });
+      return;
+    }
+    set({ selectedRequestId: id, hasUnsavedChanges: false });
+  },
   setSelectedFolderId: (id) => set({ selectedFolderId: id }),
   setSelectedScenarioId: (id) => set({ selectedScenarioId: id }),
 

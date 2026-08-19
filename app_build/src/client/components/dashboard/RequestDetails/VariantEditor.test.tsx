@@ -3,7 +3,6 @@ import type { ApiRequest } from "../../../../shared/lib/parser";
 import { fireEvent, render, screen } from "../../../test-utils";
 import { VariantEditor } from "./VariantEditor";
 
-
 describe("Component: VariantEditor", () => {
   const mockRequest = {
     id: "req1",
@@ -41,12 +40,13 @@ describe("Component: VariantEditor", () => {
     onStatusChange: mock(),
     latencyMs: 100,
     onLatencyChange: mock(),
+    onLatencySave: mock(),
     selectedExample: "Success",
     onExampleChange: mock(),
     payload: '{"status":"ok"}',
+    hasUnsavedChanges: false,
     onPayloadChange: mock(),
     defaultExamplePayload: '{"status":"ok"}',
-    onResetPayload: mock(),
   };
 
   beforeEach(() => {
@@ -56,7 +56,6 @@ describe("Component: VariantEditor", () => {
     (defaultProps.onLatencyChange as ReturnType<typeof mock>).mockClear();
     (defaultProps.onExampleChange as ReturnType<typeof mock>).mockClear();
     (defaultProps.onPayloadChange as ReturnType<typeof mock>).mockClear();
-    (defaultProps.onResetPayload as ReturnType<typeof mock>).mockClear();
   });
 
   it("renders correctly with provided props", () => {
@@ -90,10 +89,6 @@ describe("Component: VariantEditor", () => {
   it("renders modified payload state correctly", () => {
     render(<VariantEditor {...defaultProps} payload='{"status":"modified"}' />);
     expect(screen.getByText("Surchargé Localement")).toBeDefined();
-
-    const resetBtn = screen.getByText(/Recharger l'original/i);
-    fireEvent.click(resetBtn);
-    expect(defaultProps.onResetPayload).toHaveBeenCalled();
   });
 
   it("updates payload via editor", () => {

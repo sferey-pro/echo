@@ -1,4 +1,3 @@
-
 import { MethodBadge } from "@/client/components/ui/method-badge";
 import {
   Select,
@@ -30,9 +29,10 @@ export function ScenarioRequestDetail({
   });
 
   useEffect(() => {
-    const extStr = typeof action.payload === "string" 
-      ? action.payload 
-      : JSON.stringify(action.payload || {}, null, 2);
+    const extStr =
+      typeof action.payload === "string"
+        ? action.payload
+        : JSON.stringify(action.payload || {}, null, 2);
     setLocalPayload(extStr);
   }, [action.payload]);
 
@@ -211,15 +211,19 @@ export function ScenarioRequestDetail({
               <h3 className="text-sm font-semibold text-foreground">
                 Payload (JSON)
               </h3>
-              {action.selectedExample && action.selectedExample !== "custom" && (
-                <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                  Exemple actif : {action.selectedExample}
-                </span>
-              )}
+              {action.selectedExample &&
+                action.selectedExample !== "custom" && (
+                  <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                    Exemple actif : {action.selectedExample}
+                  </span>
+                )}
             </div>
-            
+
             <div className="flex items-center gap-3">
-              {localPayload !== (typeof action.payload === "string" ? action.payload : JSON.stringify(action.payload || {}, null, 2)) && (
+              {localPayload !==
+                (typeof action.payload === "string"
+                  ? action.payload
+                  : JSON.stringify(action.payload || {}, null, 2)) && (
                 <>
                   <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
                     Modification non sauvegardée
@@ -239,12 +243,19 @@ export function ScenarioRequestDetail({
               )}
             </div>
           </div>
-          
-          <div className={`flex-1 border rounded-xl overflow-hidden shadow-sm h-full transition-colors ${
-            localPayload !== (typeof action.payload === "string" ? action.payload : JSON.stringify(action.payload || {}, null, 2))
-              ? "border-amber-500/50 ring-1 ring-amber-500/20"
-              : "border-border"
-          }`}>
+
+          <div
+            className={`flex-1 border rounded-xl overflow-hidden shadow-sm h-full transition-colors ${
+              localPayload !==
+              (
+                typeof action.payload === "string"
+                  ? action.payload
+                  : JSON.stringify(action.payload || {}, null, 2)
+              )
+                ? "border-amber-500/50 ring-1 ring-amber-500/20"
+                : "border-border"
+            }`}
+          >
             <div data-testid="monaco-mock" className="w-full h-full">
               <JsonEditor
                 value={localPayload}
