@@ -1,11 +1,14 @@
 import { Toaster } from "sonner";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { DebugPage } from "./DebugPage";
 import "./index.css";
 
 function App() {
+  const isDebug = window.location.pathname === "/debug";
+
   return (
     <>
-      <DashboardLayout />
+      {isDebug ? <DebugPage /> : <DashboardLayout />}
       <Toaster
         position="bottom-right"
         toastOptions={{

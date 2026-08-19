@@ -37,6 +37,7 @@ const startServer = () => {
         : {
             "/echo-logo.jpg": Bun.file("./public/echo-logo.jpg"),
             "/": index,
+            "/debug": index,
             "/_hmr": index,
           },
 

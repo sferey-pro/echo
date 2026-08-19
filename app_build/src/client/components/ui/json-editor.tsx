@@ -1,15 +1,5 @@
-import Prism from "prismjs";
-import "prismjs/components/prism-json";
-import "prismjs/themes/prism-tomorrow.css"; // Un thème sombre élégant
+import Editor from "@monaco-editor/react";
 import { useState } from "react";
-import EditorModule from "react-simple-code-editor";
-
-// Gérer l'export ESM/CJS de Vite/Bun
-const EditorObj = (EditorModule as any).default || EditorModule;
-
-const Editor = (props: any) => {
-  return <EditorObj {...props} />;
-};
 
 interface JsonEditorProps {
   value: string;
@@ -28,30 +18,53 @@ export function JsonEditor({
 
   return (
     <div
-      className={`relative w-full h-full bg-[#1d1f21] rounded-xl overflow-hidden transition-all duration-200 ${
+      className={`relative w-full h-full bg-[#1e1e1e] rounded-xl overflow-hidden transition-all duration-200 ${
         isFocused ? "ring-2 ring-primary" : "ring-1 ring-border"
       } ${className}`}
+      onFocus={() => setIsFocused(true)}
+      onBlur={(e) => {
+        // Only blur if the focus is completely outside the editor container
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setIsFocused(false);
+        }
+      }}
     >
-      <div className="absolute top-0 left-0 w-full h-full overflow-auto custom-scrollbar">
+      <div className="absolute top-0 left-0 w-full h-full py-2">
         <Editor
+          height="100%"
+          defaultLanguage="json"
           value={value}
-          onValueChange={onChange}
-          highlight={(code: string) =>
-            Prism.highlight(code, Prism.languages.json!, "json")
+          onChange={(val) => onChange(val || "")}
+          theme="vs-dark"
+          loading={
+            <div className="flex w-full h-full items-center justify-center text-xs text-slate-500">
+              Chargement de l'éditeur...
+            </div>
           }
-          padding={16}
-          disabled={readOnly}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          style={{
+          options={{
+            readOnly,
+            minimap: { enabled: false },
+            fontSize: 13,
             fontFamily:
               '"Fira Code", "JetBrains Mono", "SF Mono", Consolas, monospace',
-            fontSize: 14,
-            minHeight: "100%",
-            color: "#c5c8c6", // Base color pour le texte
+            wordWrap: "on",
+            formatOnPaste: true,
+            formatOnType: true,
+            scrollBeyondLastLine: false,
+            lineNumbers: "on",
+            folding: true,
+            renderLineHighlight: "all",
+            padding: { top: 8, bottom: 8 },
+            tabSize: 2,
+            scrollbar: {
+              vertical: "visible",
+              horizontal: "hidden",
+              verticalScrollbarSize: 8,
+              useShadows: false,
+            },
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
           }}
-          className="min-h-full"
-          textareaClassName="focus:outline-none"
         />
       </div>
     </div>
