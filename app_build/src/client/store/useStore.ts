@@ -90,7 +90,7 @@ export const useStore = create<AppState>((set, get) => ({
   setActiveEnvironment: async (env) => {
     set({ activeEnvironment: env });
     await updateSetting("ACTIVE_ENVIRONMENT", env);
-    get().loadCollection(true);
+    get().loadCollection();
   },
 
   loadCollection: async (forceLoader = false) => {

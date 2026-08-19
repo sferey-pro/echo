@@ -177,11 +177,11 @@ export function CollectionSettingsModal({
           </div>
 
           <div className="pt-6 flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Sauvegarde..." : "Enregistrer"}
+            <Button type="submit" isLoading={loading}>
+              Enregistrer
             </Button>
           </div>
         </form>

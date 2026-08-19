@@ -9,11 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
+import { JsonEditor } from "../../ui/json-editor";
 
 interface VariantEditorProps {
   request: ApiRequest;
   activeVariant: MockVariantDef;
-  isSaving: boolean;
+  isTogglingMock: boolean;
+  isSavingPayload: boolean;
   onToggleMock: () => void;
   onSavePayload: () => void;
   statusCode: number;
@@ -31,7 +33,8 @@ interface VariantEditorProps {
 export function VariantEditor({
   request,
   activeVariant,
-  isSaving,
+  isTogglingMock,
+  isSavingPayload,
   onToggleMock,
   onSavePayload,
   statusCode,
@@ -53,12 +56,13 @@ export function VariantEditor({
         <div className="flex items-center gap-3">
           <Button
             onClick={onToggleMock}
-            disabled={isSaving}
+            isLoading={isTogglingMock}
             variant={activeVariant.isMocked ? "default" : "outline"}
             className={
-              activeVariant.isMocked
+              `w-[280px] ` +
+              (activeVariant.isMocked
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
-                : "font-bold border-2"
+                : "font-bold border-2")
             }
           >
             {activeVariant.isMocked
@@ -67,11 +71,11 @@ export function VariantEditor({
           </Button>
           <Button
             onClick={onSavePayload}
-            disabled={isSaving}
+            isLoading={isSavingPayload}
             variant="default"
             className="font-bold shadow-md"
           >
-            {isSaving ? "Sauvegarde..." : "Sauvegarder les modifications"}
+            Sauvegarder les modifications
           </Button>
         </div>
         <div className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">
@@ -180,13 +184,13 @@ export function VariantEditor({
                 Payload Modifié (Surcharge Locale)
               </div>
             )}
-            <textarea
-              data-testid="monaco-editor-mock"
-              className="w-full h-full p-4 pt-8 font-mono text-sm bg-transparent text-white resize-none focus:outline-none"
-              value={payload}
-              onChange={(e) => onPayloadChange(e.target.value)}
-              spellCheck={false}
-            />
+            <div data-testid="monaco-editor-mock" className="w-full h-full flex-1 min-h-[300px]">
+              <JsonEditor
+                value={payload}
+                onChange={onPayloadChange}
+                className="pt-8 !bg-transparent border-none ring-0"
+              />
+            </div>
           </div>
 
           <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">

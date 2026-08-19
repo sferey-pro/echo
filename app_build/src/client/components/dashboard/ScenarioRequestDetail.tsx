@@ -10,6 +10,7 @@ import {
 import type { ApiRequest } from "../../../shared/lib/parser";
 import type { ScenarioAction } from "../../lib/api";
 import { useState, useEffect } from "react";
+import { JsonEditor } from "@/client/components/ui/json-editor";
 
 interface ScenarioRequestDetailProps {
   action: ScenarioAction;
@@ -32,10 +33,8 @@ export function ScenarioRequestDetail({
     const extStr = typeof action.payload === "string" 
       ? action.payload 
       : JSON.stringify(action.payload || {}, null, 2);
-    if (extStr !== localPayload) {
-      setLocalPayload(extStr);
-    }
-  }, [action.payload, localPayload]);
+    setLocalPayload(extStr);
+  }, [action.payload]);
 
   if (!request) {
     return (
@@ -207,29 +206,54 @@ export function ScenarioRequestDetail({
 
         {/* Payload */}
         <section className="space-y-4 flex-1 flex flex-col min-h-[300px]">
-          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 flex items-center justify-between">
-            <span>Payload (JSON)</span>
-            {action.selectedExample && action.selectedExample !== "custom" && (
-              <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                Exemple actif : {action.selectedExample}
-              </span>
-            )}
-          </h3>
-          <div className="flex-1 border border-border rounded-xl overflow-hidden shadow-sm">
-            <textarea
-              data-testid="monaco-mock"
-              className="w-full h-full p-4 font-mono text-sm bg-transparent resize-none focus:outline-none"
-              value={localPayload}
-              onChange={(e) => {
-                const newVal = e.target.value;
-                setLocalPayload(newVal);
-                onUpdate({
-                  payload: newVal,
-                  selectedExample: "custom",
-                });
-              }}
-              spellCheck={false}
-            />
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-foreground">
+                Payload (JSON)
+              </h3>
+              {action.selectedExample && action.selectedExample !== "custom" && (
+                <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  Exemple actif : {action.selectedExample}
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {localPayload !== (typeof action.payload === "string" ? action.payload : JSON.stringify(action.payload || {}, null, 2)) && (
+                <>
+                  <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
+                    Modification non sauvegardée
+                  </span>
+                  <button
+                    onClick={() => {
+                      onUpdate({
+                        payload: localPayload,
+                        selectedExample: "custom",
+                      });
+                    }}
+                    className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-bold hover:bg-primary/90 transition-colors"
+                  >
+                    Sauvegarder
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <div className={`flex-1 border rounded-xl overflow-hidden shadow-sm h-full transition-colors ${
+            localPayload !== (typeof action.payload === "string" ? action.payload : JSON.stringify(action.payload || {}, null, 2))
+              ? "border-amber-500/50 ring-1 ring-amber-500/20"
+              : "border-border"
+          }`}>
+            <div data-testid="monaco-mock" className="w-full h-full">
+              <JsonEditor
+                value={localPayload}
+                onChange={(newVal) => {
+                  setLocalPayload(newVal);
+                }}
+                className="!bg-transparent border-none ring-0"
+              />
+            </div>
           </div>
         </section>
       </div>

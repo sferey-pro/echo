@@ -21,10 +21,15 @@ const app = new Elysia()
       path: "/swagger",
       documentation: {
         info: {
-          title: "Demo E-Commerce API",
-          version: "1.0.0",
-          description: "Micro-serveur factice pour le projet Echo",
+          title: "Echo API",
+          version: "",
+          description: "",
         },
+      },
+      swaggerOptions: {
+        defaultModelsExpandDepth: -1, // Cache la section "Models" en bas
+        docExpansion: "list", // Garde seulement la liste des routes ouvertes
+        displayOperationId: false,
       },
     })
   )

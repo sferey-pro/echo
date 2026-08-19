@@ -180,13 +180,11 @@ export function ScenarioEditor({
         <div className="flex items-center gap-3">
           <Button
             onClick={handleSave}
-            disabled={isSaving}
+            isLoading={isSaving}
             size="sm"
             className="h-8 gap-2 px-4 shadow-sm"
           >
-            {isSaving ? (
-              "Sauvegarde..."
-            ) : saveSuccess ? (
+            {saveSuccess ? (
               <>
                 <CheckCircle className="w-4 h-4" weight="bold" /> Sauvegardé
               </>

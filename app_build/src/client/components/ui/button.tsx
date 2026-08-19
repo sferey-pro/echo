@@ -35,24 +35,35 @@ const buttonVariants = cva(
   },
 );
 
+import { CircleNotch } from "@phosphor-icons/react";
+
+export interface ButtonProps
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  isLoading?: boolean;
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  isLoading = false,
+  children,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={isLoading || props.disabled}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   );
 }
 

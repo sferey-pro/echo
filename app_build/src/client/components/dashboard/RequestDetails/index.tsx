@@ -68,7 +68,7 @@ export function RequestDetails() {
   const [pathParamsOverrides, setPathParamsOverrides] = useState<
     Record<string, string>
   >(activeVariant?.pathParamsOverrides || {});
-  const [isSaving, setIsSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState<"toggle" | "payload" | "status" | "latency" | "pathParams" | "example" | null>(null);
 
   // Sync local states when active variant changes
   useEffect(() => {
@@ -151,7 +151,7 @@ export function RequestDetails() {
 
   const handleToggleMock = async () => {
     if (!activeVariant || !request) return;
-    setIsSaving(true);
+    setSavingAction("toggle");
     try {
       const newIsMocked = !activeVariant.isMocked;
       await checkAndResolveConflicts(newIsMocked, pathParamsOverrides);
@@ -170,13 +170,13 @@ export function RequestDetails() {
         err instanceof Error ? err.message : "Erreur lors de la mise à jour",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
   const handleSavePayload = async () => {
     if (!activeVariant || !request) return;
-    setIsSaving(true);
+    setSavingAction("payload");
     try {
       await checkAndResolveConflicts(
         activeVariant.isMocked,
@@ -198,14 +198,14 @@ export function RequestDetails() {
         err instanceof Error ? err.message : "Erreur lors de la sauvegarde",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
   const handleStatusChange = async (newCode: number) => {
     if (!activeVariant || !request) return;
     setStatusCode(newCode);
-    setIsSaving(true);
+    setSavingAction("status");
     try {
       await checkAndResolveConflicts(
         activeVariant.isMocked,
@@ -228,13 +228,13 @@ export function RequestDetails() {
           : "Erreur lors du changement de statut",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
   const handleLatencyChange = async (newLatency: number) => {
     if (!activeVariant || !request) return;
-    setIsSaving(true);
+    setSavingAction("latency");
     try {
       const updates = {
         latencyMs: newLatency,
@@ -252,7 +252,7 @@ export function RequestDetails() {
           : "Erreur lors du changement de latence",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
@@ -262,7 +262,7 @@ export function RequestDetails() {
     if (!value) delete newOverrides[key];
     setPathParamsOverrides(newOverrides);
 
-    setIsSaving(true);
+    setSavingAction("pathParams");
     try {
       const updates = {
         pathParamsOverrides: newOverrides,
@@ -280,7 +280,7 @@ export function RequestDetails() {
           : "Erreur lors de la mise à jour des paramètres",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
@@ -296,7 +296,7 @@ export function RequestDetails() {
       (ex as { res?: { status: number } }).res?.status ||
       statusCode;
     setStatusCode(newStatus);
-    setIsSaving(true);
+    setSavingAction("example");
     try {
       const updates = {
         payload: newPayload,
@@ -310,7 +310,7 @@ export function RequestDetails() {
     } catch (e: unknown) {
       toast.error(`Erreur: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
@@ -321,15 +321,15 @@ export function RequestDetails() {
 
   const handleToggleStar = async () => {
     if (!request) return;
-    setIsSaving(true);
+    setSavingAction("toggle");
     await updateRequestMeta(request.id, !request.isStarred);
     await loadCollection();
-    setIsSaving(false);
+    setSavingAction(null);
   };
 
   const submitCreateVariant = async (newVariantName: string) => {
     if (!request) return;
-    setIsSaving(true);
+    setSavingAction("toggle");
     try {
       const newId = await createMockVariant(request.id, newVariantName);
       await loadCollection();
@@ -338,13 +338,13 @@ export function RequestDetails() {
     } catch {
       toast.error("Erreur création variante");
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
   const handleDeleteVariant = async () => {
     if (!activeVariant) return;
-    setIsSaving(true);
+    setSavingAction("toggle");
     try {
       await deleteMockVariant(activeVariant.id);
       await loadCollection();
@@ -352,13 +352,13 @@ export function RequestDetails() {
     } catch {
       toast.error("Erreur suppression variante");
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
   const handleRenameVariant = async (newName: string) => {
     if (!activeVariant || !request) return;
-    setIsSaving(true);
+    setSavingAction("toggle");
     try {
       const updates = { name: newName };
       await updateMockVariant(activeVariant.id, updates);
@@ -369,7 +369,7 @@ export function RequestDetails() {
         err instanceof Error ? err.message : "Erreur lors du renommage",
       );
     } finally {
-      setIsSaving(false);
+      setSavingAction(null);
     }
   };
 
@@ -447,7 +447,7 @@ export function RequestDetails() {
             variants={variants}
             activeVariantId={activeVariant.id}
             onVariantChange={setActiveVariantId}
-            isSaving={isSaving}
+            isSaving={savingAction === "toggle"}
             onCreateVariant={submitCreateVariant}
             onDeleteVariant={handleDeleteVariant}
             onRenameVariant={handleRenameVariant}
@@ -458,7 +458,8 @@ export function RequestDetails() {
       <VariantEditor
         request={request}
         activeVariant={activeVariant}
-        isSaving={isSaving}
+        isTogglingMock={savingAction === "toggle"}
+          isSavingPayload={savingAction === "payload"}
         onToggleMock={handleToggleMock}
         onSavePayload={handleSavePayload}
         statusCode={statusCode}

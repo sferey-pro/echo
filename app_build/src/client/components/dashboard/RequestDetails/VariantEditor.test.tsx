@@ -33,7 +33,8 @@ describe("Component: VariantEditor", () => {
   const defaultProps = {
     request: mockRequest,
     activeVariant: mockVariant,
-    isSaving: false,
+    isTogglingMock: false,
+    isSavingPayload: false,
     onToggleMock: mock(),
     onSavePayload: mock(),
     statusCode: 200,
